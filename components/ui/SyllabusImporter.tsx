@@ -99,7 +99,7 @@ export function SyllabusImporter({ courseId, courseName }: SyllabusImporterProps
             ? 'Extraction en cours…'
             : 'Glisse un PDF ici ou clique pour choisir'}
         </p>
-        <p className="font-space-grotesk text-[11px] mt-1" style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}>
+        <p className="font-space-grotesk text-[11px] mt-1" style={{ color: 'var(--color-text-muted)' }}>
           Plan de cours · Syllabus · PDF uniquement
         </p>
         <input

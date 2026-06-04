@@ -86,6 +86,13 @@ export function CourseCard({ id, code, name, difficultyLevel, taskCount, deadlin
           {taskCount} tâche{taskCount > 1 ? 's' : ''} en cours
         </p>
       )}
+
+      {/* Fallback quand la carte est vide */}
+      {upcomingDeadlines.length === 0 && taskCount === 0 && (
+        <p className="font-space-grotesk text-[12px] text-text-muted">
+          Aucune échéance
+        </p>
+      )}
     </Link>
   )
 }

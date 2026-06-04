@@ -7,11 +7,12 @@ import { Button } from './Button'
 
 interface DeadlineFormProps {
   courseId: string
+  onClose?: () => void
 }
 
 type FormStatus = 'idle' | 'loading' | 'error'
 
-export function DeadlineForm({ courseId }: DeadlineFormProps) {
+export function DeadlineForm({ courseId, onClose }: DeadlineFormProps) {
   const router = useRouter()
   const [open, setOpen]         = useState(false)
   const [status, setStatus]     = useState<FormStatus>('idle')
@@ -25,6 +26,12 @@ export function DeadlineForm({ courseId }: DeadlineFormProps) {
   function reset() {
     setTitle(''); setDueDate(''); setWeight(''); setPriority('MEDIUM')
     setStatus('idle'); setErrorMsg('')
+  }
+
+  function close() {
+    reset()
+    if (onClose) onClose()
+    else setOpen(false)
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -50,7 +57,8 @@ export function DeadlineForm({ courseId }: DeadlineFormProps) {
       }
 
       reset()
-      setOpen(false)
+      if (onClose) onClose()
+      else setOpen(false)
       router.refresh()
     } catch (err) {
       setStatus('error')
@@ -58,7 +66,7 @@ export function DeadlineForm({ courseId }: DeadlineFormProps) {
     }
   }
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <Button variant="secondary" onClick={() => setOpen(true)}>
         Ajouter une Échéance
@@ -72,7 +80,7 @@ export function DeadlineForm({ courseId }: DeadlineFormProps) {
         <p className="font-syne font-bold text-[14px] text-text-primary">Nouvelle Échéance</p>
         <button
           type="button"
-          onClick={() => { setOpen(false); reset() }}
+          onClick={close}
           aria-label="Fermer"
           className="font-space-grotesk text-[13px] text-text-muted hover:text-text-primary transition-colors duration-150 focus-ring rounded px-1"
         >
@@ -87,6 +95,7 @@ export function DeadlineForm({ courseId }: DeadlineFormProps) {
           value={title}
           onChange={e => setTitle(e.target.value)}
           required
+          autoFocus
         />
 
         <div className="grid grid-cols-2 gap-3">

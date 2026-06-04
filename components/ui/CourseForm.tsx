@@ -85,6 +85,7 @@ export function CourseForm() {
             value={code}
             onChange={e => setCode(e.target.value.toUpperCase())}
             required
+            autoFocus
           />
           <div className="flex flex-col gap-1.5">
             <label
@@ -116,7 +117,7 @@ export function CourseForm() {
         />
 
         <Input
-          label="Charge hebdomadaire estimée (h)"
+          label="Charge / semaine (h)"
           type="number"
           min="0"
           step="0.5"

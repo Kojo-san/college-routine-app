@@ -4,8 +4,8 @@ import { PageLayout } from '@/components/layout/PageLayout'
 import { DeadlineChip } from '@/components/ui/DeadlineChip'
 import { TaskItem } from '@/components/ui/TaskItem'
 import { SyllabusImporter } from '@/components/ui/SyllabusImporter'
-import { TaskForm } from '@/components/ui/TaskForm'
-import { DeadlineForm } from '@/components/ui/DeadlineForm'
+import { TaskSection } from '@/components/ui/TaskSection'
+import { DeadlineSection } from '@/components/ui/DeadlineSection'
 import { DeleteCourseButton } from '@/components/ui/DeleteCourseButton'
 import { DeleteTaskButton } from '@/components/ui/DeleteTaskButton'
 import { getCourse } from '@/lib/courses'
@@ -50,14 +50,6 @@ function DifficultyDots({ level }: { level: number }) {
   )
 }
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="font-syne text-[18px] font-bold text-text-primary mb-4">
-      {children}
-    </h2>
-  )
-}
-
 export default async function CourseDetailPage({ params }: PageProps) {
   const [{ id }, user] = await Promise.all([params, getFirstUser()])
   const course = await getCourse(id)
@@ -91,12 +83,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
         </div>
 
         {/* ── Échéances ── */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <SectionHeading>Échéances</SectionHeading>
-            <DeadlineForm courseId={id} />
-          </div>
-
+        <DeadlineSection courseId={id}>
           {course.deadlines.length === 0 ? (
             <p className="font-space-grotesk text-[13px] text-text-muted">
               Aucune Échéance — utilise le formulaire ou importe le syllabus.
@@ -124,22 +111,10 @@ export default async function CourseDetailPage({ params }: PageProps) {
               ))}
             </div>
           )}
-        </section>
+        </DeadlineSection>
 
         {/* ── Tâches à faire ── */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-syne text-[18px] font-bold text-text-primary">
-              Tâches à faire
-              {pendingTasks.length > 0 && (
-                <span className="font-space-grotesk text-[13px] font-normal text-text-muted ml-2">
-                  {pendingTasks.length}
-                </span>
-              )}
-            </h2>
-            <TaskForm courseId={id} />
-          </div>
-
+        <TaskSection courseId={id} taskCount={pendingTasks.length}>
           {pendingTasks.length === 0 ? (
             <p className="font-space-grotesk text-[13px] text-text-muted">
               Aucune Tâche en cours — crée-en une ou importe le syllabus.
@@ -159,7 +134,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
               ))}
             </div>
           )}
-        </section>
+        </TaskSection>
 
         {/* ── Tâches complétées ── */}
         {completedTasks.length > 0 && (

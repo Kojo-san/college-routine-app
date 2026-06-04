@@ -91,4 +91,14 @@
       0 0 0 2px var(--color-bg-base),
       0 0 0 4px var(--color-accent-reco);
   }
+
+  /* Fallback H1 gradient en forced-colors (Windows High Contrast) */
+  @media (forced-colors: active) {
+    .forced-colors-h1 {
+      color: ButtonText !important;
+      background-image: none !important;
+      -webkit-background-clip: unset !important;
+      background-clip: unset !important;
+    }
+  }
 }

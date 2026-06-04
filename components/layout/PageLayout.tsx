@@ -21,7 +21,7 @@ export function PageLayout({ children, title, etudiantNom }: PageLayoutProps) {
           style={{ background: 'var(--gradient-header)' }}
         >
           <h1
-            className="font-syne font-extrabold text-[28px] md:text-[36px] leading-none"
+            className="font-syne font-extrabold text-[28px] md:text-[36px] leading-none forced-colors-h1"
             style={{
               backgroundImage: 'var(--gradient-text-h1)',
               WebkitBackgroundClip: 'text',
