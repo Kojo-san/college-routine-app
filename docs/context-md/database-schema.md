@@ -1,0 +1,352 @@
+// Prisma Schema - College Routine
+// Traduit depuis le diagramme de classes (docs/uml/class_diagram.puml)
+// Base de données : PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== ÉNUMÉRATIONS ====================
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SessionStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  MISSED
+  CANCELLED
+}
+
+enum CognitiveIntensity {
+  LOW
+  MEDIUM
+  HIGH
+  DEEP_WORK
+}
+
+enum RecommendationType {
+  STUDY
+  FITNESS
+  RECOVERY
+  SLEEP
+  PLANNING
+  STRESS
+}
+
+enum GoalType {
+  ACADEMIC
+  FITNESS
+}
+
+enum SessionType {
+  STUDY
+  FITNESS
+  RECOVERY
+}
+
+enum StudyStrategyType {
+  ACTIVE_RECALL
+  SPACED_REPETITION
+  PRACTICE_TESTING
+  MIND_MAP
+  POMODORO
+}
+
+// ==================== UTILISATEUR ====================
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  preferences PlanningPreferences?
+  goals       Goal[]
+  courses     Course[]
+  sessions    Session[]
+  healthData  HealthData[]
+  dailyPlans  DailyPlan[]
+}
+
+model PlanningPreferences {
+  id                   String  @id @default(uuid())
+  preferredWakeTime    String  // format "HH:MM"
+  preferredSleepTime   String
+  preferredGymTime     String?
+  maxDailyStudyHours   Float   @default(8)
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Héritage par table unique (STI) pour Goal
+model Goal {
+  id          String    @id @default(uuid())
+  type        GoalType
+  title       String
+  description String?
+  targetDate  DateTime?
+  priority    Priority  @default(MEDIUM)
+  completed   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  // Champs AcademicGoal
+  targetGpa   Float?
+  targetGrade String?
+
+  // Champs FitnessGoal
+  targetWeight   Float?
+  targetBodyFat  Float?
+  targetStrength String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==================== ACADÉMIQUE ====================
+
+model Course {
+  id                      String   @id @default(uuid())
+  code                    String
+  name                    String
+  difficultyLevel         Int      @default(3) // échelle 1-5
+  estimatedWeeklyWorkload Float    @default(3.0)
+  createdAt               DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  coursePlan CoursePlan?
+  deadlines  Deadline[]
+  tasks      Task[]
+  sessions   Session[]
+}
+
+model CoursePlan {
+  id              String   @id @default(uuid())
+  sourceFileName  String
+  topics          String[]
+  evaluationRules String[]
+  createdAt       DateTime @default(now())
+
+  courseId String @unique
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Deadline {
+  id        String   @id @default(uuid())
+  title     String
+  dueDate   DateTime
+  weight    Float    // pondération en pourcentage
+  priority  Priority @default(MEDIUM)
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id                       String   @id @default(uuid())
+  title                    String
+  description              String?
+  estimatedDurationMinutes Int      @default(30)
+  priority                 Priority @default(MEDIUM)
+  completed                Boolean  @default(false)
+  createdAt                DateTime @default(now())
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  timeBlocks TimeBlock[]
+}
+
+// ==================== SESSIONS ====================
+
+// Héritage par table unique (STI) pour Session
+model Session {
+  id        String        @id @default(uuid())
+  type      SessionType
+  title     String
+  startTime DateTime?
+  endTime   DateTime?
+  status    SessionStatus @default(PLANNED)
+  createdAt DateTime      @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Champs StudySession
+  cognitiveIntensity CognitiveIntensity?
+  expectedOutcome    String?
+  strategy           StudyStrategyType?
+
+  // Champs FitnessSession
+  workoutType      String?
+  muscleGroups     String[]
+  fitnessIntensity Int?     // échelle 1-10
+
+  // Champs RecoverySession
+  recoveryType String?
+
+  // Relation vers Course (sessions d'étude uniquement)
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id])
+
+  timeBlocks TimeBlock[]
+}
+
+// ==================== SANTÉ ====================
+
+model HealthData {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sleepData      SleepData?
+  activityData   ActivityData?
+  heartRateData  HeartRateData?
+  recoveryScore  RecoveryScore?
+  cognitiveState CognitiveState?
+
+  @@unique([userId, date])
+}
+
+model SleepData {
+  id                 String @id @default(uuid())
+  sleepDurationHours Float
+  sleepEfficiency    Float  @default(0.0) // 0.0 à 1.0
+  deepSleepMinutes   Int    @default(0)
+
+  healthDataId String     @unique
+  healthData   HealthData @relation(fields: [healthDataId], references: [id], onDelete: Cascade)
+}
+
+model ActivityData {
+  id             String @id @default(uuid())
+  steps          Int    @default(0)
+  activeCalories Int    @default(0)
+  workoutMinutes Int    @default(0)
+
+  healthDataId String     @unique
+  healthData   HealthData @relation(fields: [healthDataId], references: [id], onDelete: Cascade)
+}
+
+model HeartRateData {
+  id               String @id @default(uuid())
+  restingHeartRate Int
+  averageHeartRate Int
+
+  healthDataId String     @unique
+  healthData   HealthData @relation(fields: [healthDataId], references: [id], onDelete: Cascade)
+}
+
+model RecoveryScore {
+  id               String @id @default(uuid())
+  value            Int    // 0 à 100
+  physicalFatigue  Int    // 0 à 100
+  cognitiveFatigue Int    // 0 à 100
+  sleepDebt        Float  // heures de dette de sommeil
+
+  healthDataId String     @unique
+  healthData   HealthData @relation(fields: [healthDataId], references: [id], onDelete: Cascade)
+}
+
+model CognitiveState {
+  id              String @id @default(uuid())
+  focusLevel      Int    // 0 à 100
+  mentalFatigue   Int    // 0 à 100
+  stressLevel     Int    // 0 à 100
+  motivationLevel Int    // 0 à 100
+
+  healthDataId String     @unique
+  healthData   HealthData @relation(fields: [healthDataId], references: [id], onDelete: Cascade)
+}
+
+// ==================== PLANNING ====================
+
+model DailyPlan {
+  id           String   @id @default(uuid())
+  date         DateTime @db.Date
+  scoreJournee Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  timeBlocks      TimeBlock[]
+  recommendations Recommendation[]
+
+  @@unique([userId, date])
+}
+
+model TimeBlock {
+  id           String   @id @default(uuid())
+  startTime    DateTime
+  endTime      DateTime
+  label        String
+  priority     Priority @default(MEDIUM)
+  typeActivite String?
+
+  dailyPlanId String
+  dailyPlan   DailyPlan @relation(fields: [dailyPlanId], references: [id], onDelete: Cascade)
+
+  sessionId String?
+  session   Session? @relation(fields: [sessionId], references: [id])
+
+  taskId String?
+  task   Task?    @relation(fields: [taskId], references: [id])
+}
+
+// ==================== RECOMMANDATIONS ====================
+
+model Recommendation {
+  id              String             @id @default(uuid())
+  type            RecommendationType
+  message         String
+  explanation     String?
+  confidenceScore Float              @default(0.5)
+  createdAt       DateTime           @default(now())
+
+  dailyPlanId String
+  dailyPlan   DailyPlan @relation(fields: [dailyPlanId], references: [id], onDelete: Cascade)
+
+  rules ScientificRule[] @relation("RecommendationRules")
+}
+
+model ScientificRule {
+  id                     String @id @default(uuid())
+  name                   String
+  condition              String
+  recommendationTemplate String
+
+  evidenceSourceId String
+  evidenceSource   EvidenceSource @relation(fields: [evidenceSourceId], references: [id])
+
+  recommendations Recommendation[] @relation("RecommendationRules")
+}
+
+model EvidenceSource {
+  id      String  @id @default(uuid())
+  title   String
+  authors String
+  year    Int
+  summary String?
+
+  rules ScientificRule[]
+}

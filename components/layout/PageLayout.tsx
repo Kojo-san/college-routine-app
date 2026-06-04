@@ -1,0 +1,44 @@
+import type { ReactNode } from 'react'
+import { Sidebar } from '@/components/ui/Sidebar'
+
+interface PageLayoutProps {
+  children: ReactNode
+  title: string
+  etudiantNom?: string
+}
+
+export function PageLayout({ children, title, etudiantNom }: PageLayoutProps) {
+  return (
+    <div className="min-h-screen bg-bg-base flex flex-col lg:grid lg:grid-cols-[220px_1fr]">
+      <Sidebar etudiantNom={etudiantNom} />
+
+      {/* Zone principale */}
+      <div className="flex flex-col flex-1 lg:min-h-screen lg:overflow-auto">
+
+        {/* En-tête de page */}
+        <header
+          className="px-6 pt-6 pb-5 md:px-10 md:pt-8 md:pb-6 border-b border-border-subtle flex-shrink-0"
+          style={{ background: 'var(--gradient-header)' }}
+        >
+          <h1
+            className="font-syne font-extrabold text-[28px] md:text-[36px] leading-none"
+            style={{
+              backgroundImage: 'var(--gradient-text-h1)',
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              color: 'transparent',
+            }}
+          >
+            {title}
+          </h1>
+        </header>
+
+        {/* Contenu principal */}
+        <main className="px-6 py-6 md:px-10 md:py-8 flex-1">
+          {children}
+        </main>
+
+      </div>
+    </div>
+  )
+}

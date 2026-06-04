@@ -1,26 +1,94 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* ── Base ── */
+  --color-bg-base:       #0A0A14;
+  --color-bg-surface:    #12121F;
+  --color-bg-elevated:   #1A1A2E;
+  --color-border-subtle: #1E1E35;
+  --color-text-primary:  #F0F0FF;
+  --color-text-muted:    #8888AA;
+
+  /* ── Accents sémantiques ── */
+  --color-accent-study: #4A9EFF;
+  --color-accent-fit:   #FFD166;
+  --color-accent-rec:   #A8FF78;
+  --color-accent-reco:  #FF6B9D;
+
+  /* ── États système ── */
+  --color-warning: #FFB347;
+  --color-success: #A8FF78;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-syne:          var(--font-syne);
+  --font-space-grotesk: var(--font-space-grotesk);
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
+  html {
+    background-color: #0A0A14;
+    color: #F0F0FF;
+  }
+
+  body {
+    font-family: var(--font-space-grotesk), 'Space Grotesk', sans-serif;
+  }
+
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* ── Glow (cartes) ── */
+    --glow-study:    0 0 16px rgba(74, 158, 255, 0.35);
+    --glow-fitness:  0 0 16px rgba(255, 209, 102, 0.35);
+    --glow-recovery: 0 0 16px rgba(168, 255, 120, 0.35);
+    --glow-reco:     0 0 20px rgba(255, 107, 157, 0.25);
+
+    /* ── Glow (progress bars) ── */
+    --glow-study-sm:    0 0 6px rgba(74, 158, 255, 0.5);
+    --glow-fitness-sm:  0 0 6px rgba(255, 209, 102, 0.5);
+    --glow-recovery-sm: 0 0 6px rgba(168, 255, 120, 0.5);
+    --glow-reco-sm:     0 0 6px rgba(255, 107, 157, 0.5);
+
+    /* ── Backgrounds de badges ── */
+    --bg-badge-study:    rgba(74, 158, 255, 0.15);
+    --bg-badge-fitness:  rgba(255, 209, 102, 0.15);
+    --bg-badge-recovery: rgba(168, 255, 120, 0.15);
+    --bg-badge-reco:     rgba(255, 107, 157, 0.15);
+    --bg-badge-warning:  rgba(255, 179, 71, 0.15);
+    --bg-badge-success:  rgba(168, 255, 120, 0.10);
+
+    /* ── Backgrounds d'état ── */
+    --bg-nav-active: rgba(74, 158, 255, 0.12);
+
+    /* ── Gradients ── */
+    --gradient-header:   linear-gradient(180deg, #1A1A2E 0%, #0A0A14 100%);
+    --gradient-text-h1:  linear-gradient(135deg, #4A9EFF 0%, #FF6B9D 100%);
+  }
+
+  /* ── Reduced motion global ── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Focus ring brandé — box-shadow double pour simuler ring-offset */
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg-base),
+      0 0 0 4px var(--color-accent-study);
+  }
+
+  /* Variante erreur pour Input */
+  .focus-ring-error:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg-base),
+      0 0 0 4px var(--color-accent-reco);
+  }
 }
