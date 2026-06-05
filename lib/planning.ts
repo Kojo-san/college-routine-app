@@ -1,4 +1,5 @@
 import type { RecoveryResult, CognitiveResult } from './health'
+import type { ScheduleSlot } from './schedule'
 import { getHealthData } from './health'
 import { enrichRecommendationMessage } from './ai'
 import type { SeedRule, AIRecommendationContext } from './ai'
@@ -147,6 +148,7 @@ export interface PlanningContext {
   cognitive: CognitiveResult | null
   deadlines: DeadlineInput[]
   tasks: TaskInput[]
+  fixedSchedules?: ScheduleSlot[]
 }
 
 export interface GeneratedBlock {
@@ -154,7 +156,7 @@ export interface GeneratedBlock {
   endMinute: number
   label: string
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-  typeActivite: 'STUDY' | 'FITNESS' | 'RECOVERY' | 'MEAL' | 'FREE'
+  typeActivite: 'STUDY' | 'FITNESS' | 'RECOVERY' | 'MEAL' | 'FREE' | 'COURS'
   courseId?: string
   taskId?: string
 }
@@ -360,6 +362,17 @@ export function buildSchedule(context: PlanningContext): GeneratedPlan {
 
   const wakeMin = parseTime(prefs.preferredWakeTime)
   const sleepMin = parseTime(prefs.preferredSleepTime)
+
+  // ── Fixed schedule blocks (cours / lab) ──
+  const todayDow = date.getUTCDay()
+  for (const slot of context.fixedSchedules ?? []) {
+    if (slot.dayOfWeek !== todayDow) continue
+    const start = parseTime(slot.startTime)
+    const end   = parseTime(slot.endTime)
+    if (end > sleepMin || start < wakeMin) continue
+    const label = slot.type === 'COURS' ? 'Cours magistral' : 'Laboratoire'
+    blocks.push(makeBlock(start, end, label, 'COURS', 'HIGH'))
+  }
 
   // ── Meal blocks ──
   blocks.push(makeBlock(wakeMin, wakeMin + 20, 'Petit-déjeuner', 'MEAL'))
@@ -600,7 +613,7 @@ export async function generateDailyPlan(
   userId: string,
   date: Date,
 ): Promise<DailyPlanSummary> {
-  const [userPrefs, rawCourses, healthData, dbRules] = await Promise.all([
+  const [userPrefs, rawCourses, healthData, dbRules, dbSchedules] = await Promise.all([
     prisma.planningPreferences.findUnique({ where: { userId } }),
     prisma.course.findMany({
       where: { userId },
@@ -611,6 +624,10 @@ export async function generateDailyPlan(
     }),
     getHealthData(userId, date),
     prisma.scientificRule.findMany({ include: { evidenceSource: true } }),
+    prisma.courseSchedule.findMany({
+      where: { course: { userId } },
+      select: { dayOfWeek: true, startTime: true, endTime: true, type: true },
+    }),
   ])
 
   const ruleMap = new Map(dbRules.map(r => [r.name, r]))
@@ -649,6 +666,13 @@ export async function generateDailyPlan(
     })),
   )
 
+  const fixedSchedules: ScheduleSlot[] = dbSchedules.map(s => ({
+    dayOfWeek: s.dayOfWeek,
+    startTime: s.startTime,
+    endTime:   s.endTime,
+    type:      s.type as 'COURS' | 'LAB',
+  }))
+
   const context: PlanningContext = {
     date,
     prefs,
@@ -656,6 +680,7 @@ export async function generateDailyPlan(
     cognitive: healthData?.cognitive ?? null,
     deadlines,
     tasks,
+    fixedSchedules,
   }
 
   const generated = buildSchedule(context)

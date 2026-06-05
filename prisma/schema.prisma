@@ -63,6 +63,11 @@ enum StudyStrategyType {
   POMODORO
 }
 
+enum ScheduleType {
+  COURS
+  LAB
+}
+
 // ==================== UTILISATEUR ====================
 
 model User {
@@ -130,10 +135,23 @@ model Course {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  coursePlan CoursePlan?
-  deadlines  Deadline[]
-  tasks      Task[]
-  sessions   Session[]
+  coursePlan      CoursePlan?
+  deadlines       Deadline[]
+  tasks           Task[]
+  sessions        Session[]
+  courseSchedules CourseSchedule[]
+}
+
+model CourseSchedule {
+  id         String       @id @default(uuid())
+  dayOfWeek  Int          // 0=Dim … 6=Sam
+  startTime  String       // "HH:MM"
+  endTime    String       // "HH:MM"
+  type       ScheduleType
+  createdAt  DateTime     @default(now())
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
 model CoursePlan {

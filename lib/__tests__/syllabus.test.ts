@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parsePdfText, buildDeadlineInputs } from '../syllabus'
 import type { SyllabusParsed } from '../syllabus'
+import type { ScheduleSlot } from '../schedule'
 
 // ─── parsePdfText ─────────────────────────────────────────────────────────────
 
@@ -157,5 +158,49 @@ describe('buildDeadlineInputs', () => {
       { title: 'Présence', weight: 5 },
     ]
     expect(buildDeadlineInputs(courseId, evaluations, today)).toHaveLength(0)
+  })
+})
+
+// ─── parsePdfText — schedules ─────────────────────────────────────────────────
+
+describe('parsePdfText — schedules field', () => {
+  it('tracer: result includes a schedules array', () => {
+    const result = parsePdfText('')
+    expect(result).toHaveProperty('schedules')
+    expect(Array.isArray(result.schedules)).toBe(true)
+  })
+
+  it('populates schedules with detected recurring slots', () => {
+    const text = `
+      Plan de cours INF1010
+
+      1. Introduction
+      2. Structures de données
+
+      Examen intra : 35% - 2026-10-20
+
+      Horaire hebdomadaire :
+      Lundi 08:30 - 10:20 Cours magistral
+      Mercredi 13:00-14:50 Lab
+    `
+    const result = parsePdfText(text)
+    expect(result.schedules).toHaveLength(2)
+    expect(result.schedules[0]).toMatchObject<ScheduleSlot>({
+      dayOfWeek: 1,
+      startTime: '08:30',
+      endTime: '10:20',
+      type: 'COURS',
+    })
+    expect(result.schedules[1]).toMatchObject<ScheduleSlot>({
+      dayOfWeek: 3,
+      startTime: '13:00',
+      endTime: '14:50',
+      type: 'LAB',
+    })
+  })
+
+  it('returns empty schedules when text has no schedule patterns', () => {
+    const text = '1. Introduction\nExamen final : 40%'
+    expect(parsePdfText(text).schedules).toEqual([])
   })
 })

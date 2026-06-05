@@ -1,3 +1,6 @@
+import { detectRecurringSlots } from './schedule'
+import type { ScheduleSlot } from './schedule'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface SyllabusEvaluation {
@@ -9,6 +12,7 @@ export interface SyllabusEvaluation {
 export interface SyllabusParsed {
   topics: string[]
   evaluations: SyllabusEvaluation[]
+  schedules: ScheduleSlot[]
 }
 
 export interface CreateDeadlineInput {
@@ -32,6 +36,7 @@ const DATE_PATTERN = /(\d{4}-\d{2}-\d{2})/
 export function parsePdfText(text: string): SyllabusParsed {
   const topics: string[] = []
   const evaluations: SyllabusEvaluation[] = []
+  const schedules = detectRecurringSlots(text)
 
   for (const raw of text.split('\n')) {
     const line = raw.trimEnd()
@@ -58,7 +63,7 @@ export function parsePdfText(text: string): SyllabusParsed {
     }
   }
 
-  return { topics, evaluations }
+  return { topics, evaluations, schedules }
 }
 
 function weightToPriority(weight: number): CreateDeadlineInput['priority'] {

@@ -16,6 +16,7 @@ import type {
   PlanningContext,
 } from '../planning'
 import type { RecoveryResult, CognitiveResult } from '../health'
+import type { ScheduleSlot } from '../schedule'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -560,5 +561,64 @@ describe('validateTimeBlockPatch — invalid inputs', () => {
 
   it('rejects endTime === startTime', () => {
     expect(validateTimeBlockPatch({ startTime: '10:00', endTime: '10:00' }).valid).toBe(false)
+  })
+})
+
+// ─── buildSchedule — fixedSchedules ──────────────────────────────────────────
+
+// today (2026-06-04) is a Thursday → dayOfWeek 4
+const thursdayCours: ScheduleSlot = { dayOfWeek: 4, startTime: '08:30', endTime: '10:20', type: 'COURS' }
+const thursdayLab:   ScheduleSlot = { dayOfWeek: 4, startTime: '13:00', endTime: '14:50', type: 'LAB'  }
+const mondaySlot:    ScheduleSlot = { dayOfWeek: 1, startTime: '08:30', endTime: '10:20', type: 'COURS' }
+
+const schedCtx: PlanningContext = {
+  date: today,
+  prefs: basePrefs,
+  recovery: null,
+  cognitive: null,
+  deadlines: [],
+  tasks: [],
+}
+
+describe('buildSchedule — fixedSchedules', () => {
+  it('tracer: inserts a COURS block when fixedSchedules match the day', () => {
+    const plan = buildSchedule({ ...schedCtx, fixedSchedules: [thursdayCours] })
+    const coursBlocks = plan.blocks.filter(b => b.typeActivite === 'COURS')
+    expect(coursBlocks).toHaveLength(1)
+  })
+
+  it('COURS block has correct startMinute / endMinute', () => {
+    const plan = buildSchedule({ ...schedCtx, fixedSchedules: [thursdayCours] })
+    const b = plan.blocks.find(b => b.typeActivite === 'COURS')!
+    expect(b.startMinute).toBe(8 * 60 + 30)   // 510
+    expect(b.endMinute).toBe(10 * 60 + 20)     // 620
+  })
+
+  it('COURS block has priority HIGH', () => {
+    const plan = buildSchedule({ ...schedCtx, fixedSchedules: [thursdayCours] })
+    const b = plan.blocks.find(b => b.typeActivite === 'COURS')!
+    expect(b.priority).toBe('HIGH')
+  })
+
+  it('Pomodoro blocks do not overlap with the COURS block', () => {
+    const plan = buildSchedule({ ...schedCtx, fixedSchedules: [thursdayCours] })
+    const coursBlock = plan.blocks.find(b => b.typeActivite === 'COURS')!
+    const studyBlocks = plan.blocks.filter(b => b.typeActivite === 'STUDY')
+    for (const s of studyBlocks) {
+      const overlaps = s.startMinute < coursBlock.endMinute && s.endMinute > coursBlock.startMinute
+      expect(overlaps).toBe(false)
+    }
+  })
+
+  it('inserts multiple fixedSchedules blocks on the same day', () => {
+    const plan = buildSchedule({ ...schedCtx, fixedSchedules: [thursdayCours, thursdayLab] })
+    const fixedBlocks = plan.blocks.filter(b => b.typeActivite === 'COURS')
+    expect(fixedBlocks).toHaveLength(2)
+  })
+
+  it('does NOT insert fixedSchedules from a different day', () => {
+    const plan = buildSchedule({ ...schedCtx, fixedSchedules: [mondaySlot] })
+    const coursBlocks = plan.blocks.filter(b => b.typeActivite === 'COURS')
+    expect(coursBlocks).toHaveLength(0)
   })
 })

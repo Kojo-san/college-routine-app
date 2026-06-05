@@ -1,18 +1,20 @@
 import type { BadgeVariant } from './Badge'
 import { Badge } from './Badge'
 
-export type BlocType = 'study' | 'fitness' | 'recovery' | 'task' | 'meal'
+export type BlocType = 'study' | 'fitness' | 'recovery' | 'task' | 'meal' | 'cours'
 
 const BADGE_VARIANT: Partial<Record<BlocType, BadgeVariant>> = {
   study:    'study',
   fitness:  'fitness',
   recovery: 'recovery',
+  cours:    'cours',
 }
 
 const GLOW: Record<BlocType, React.CSSProperties> = {
   study:    { boxShadow: 'var(--glow-study)',    borderLeft: '3px solid var(--color-accent-study)' },
   fitness:  { boxShadow: 'var(--glow-fitness)',  borderLeft: '3px solid var(--color-accent-fit)'   },
   recovery: { boxShadow: 'var(--glow-recovery)', borderLeft: '3px solid var(--color-accent-rec)'   },
+  cours:    { boxShadow: 'var(--glow-cours)',     borderLeft: '3px solid var(--color-accent-cours)' },
   task:     { borderLeft: '3px solid var(--color-border-subtle)' },
   meal:     {},
 }
@@ -21,6 +23,7 @@ const PROGRESS_COLOR: Record<BlocType, string> = {
   study:    'var(--color-accent-study)',
   fitness:  'var(--color-accent-fit)',
   recovery: 'var(--color-accent-rec)',
+  cours:    'var(--color-accent-cours)',
   task:     'var(--color-text-muted)',
   meal:     'var(--color-text-muted)',
 }
@@ -29,6 +32,7 @@ const PROGRESS_GLOW: Record<BlocType, string> = {
   study:    'var(--glow-study-sm)',
   fitness:  'var(--glow-fitness-sm)',
   recovery: 'var(--glow-recovery-sm)',
+  cours:    'var(--glow-cours-sm)',
   task:     'none',
   meal:     'none',
 }

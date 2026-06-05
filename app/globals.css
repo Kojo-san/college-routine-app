@@ -15,6 +15,9 @@
   --color-accent-rec:   #A8FF78;
   --color-accent-reco:  #FF6B9D;
 
+  /* ── Cours (grille horaire fixe) ── */
+  --color-accent-cours: #9B8FFF;
+
   /* ── États système ── */
   --color-warning: #FFB347;
   --color-success: #A8FF78;
@@ -41,18 +44,21 @@
     --glow-fitness:  0 0 16px rgba(255, 209, 102, 0.35);
     --glow-recovery: 0 0 16px rgba(168, 255, 120, 0.35);
     --glow-reco:     0 0 20px rgba(255, 107, 157, 0.25);
+    --glow-cours:    0 0 16px rgba(155, 143, 255, 0.40);
 
     /* ── Glow (progress bars) ── */
     --glow-study-sm:    0 0 6px rgba(74, 158, 255, 0.5);
     --glow-fitness-sm:  0 0 6px rgba(255, 209, 102, 0.5);
     --glow-recovery-sm: 0 0 6px rgba(168, 255, 120, 0.5);
     --glow-reco-sm:     0 0 6px rgba(255, 107, 157, 0.5);
+    --glow-cours-sm:    0 0 6px rgba(155, 143, 255, 0.5);
 
     /* ── Backgrounds de badges ── */
     --bg-badge-study:    rgba(74, 158, 255, 0.15);
     --bg-badge-fitness:  rgba(255, 209, 102, 0.15);
     --bg-badge-recovery: rgba(168, 255, 120, 0.15);
     --bg-badge-reco:     rgba(255, 107, 157, 0.15);
+    --bg-badge-cours:    rgba(155, 143, 255, 0.15);
     --bg-badge-warning:  rgba(255, 179, 71, 0.15);
     --bg-badge-success:  rgba(168, 255, 120, 0.10);
 

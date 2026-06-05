@@ -28,13 +28,14 @@ function formatHHMM(dt: Date): string {
   return `${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}`
 }
 
-type BlocType = 'study' | 'fitness' | 'recovery' | 'task' | 'meal'
+type BlocType = 'study' | 'fitness' | 'recovery' | 'task' | 'meal' | 'cours'
 
 function typeActiviteToBlockType(typeActivite: string | null): BlocType {
   switch (typeActivite) {
     case 'STUDY':    return 'study'
     case 'FITNESS':  return 'fitness'
     case 'RECOVERY': return 'recovery'
+    case 'COURS':    return 'cours'
     case 'MEAL':     return 'meal'
     default:         return 'task'
   }
