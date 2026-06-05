@@ -1,4 +1,5 @@
 import { google } from 'googleapis'
+import { getOptionalSession } from '@/lib/session'
 import prisma from '@/lib/prisma'
 
 function getOAuthClient() {
@@ -20,18 +21,21 @@ export async function GET(request: Request) {
     )
   }
 
+  const session = await getOptionalSession()
+  if (!session) {
+    return Response.redirect(
+      `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/login`,
+    )
+  }
+  const { userId } = session
+
   const oauth2Client = getOAuthClient()
   const { tokens } = await oauth2Client.getToken(code)
 
-  const user = await prisma.user.findFirst({ select: { id: true } })
-  if (!user) {
-    return Response.json({ error: 'Aucun étudiant trouvé' }, { status: 404 })
-  }
-
   await prisma.oAuthToken.upsert({
-    where: { userId_provider: { userId: user.id, provider: 'google' } },
+    where:  { userId_provider: { userId, provider: 'google' } },
     create: {
-      userId:       user.id,
+      userId,
       provider:     'google',
       accessToken:  tokens.access_token!,
       refreshToken: tokens.refresh_token ?? null,

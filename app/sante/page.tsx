@@ -4,12 +4,8 @@ import { HealthHistoryChart } from '@/components/ui/HealthHistoryChart'
 import { SleepForm, ActivityForm, HeartRateForm } from '@/components/ui/HealthForms'
 import { AppleHealthImporter } from '@/components/ui/AppleHealthImporter'
 import { getHealthData, getHealthHistory } from '@/lib/health'
+import { verifySession } from '@/lib/session'
 import prisma from '@/lib/prisma'
-
-async function getFirstUser(): Promise<{ id: string; name: string } | null> {
-  const user = await prisma.user.findFirst({ select: { id: true, name: true } })
-  return user ?? null
-}
 
 function todayDateLabel(): string {
   return new Date().toLocaleDateString('fr-CA', {
@@ -40,19 +36,19 @@ function FormCard({ children }: { children: React.ReactNode }) {
 }
 
 export default async function SantePage() {
-  const user   = await getFirstUser()
-  const userId = user?.id ?? null
-  const today  = new Date()
+  const { userId } = await verifySession()
+  const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const [healthData, history] = await Promise.all([
-    userId ? getHealthData(userId, today) : Promise.resolve(null),
-    userId ? getHealthHistory(userId, 7, today) : Promise.resolve([]),
+  const [user, healthData, history] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
+    getHealthData(userId, today),
+    getHealthHistory(userId, 7, today),
   ])
-  const dateLabel  = todayDateLabel()
-  const dateISO    = todayISO()
 
-  // Prépare les props pour EtatCard si l'État est calculé
+  const dateLabel = todayDateLabel()
+  const dateISO   = todayISO()
+
   const etatProps =
     healthData?.recovery && healthData?.cognitive && healthData?.sleep
       ? {

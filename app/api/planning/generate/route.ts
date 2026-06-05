@@ -1,16 +1,10 @@
 import { generateDailyPlan } from '@/lib/planning'
-import prisma from '@/lib/prisma'
-
-async function getFirstUserId(): Promise<string | null> {
-  const user = await prisma.user.findFirst({ select: { id: true } })
-  return user?.id ?? null
-}
+import { getOptionalSession } from '@/lib/session'
 
 export async function POST() {
-  const userId = await getFirstUserId()
-  if (!userId) {
-    return Response.json({ error: 'Aucun étudiant trouvé' }, { status: 404 })
-  }
+  const session = await getOptionalSession()
+  if (!session) return Response.json({ error: 'Non authentifié' }, { status: 401 })
+  const { userId } = session
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)

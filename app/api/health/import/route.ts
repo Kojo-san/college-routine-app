@@ -1,8 +1,14 @@
 import { parseAppleHealthExport, recordToHealthInput } from '@/lib/applehealth'
 import { upsertSleepData, upsertActivityData, upsertHeartRateData } from '@/lib/health'
-import prisma from '@/lib/prisma'
+import { getOptionalSession } from '@/lib/session'
+
+// TODO (Phase D): also accept X-API-Key header for iOS app access without session cookie
 
 export async function POST(request: Request) {
+  const session = await getOptionalSession()
+  if (!session) return Response.json({ error: 'Non authentifié' }, { status: 401 })
+  const { userId } = session
+
   const body = await request.json().catch(() => null)
   if (!body) {
     return Response.json({ error: 'Corps JSON invalide' }, { status: 400 })
@@ -19,20 +25,15 @@ export async function POST(request: Request) {
     return Response.json({ data: { imported: 0 } })
   }
 
-  const user = await prisma.user.findFirst({ select: { id: true } })
-  if (!user) {
-    return Response.json({ error: 'Aucun étudiant trouvé' }, { status: 404 })
-  }
-
   let imported = 0
   for (const record of records) {
     const input  = recordToHealthInput(record)
     const date   = new Date(input.date)
     date.setUTCHours(0, 0, 0, 0)
 
-    if (input.sleep)    await upsertSleepData(user.id, date, input.sleep)
-    if (input.activity) await upsertActivityData(user.id, date, input.activity)
-    if (input.heartRate) await upsertHeartRateData(user.id, date, input.heartRate)
+    if (input.sleep)     await upsertSleepData(userId, date, input.sleep)
+    if (input.activity)  await upsertActivityData(userId, date, input.activity)
+    if (input.heartRate) await upsertHeartRateData(userId, date, input.heartRate)
 
     imported++
   }

@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { logout } from '@/app/actions/auth'
 
 const NAV = [
   { href: '/',           label: 'Dashboard'  },
@@ -87,18 +88,28 @@ export function Sidebar({ etudiantNom = 'Étudiant' }: SidebarProps) {
   )
 
   const etudiantBlock = (
-    <div className="flex items-center gap-3 pt-4 border-t border-border-subtle">
-      <div
-        className="w-8 h-8 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center flex-shrink-0"
-        aria-hidden="true"
-      >
-        <span className="font-space-grotesk text-[12px] font-semibold text-text-muted">
-          {etudiantNom.charAt(0).toUpperCase()}
+    <div className="flex flex-col gap-2 pt-4 border-t border-border-subtle">
+      <div className="flex items-center gap-3">
+        <div
+          className="w-8 h-8 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center flex-shrink-0"
+          aria-hidden="true"
+        >
+          <span className="font-space-grotesk text-[12px] font-semibold text-text-muted">
+            {etudiantNom.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <span className="font-space-grotesk text-sm font-medium text-text-primary truncate">
+          {etudiantNom}
         </span>
       </div>
-      <span className="font-space-grotesk text-sm font-medium text-text-primary truncate">
-        {etudiantNom}
-      </span>
+      <form action={logout}>
+        <button
+          type="submit"
+          className="w-full text-left font-space-grotesk text-[12px] text-text-muted hover:text-accent-reco transition-colors px-1 py-0.5 focus-ring rounded"
+        >
+          Déconnexion
+        </button>
+      </form>
     </div>
   )
 

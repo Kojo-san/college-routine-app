@@ -8,13 +8,9 @@ import { GeneratePlanButton } from '@/components/ui/GeneratePlanButton'
 import { WeeklyPlanView } from '@/components/ui/WeeklyPlanView'
 import { GoogleCalendarButton } from '@/components/ui/GoogleCalendarButton'
 import { getDailyPlan, getWeeklyPlans, buildWeekDates, formatWeekRange } from '@/lib/planning'
+import { verifySession } from '@/lib/session'
 import prisma from '@/lib/prisma'
 import type { RecommendationType } from '@/app/generated/prisma/client'
-
-async function getFirstUser(): Promise<{ id: string; name: string } | null> {
-  const user = await prisma.user.findFirst({ select: { id: true, name: true } })
-  return user ?? null
-}
 
 function todayDateLabel(): string {
   return new Date().toLocaleDateString('fr-CA', {
@@ -53,22 +49,20 @@ function SectionHeading({ id, children }: { id: string; children: React.ReactNod
 }
 
 export default async function PlanningPage() {
-  const user   = await getFirstUser()
-  const userId = user?.id ?? null
-  const today  = new Date()
+  const { userId } = await verifySession()
+  const today = new Date()
   today.setHours(0, 0, 0, 0)
 
   const weekDates = buildWeekDates(today)
 
-  const [plan, week, gcalToken] = await Promise.all([
-    userId ? getDailyPlan(userId, today) : Promise.resolve(null),
-    userId ? getWeeklyPlans(userId, weekDates) : Promise.resolve([]),
-    userId
-      ? prisma.oAuthToken.findUnique({
-          where: { userId_provider: { userId, provider: 'google' } },
-          select: { id: true },
-        })
-      : Promise.resolve(null),
+  const [user, plan, week, gcalToken] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
+    getDailyPlan(userId, today),
+    getWeeklyPlans(userId, weekDates),
+    prisma.oAuthToken.findUnique({
+      where: { userId_provider: { userId, provider: 'google' } },
+      select: { id: true },
+    }),
   ])
 
   const gcalConnected = gcalToken !== null
@@ -114,18 +108,12 @@ export default async function PlanningPage() {
             <p className="font-space-grotesk text-[13px] text-text-muted max-w-xs leading-relaxed">
               Lance la génération pour obtenir un Planning adaptatif basé sur ton État et tes Échéances.
             </p>
-            {userId ? (
-              <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center gap-3">
                 <GeneratePlanButton />
                 <Suspense>
                   <GoogleCalendarButton connected={gcalConnected} />
                 </Suspense>
               </div>
-            ) : (
-              <p className="font-space-grotesk text-[12px] text-text-muted">
-                Aucun étudiant enregistré.
-              </p>
-            )}
           </div>
         </div>
       </PageLayout>

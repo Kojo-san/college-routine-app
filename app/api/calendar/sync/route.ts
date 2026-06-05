@@ -1,15 +1,15 @@
 import { google } from 'googleapis'
 import { parseGCalEvent } from '@/lib/gcal'
+import { getOptionalSession } from '@/lib/session'
 import prisma from '@/lib/prisma'
 
 export async function GET() {
-  const user = await prisma.user.findFirst({ select: { id: true } })
-  if (!user) {
-    return Response.json({ error: 'Aucun étudiant trouvé' }, { status: 404 })
-  }
+  const session = await getOptionalSession()
+  if (!session) return Response.json({ error: 'Non authentifié' }, { status: 401 })
+  const { userId } = session
 
   const token = await prisma.oAuthToken.findUnique({
-    where: { userId_provider: { userId: user.id, provider: 'google' } },
+    where: { userId_provider: { userId, provider: 'google' } },
   })
   if (!token) {
     return Response.json({ error: 'Google Calendar non connecté', code: 'NOT_CONNECTED' }, { status: 401 })
@@ -25,10 +25,9 @@ export async function GET() {
     expiry_date:   token.expiresAt?.getTime(),
   })
 
-  // Auto-refresh — save new access token if refreshed
   oauth2Client.on('tokens', async (tokens) => {
     await prisma.oAuthToken.update({
-      where: { userId_provider: { userId: user.id, provider: 'google' } },
+      where: { userId_provider: { userId, provider: 'google' } },
       data: {
         accessToken: tokens.access_token!,
         expiresAt:   tokens.expiry_date ? new Date(tokens.expiry_date) : null,
@@ -41,10 +40,10 @@ export async function GET() {
   const now   = new Date()
   const start = new Date(now)
   start.setHours(0, 0, 0, 0)
-  start.setDate(start.getDate() - start.getDay() + 1) // Monday
+  start.setDate(start.getDate() - start.getDay() + 1)
 
   const end = new Date(start)
-  end.setDate(start.getDate() + 7) // Sunday +1
+  end.setDate(start.getDate() + 7)
 
   const response = await calendar.events.list({
     calendarId: 'primary',

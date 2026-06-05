@@ -1,13 +1,17 @@
 import { parsePdfText, buildDeadlineInputs } from '@/lib/syllabus'
+import { getOptionalSession } from '@/lib/session'
 import prisma from '@/lib/prisma'
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const session = await getOptionalSession()
+  if (!session) return Response.json({ error: 'Non authentifié' }, { status: 401 })
+
   const { id: courseId } = await params
 
-  const course = await prisma.course.findUnique({ where: { id: courseId } })
+  const course = await prisma.course.findUnique({ where: { id: courseId, userId: session.userId } })
   if (!course) {
     return Response.json({ error: 'Cours introuvable' }, { status: 404 })
   }

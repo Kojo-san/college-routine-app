@@ -3,16 +3,15 @@ import { PageLayout } from '@/components/layout/PageLayout'
 import { CourseCard } from '@/components/ui/CourseCard'
 import { CourseForm } from '@/components/ui/CourseForm'
 import { getCourses } from '@/lib/courses'
+import { verifySession } from '@/lib/session'
 import prisma from '@/lib/prisma'
 
-async function getFirstUser(): Promise<{ id: string; name: string } | null> {
-  const user = await prisma.user.findFirst({ select: { id: true, name: true } })
-  return user ?? null
-}
-
 export default async function AcademiquePage() {
-  const user    = await getFirstUser()
-  const courses = user ? await getCourses(user.id) : []
+  const { userId } = await verifySession()
+  const [user, courses] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
+    getCourses(userId),
+  ])
 
   return (
     <PageLayout title="Académique" etudiantNom={user?.name ?? undefined}>

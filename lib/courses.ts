@@ -147,6 +147,7 @@ export interface TaskItem {
 
 export interface CourseDetail {
   id: string
+  userId: string
   code: string
   name: string
   difficultyLevel: number
@@ -276,6 +277,7 @@ export async function getCourse(courseId: string): Promise<CourseDetail | null> 
 
   return {
     id:                      course.id,
+    userId:                  course.userId,
     code:                    course.code,
     name:                    course.name,
     difficultyLevel:         course.difficultyLevel,

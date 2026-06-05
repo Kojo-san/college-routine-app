@@ -9,13 +9,9 @@ import { DeadlineSection } from '@/components/ui/DeadlineSection'
 import { DeleteCourseButton } from '@/components/ui/DeleteCourseButton'
 import { DeleteTaskButton } from '@/components/ui/DeleteTaskButton'
 import { getCourse } from '@/lib/courses'
+import { verifySession } from '@/lib/session'
 import type { DeadlineState } from '@/components/ui/DeadlineChip'
 import prisma from '@/lib/prisma'
-
-async function getFirstUser(): Promise<{ id: string; name: string } | null> {
-  const user = await prisma.user.findFirst({ select: { id: true, name: true } })
-  return user ?? null
-}
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -51,10 +47,15 @@ function DifficultyDots({ level }: { level: number }) {
 }
 
 export default async function CourseDetailPage({ params }: PageProps) {
-  const [{ id }, user] = await Promise.all([params, getFirstUser()])
-  const course = await getCourse(id)
+  const { userId } = await verifySession()
+  const { id } = await params
 
-  if (!course) notFound()
+  const [course, user] = await Promise.all([
+    getCourse(id),
+    prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
+  ])
+
+  if (!course || course.userId !== userId) notFound()
 
   const pendingTasks   = course.tasks.filter((t) => !t.completed)
   const completedTasks = course.tasks.filter((t) => t.completed)

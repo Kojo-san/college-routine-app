@@ -3,12 +3,8 @@ import { PageLayout } from '@/components/layout/PageLayout'
 import { ObjectifCard } from '@/components/ui/ObjectifCard'
 import { ObjectifForm } from '@/components/ui/ObjectifForm'
 import { getGoals } from '@/lib/goals'
+import { verifySession } from '@/lib/session'
 import prisma from '@/lib/prisma'
-
-async function getFirstUser(): Promise<{ id: string; name: string } | null> {
-  const user = await prisma.user.findFirst({ select: { id: true, name: true } })
-  return user ?? null
-}
 
 function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
   return (
@@ -19,8 +15,11 @@ function SectionHeading({ id, children }: { id: string; children: React.ReactNod
 }
 
 export default async function ObjectifsPage() {
-  const user  = await getFirstUser()
-  const goals = user ? await getGoals(user.id) : []
+  const { userId } = await verifySession()
+  const [user, goals] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
+    getGoals(userId),
+  ])
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
