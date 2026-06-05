@@ -1,12 +1,10 @@
 import Image from 'next/image'
-import { Suspense } from 'react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Timeline } from '@/components/ui/Timeline'
 import type { TimelineBlock } from '@/components/ui/Timeline'
 import { RecommendationCard } from '@/components/ui/RecommendationCard'
 import { GeneratePlanButton } from '@/components/ui/GeneratePlanButton'
 import { WeeklyPlanView } from '@/components/ui/WeeklyPlanView'
-import { GoogleCalendarButton } from '@/components/ui/GoogleCalendarButton'
 import { getDailyPlan, getWeeklyPlans, buildWeekDates, formatWeekRange } from '@/lib/planning'
 import { verifySession } from '@/lib/session'
 import prisma from '@/lib/prisma'
@@ -56,17 +54,11 @@ export default async function PlanningPage() {
 
   const weekDates = buildWeekDates(today)
 
-  const [user, plan, week, gcalToken] = await Promise.all([
+  const [user, plan, week] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
     getDailyPlan(userId, today),
     getWeeklyPlans(userId, weekDates),
-    prisma.oAuthToken.findUnique({
-      where: { userId_provider: { userId, provider: 'google' } },
-      select: { id: true },
-    }),
   ])
-
-  const gcalConnected = gcalToken !== null
 
   const dateLabel = todayDateLabel()
   const dateISO   = todayISO()
@@ -110,11 +102,8 @@ export default async function PlanningPage() {
               Lance la génération pour obtenir un Planning adaptatif basé sur ton État et tes Échéances.
             </p>
             <div className="flex flex-col items-center gap-3">
-                <GeneratePlanButton />
-                <Suspense fallback={null}>
-                  <GoogleCalendarButton connected={gcalConnected} />
-                </Suspense>
-              </div>
+              <GeneratePlanButton />
+            </div>
           </div>
         </div>
       </PageLayout>
@@ -162,9 +151,6 @@ export default async function PlanningPage() {
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <Suspense>
-              <GoogleCalendarButton connected={gcalConnected} />
-            </Suspense>
             <GeneratePlanButton label="Régénérer" />
           </div>
         </div>

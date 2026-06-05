@@ -10,8 +10,9 @@ const NAV = [
   { href: '/',           label: 'Dashboard'  },
   { href: '/planning',   label: 'Planning'   },
   { href: '/academique', label: 'Académique' },
-  { href: '/sante',      label: 'Santé'      },
-  { href: '/objectifs',  label: 'Objectifs'  },
+  { href: '/gym',        label: 'Gym'        },
+  { href: '/semestre',   label: 'Semestre'   },
+  { href: '/settings',   label: 'Réglages'   },
 ]
 
 function MenuIcon() {

@@ -5,6 +5,7 @@ import {
   daysUntil,
   deadlineUrgency,
   calcStudyBudget,
+  boostStudyBudget,
   shouldIncludeGym,
   generateRecommendations,
   buildSchedule,
@@ -360,9 +361,10 @@ describe('buildSchedule', () => {
     expect(study.label).toContain('MTH1102')
   })
 
-  it('does not exceed the study budget', () => {
+  it('does not exceed the (possibly boosted) study budget', () => {
     const plan = buildSchedule(baseContext)
-    const budget = calcStudyBudget(basePrefs, healthyRecovery)
+    const base = calcStudyBudget(basePrefs, healthyRecovery)
+    const budget = boostStudyBudget(base, baseContext.deadlines, baseContext.date)
     const studyMinutes = plan.blocks
       .filter(b => b.typeActivite === 'STUDY')
       .reduce((sum, b) => sum + b.endMinute - b.startMinute, 0)

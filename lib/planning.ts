@@ -120,6 +120,19 @@ export interface PlanningPrefsInput {
   maxDailyStudyHours: number
 }
 
+export interface GymPrefsInput {
+  frequencyPerWeek: number         // 1–7
+  sessionDurationMinutes: number   // 30–120
+  preferredDays: number[]          // 0=Dim … 6=Sam
+  preferredTime: 'matin' | 'après-midi' | 'soir'
+}
+
+export interface CourseHoursInput {
+  courseId: string
+  courseCode: string
+  personalHoursPerWeek: number
+}
+
 export interface DeadlineInput {
   id: string
   title: string
@@ -149,6 +162,8 @@ export interface PlanningContext {
   deadlines: DeadlineInput[]
   tasks: TaskInput[]
   fixedSchedules?: ScheduleSlot[]
+  gymPrefs?: GymPrefsInput | null
+  courseHours?: CourseHoursInput[]
 }
 
 export interface GeneratedBlock {
@@ -267,6 +282,70 @@ export function shouldIncludeGym(
   return recovery.physicalFatigue <= 60
 }
 
+const GYM_TIME_WINDOWS: Record<string, [number, number]> = {
+  'matin':       [7 * 60, 12 * 60],
+  'après-midi':  [12 * 60, 17 * 60],
+  'soir':        [17 * 60, 22 * 60],
+}
+
+export function findGymSlot(
+  blocks: GeneratedBlock[],
+  gymPrefs: GymPrefsInput,
+  date: Date,
+  deadlines: DeadlineInput[],
+  wakeMin: number,
+  sleepMin: number,
+): { start: number; end: number } | null {
+  const dow = date.getUTCDay()
+  if (gymPrefs.preferredDays.length > 0 && !gymPrefs.preferredDays.includes(dow)) return null
+
+  // Avoid day before an exam
+  const tomorrow = new Date(date)
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1)
+  const hasExamTomorrow = deadlines.some(d => {
+    if (d.completed) return false
+    const due = new Date(d.dueDate)
+    due.setHours(0, 0, 0, 0)
+    const t = new Date(tomorrow)
+    t.setHours(0, 0, 0, 0)
+    return due.getTime() === t.getTime()
+  })
+  if (hasExamTomorrow) return null
+
+  const [winStart, winEnd] = GYM_TIME_WINDOWS[gymPrefs.preferredTime] ?? [wakeMin, sleepMin]
+  const duration = gymPrefs.sessionDurationMinutes
+
+  let cursor = Math.max(wakeMin, winStart)
+  const limit = Math.min(sleepMin, winEnd)
+
+  while (cursor + duration <= limit) {
+    if (!hasOverlap(blocks, cursor, cursor + duration)) {
+      return { start: cursor, end: cursor + duration }
+    }
+    cursor += 15
+  }
+  return null
+}
+
+const EXAM_BOOST_DAYS = 7
+
+export function boostStudyBudget(
+  base: number,
+  deadlines: DeadlineInput[],
+  date: Date,
+): number {
+  const hasUrgentExam = deadlines.some(d => {
+    if (d.completed) return false
+    const days = daysUntil(d.dueDate, date)
+    return days >= 0 && days <= EXAM_BOOST_DAYS
+  })
+  return hasUrgentExam ? Math.round(base * 1.25) : base
+}
+
+export function revisionLabel(courseCode: string): string {
+  return `Révision ${courseCode}`
+}
+
 export function generateRecommendations(
   recovery: RecoveryResult | null,
   cognitive: CognitiveResult | null,
@@ -357,13 +436,13 @@ function urgencyToPriority(
 // ─── buildSchedule ────────────────────────────────────────────────────────────
 
 export function buildSchedule(context: PlanningContext): GeneratedPlan {
-  const { prefs, recovery, cognitive, deadlines, date } = context
+  const { prefs, recovery, cognitive, deadlines, date, gymPrefs } = context
   const blocks: GeneratedBlock[] = []
 
   const wakeMin = parseTime(prefs.preferredWakeTime)
   const sleepMin = parseTime(prefs.preferredSleepTime)
 
-  // ── Fixed schedule blocks (cours / lab) ──
+  // ── Fixed schedule blocks (cours / lab) — immovable ──
   const todayDow = date.getUTCDay()
   for (const slot of context.fixedSchedules ?? []) {
     if (slot.dayOfWeek !== todayDow) continue
@@ -387,17 +466,25 @@ export function buildSchedule(context: PlanningContext): GeneratedPlan {
     blocks.push(makeBlock(dinnerStart, dinnerStart + 30, 'Dîner', 'MEAL'))
   }
 
-  // ── Gym block ──
-  const gymMin = prefs.preferredGymTime ? parseTime(prefs.preferredGymTime) : null
-  if (gymMin !== null && shouldIncludeGym(prefs, recovery)) {
-    const gymEnd = gymMin + 60
-    if (!hasOverlap(blocks, gymMin, gymEnd) && gymEnd <= sleepMin) {
-      blocks.push(makeBlock(gymMin, gymEnd, 'Séance Fitness', 'FITNESS', 'MEDIUM'))
+  // ── Gym block — from GymPreferences (preferred) or legacy preferredGymTime ──
+  if (gymPrefs) {
+    const slot = findGymSlot(blocks, gymPrefs, date, deadlines, wakeMin, sleepMin)
+    if (slot) {
+      blocks.push(makeBlock(slot.start, slot.end, 'Séance Gym', 'FITNESS', 'MEDIUM'))
+    }
+  } else {
+    const gymMin = prefs.preferredGymTime ? parseTime(prefs.preferredGymTime) : null
+    if (gymMin !== null && shouldIncludeGym(prefs, recovery)) {
+      const gymEnd = gymMin + 60
+      if (!hasOverlap(blocks, gymMin, gymEnd) && gymEnd <= sleepMin) {
+        blocks.push(makeBlock(gymMin, gymEnd, 'Séance Fitness', 'FITNESS', 'MEDIUM'))
+      }
     }
   }
 
   // ── Study blocks (greedy Pomodoro fill) ──
-  const budget = calcStudyBudget(prefs, recovery)
+  const baseBudget = calcStudyBudget(prefs, recovery)
+  const budget = boostStudyBudget(baseBudget, deadlines, date)
 
   const urgentDeadlines = deadlines
     .filter(d => !d.completed)
@@ -421,7 +508,10 @@ export function buildSchedule(context: PlanningContext): GeneratedPlan {
       ? urgentDeadlines[di % urgentDeadlines.length]
       : null
 
-    const label = dl ? `Étude — ${dl.courseCode}` : 'Étude libre'
+    // Always name by course — never "Étude libre"
+    const label = dl ? revisionLabel(dl.courseCode) : (
+      context.tasks.length > 0 ? revisionLabel(context.tasks[0].courseCode) : 'Révision'
+    )
     const priority = dl ? urgencyToPriority(dl.score) : 'MEDIUM'
 
     blocks.push(makeBlock(cursor, blockEnd, label, 'STUDY', priority, dl?.courseId))
@@ -613,13 +703,14 @@ export async function generateDailyPlan(
   userId: string,
   date: Date,
 ): Promise<DailyPlanSummary> {
-  const [userPrefs, rawCourses, healthData, dbRules, dbSchedules] = await Promise.all([
+  const [userPrefs, rawCourses, healthData, dbRules, dbSchedules, dbGymPrefs, dbSemester] = await Promise.all([
     prisma.planningPreferences.findUnique({ where: { userId } }),
     prisma.course.findMany({
       where: { userId },
       include: {
         deadlines: { where: { completed: false } },
         tasks: { where: { completed: false } },
+        personalHours: true,
       },
     }),
     getHealthData(userId, date),
@@ -628,18 +719,41 @@ export async function generateDailyPlan(
       where: { course: { userId } },
       select: { dayOfWeek: true, startTime: true, endTime: true, type: true },
     }),
+    prisma.gymPreferences.findUnique({ where: { userId } }),
+    prisma.semesterSetup.findUnique({ where: { userId } }),
   ])
 
   const ruleMap = new Map(dbRules.map(r => [r.name, r]))
 
   const prefs: PlanningPrefsInput = userPrefs
     ? {
-        preferredWakeTime: userPrefs.preferredWakeTime,
-        preferredSleepTime: userPrefs.preferredSleepTime,
-        preferredGymTime: userPrefs.preferredGymTime,
+        preferredWakeTime:  dbSemester?.wakeTime  ?? userPrefs.preferredWakeTime,
+        preferredSleepTime: dbSemester?.sleepTime ?? userPrefs.preferredSleepTime,
+        preferredGymTime:   userPrefs.preferredGymTime,
         maxDailyStudyHours: userPrefs.maxDailyStudyHours,
       }
-    : DEFAULT_PREFS
+    : {
+        ...DEFAULT_PREFS,
+        preferredWakeTime:  dbSemester?.wakeTime  ?? DEFAULT_PREFS.preferredWakeTime,
+        preferredSleepTime: dbSemester?.sleepTime ?? DEFAULT_PREFS.preferredSleepTime,
+      }
+
+  const gymPrefs: GymPrefsInput | null = dbGymPrefs
+    ? {
+        frequencyPerWeek:      dbGymPrefs.frequencyPerWeek,
+        sessionDurationMinutes: dbGymPrefs.sessionDurationMinutes,
+        preferredDays:          dbGymPrefs.preferredDays,
+        preferredTime:          dbGymPrefs.preferredTime as GymPrefsInput['preferredTime'],
+      }
+    : null
+
+  const courseHours: CourseHoursInput[] = rawCourses.flatMap(c =>
+    c.personalHours.map(h => ({
+      courseId: c.id,
+      courseCode: c.code,
+      personalHoursPerWeek: h.personalHoursPerWeek,
+    })),
+  )
 
   const deadlines: DeadlineInput[] = rawCourses.flatMap(c =>
     c.deadlines.map(d => ({
@@ -681,6 +795,8 @@ export async function generateDailyPlan(
     deadlines,
     tasks,
     fixedSchedules,
+    gymPrefs,
+    courseHours,
   }
 
   const generated = buildSchedule(context)

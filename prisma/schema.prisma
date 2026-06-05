@@ -78,13 +78,15 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  preferences PlanningPreferences?
-  goals       Goal[]
-  courses     Course[]
-  sessions    Session[]
-  healthData  HealthData[]
-  dailyPlans  DailyPlan[]
-  oauthTokens OAuthToken[]
+  preferences    PlanningPreferences?
+  semesterSetup  SemesterSetup?
+  gymPreferences GymPreferences?
+  goals          Goal[]
+  courses        Course[]
+  sessions       Session[]
+  healthData     HealthData[]
+  dailyPlans     DailyPlan[]
+  oauthTokens    OAuthToken[]
 }
 
 model PlanningPreferences {
@@ -93,6 +95,45 @@ model PlanningPreferences {
   preferredSleepTime   String
   preferredGymTime     String?
   maxDailyStudyHours   Float   @default(8)
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SemesterSetup {
+  id         String   @id @default(uuid())
+  wakeTime   String   // "HH:MM"
+  sleepTime  String   // "HH:MM"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  courseHours CoursePersonalHours[]
+}
+
+model CoursePersonalHours {
+  id                   String @id @default(uuid())
+  personalHoursPerWeek Float  // heures perso réelles/semaine (slider)
+
+  semesterSetupId String
+  semesterSetup   SemesterSetup @relation(fields: [semesterSetupId], references: [id], onDelete: Cascade)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([semesterSetupId, courseId])
+}
+
+model GymPreferences {
+  id                    String   @id @default(uuid())
+  frequencyPerWeek      Int      @default(3)   // 1–7
+  sessionDurationMinutes Int     @default(60)   // 30–120
+  preferredDays         Int[]    // 0=Dim … 6=Sam
+  preferredTime         String   @default("matin") // matin | après-midi | soir
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -140,6 +181,7 @@ model Course {
   tasks           Task[]
   sessions        Session[]
   courseSchedules CourseSchedule[]
+  personalHours   CoursePersonalHours[]
 }
 
 model CourseSchedule {
