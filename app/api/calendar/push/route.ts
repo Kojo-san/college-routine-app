@@ -50,10 +50,22 @@ export async function POST(request: Request) {
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
 
   const created: string[] = []
-  for (const block of plan.timeBlocks) {
-    const event = planBlockToGCalEvent(block, date)
-    const res   = await calendar.events.insert({ calendarId: 'primary', requestBody: event })
-    if (res.data.id) created.push(res.data.id)
+  try {
+    for (const block of plan.timeBlocks) {
+      const event = planBlockToGCalEvent(block, date)
+      const res   = await calendar.events.insert({ calendarId: 'primary', requestBody: event })
+      if (res.data.id) created.push(res.data.id)
+    }
+  } catch (err: unknown) {
+    const httpStatus = (err as { response?: { status?: number } })?.response?.status
+    if (httpStatus === 401) {
+      return Response.json(
+        { error: 'Token Google expiré. Reconnectez votre compte Google Agenda.', code: 'TOKEN_EXPIRED' },
+        { status: 401 },
+      )
+    }
+    const msg = err instanceof Error ? err.message : 'Erreur inconnue'
+    return Response.json({ error: `Erreur Google Calendar : ${msg}` }, { status: 502 })
   }
 
   return Response.json({ data: { pushed: created.length, date: dateStr } })
