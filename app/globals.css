@@ -76,6 +76,11 @@
 }
 
 @layer utilities {
+  /* SVG bar glow — single class keeps compositing to one layer per bar */
+  .recovery-bar-glow {
+    filter: drop-shadow(0 0 4px var(--color-accent-rec));
+  }
+
   /* Focus ring brandé — box-shadow double pour simuler ring-offset */
   .focus-ring:focus-visible {
     outline: none;

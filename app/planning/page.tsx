@@ -110,7 +110,7 @@ export default async function PlanningPage() {
             </p>
             <div className="flex flex-col items-center gap-3">
                 <GeneratePlanButton />
-                <Suspense>
+                <Suspense fallback={null}>
                   <GoogleCalendarButton connected={gcalConnected} />
                 </Suspense>
               </div>

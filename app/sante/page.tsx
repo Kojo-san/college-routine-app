@@ -90,9 +90,9 @@ export default async function SantePage() {
             <EtatCard {...etatProps} />
           ) : (
             <div className="bg-bg-surface border border-border-subtle rounded-xl p-8 flex flex-col items-center gap-3 text-center">
-              <h2 className="font-syne font-bold text-[17px] text-text-primary">
+              <p className="font-syne font-bold text-[17px] text-text-primary">
                 Aucun État calculé
-              </h2>
+              </p>
               <p className="font-space-grotesk text-[13px] text-text-muted max-w-xs leading-relaxed">
                 Saisis au moins le sommeil et l'activité du jour pour calculer ton État physique et cognitif.
               </p>

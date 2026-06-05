@@ -48,24 +48,27 @@ function DayCard({ day }: { day: WeekDayPlan }) {
               <span
                 className="font-space-grotesk text-[9px] font-bold"
                 style={{ color: 'var(--color-accent-study)' }}
+                aria-label={`${summary.study} étude${summary.study > 1 ? 's' : ''}`}
               >
-                S{summary.study}
+                <span aria-hidden="true">S{summary.study}</span>
               </span>
             )}
             {summary.fitness > 0 && (
               <span
                 className="font-space-grotesk text-[9px] font-bold"
                 style={{ color: 'var(--color-accent-fit)' }}
+                aria-label={`${summary.fitness} fitness`}
               >
-                F{summary.fitness}
+                <span aria-hidden="true">F{summary.fitness}</span>
               </span>
             )}
             {summary.recovery > 0 && (
               <span
                 className="font-space-grotesk text-[9px] font-bold"
                 style={{ color: 'var(--color-accent-rec)' }}
+                aria-label={`${summary.recovery} récupération${summary.recovery > 1 ? 's' : ''}`}
               >
-                R{summary.recovery}
+                <span aria-hidden="true">R{summary.recovery}</span>
               </span>
             )}
           </div>

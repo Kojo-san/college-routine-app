@@ -16,10 +16,11 @@ describe('RecommendationCard', () => {
     expect(screen.getByText(/dette de sommeil/i)).toBeInTheDocument()
   })
 
-  it('renders bear-neon image at 48px', () => {
+  it('renders bear-neon image as decorative (empty alt, aria-hidden)', () => {
     render(<RecommendationCard {...BASE_PROPS} />)
-    const img = screen.getByAltText('Bear Reco') as HTMLImageElement
+    const img = document.querySelector('img[aria-hidden="true"]') as HTMLImageElement
     expect(img).toBeInTheDocument()
+    expect(img).toHaveAttribute('alt', '')
     expect(img).toHaveAttribute('width', '48')
   })
 

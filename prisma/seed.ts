@@ -1,8 +1,12 @@
 import { PrismaClient } from '../app/generated/prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import { neonConfig } from '@neondatabase/serverless'
+import ws from 'ws'
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
-const prisma = new PrismaClient({ adapter })
+neonConfig.webSocketConstructor = ws
+
+const connectionString = (process.env.DATABASE_MIGRATE_URL ?? process.env.DATABASE_URL)!
+const prisma = new PrismaClient({ adapter: new PrismaNeon({ connectionString }) })
 
 // ─── Evidence Sources ─────────────────────────────────────────────────────────
 

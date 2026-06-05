@@ -28,7 +28,7 @@ export function DeleteGoalButton({ goalId }: DeleteGoalButtonProps) {
       onClick={handleClick}
       onBlur={() => { if (step === 'confirm') setStep('idle') }}
       disabled={step === 'loading'}
-      className="font-space-grotesk text-[12px] transition-colors duration-150 focus-ring rounded disabled:opacity-40 disabled:cursor-not-allowed"
+      className="font-space-grotesk text-[12px] transition-colors duration-150 focus-ring rounded py-2 px-1 disabled:opacity-40 disabled:cursor-not-allowed"
       style={{ color: step === 'confirm' ? 'var(--color-accent-reco)' : 'var(--color-text-muted)' }}
     >
       {step === 'loading'

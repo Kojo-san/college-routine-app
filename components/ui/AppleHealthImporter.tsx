@@ -67,7 +67,7 @@ export function AppleHealthImporter() {
   const PREVIEW_MAX = 5
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" aria-live="polite" aria-atomic="false">
       <div>
         <p className="font-space-grotesk text-[12px] mb-3" style={{ color: 'var(--color-text-muted)' }}>
           Importe un fichier JSON exporté depuis Apple Santé ou l'app College Routine (iOS).
@@ -156,7 +156,7 @@ export function AppleHealthImporter() {
               type="button"
               onClick={handleConfirm}
               className="font-space-grotesk text-[13px] font-medium px-5 py-2.5 rounded-lg"
-              style={{ background: 'var(--color-accent-study)', color: '#0A0A14', cursor: 'pointer' }}
+              style={{ background: 'var(--color-accent-study)', color: 'var(--color-bg-base)', cursor: 'pointer' }}
             >
               Importer {records.length} jour{records.length !== 1 ? 's' : ''}
             </button>

@@ -48,13 +48,15 @@ function RecoveryBar({ snap, col }: { snap: HealthDaySnapshot; col: number }) {
   const h = Math.max(4, (snap.recovery! / 100) * MAX_BAR_H)
   const y = T1_BOTTOM - h
 
+  const glowing = snap.recovery! >= 70
+
   return (
     <rect
       x={x} y={y} width={BAR_W} height={h}
       rx="3"
       fill={color}
       opacity="0.85"
-      style={{ filter: snap.recovery! >= 70 ? 'drop-shadow(0 0 4px var(--color-accent-rec))' : undefined }}
+      className={glowing ? 'recovery-bar-glow' : undefined}
     />
   )
 }
