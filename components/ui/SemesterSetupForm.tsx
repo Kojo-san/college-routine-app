@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { GridSlot } from '@/lib/semester'
-import { extractTriplet } from '@/lib/semester'
+import { extractTriplet, buildGridSlots } from '@/lib/semester'
+import type { ScheduleSlot } from '@/lib/schedule'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +29,12 @@ interface SemesterSetupFormProps {
   sleepTime: string
   gymPrefs: GymPrefsData
   gridSlots: GridSlot[]
+}
+
+interface ExtractionSummary {
+  schedulesCount: number
+  evaluationsCount: number
+  triplet: { lecture: number; lab: number; personal: number } | null
 }
 
 // ─── Visual grid (7h→22h, Lun→Ven) ───────────────────────────────────────────
@@ -132,7 +139,7 @@ function ScheduleGrid({ slots }: { slots: GridSlot[] }) {
 
 function CourseSetupCard({ course, onUpdate }: {
   course: CourseData
-  onUpdate: (id: string, hours: number, scheduleText: string) => void
+  onUpdate: (id: string, hours: number, scheduleText: string, newSlots?: GridSlot[]) => void
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [hours, setHours] = useState(course.currentHours)
@@ -140,28 +147,50 @@ function CourseSetupCard({ course, onUpdate }: {
   const [triplet, setTriplet] = useState<{ lecture: number; lab: number; personal: number } | null>(null)
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [extractionSummary, setExtractionSummary] = useState<ExtractionSummary | null>(null)
+  const [extractionError, setExtractionError] = useState(false)
 
   async function handleFile(file: File) {
-    if (!file.name.endsWith('.pdf')) return
+    if (!file.name.toLowerCase().endsWith('.pdf')) return
     setLoading(true)
+    setExtractionSummary(null)
+    setExtractionError(false)
 
     const formData = new FormData()
     formData.append('file', file)
 
     try {
-      const res  = await fetch(`/api/academique/${course.id}/import-syllabus`, {
+      const res = await fetch(`/api/academique/${course.id}/import-syllabus`, {
         method: 'POST',
         body: formData,
       })
       const json = await res.json()
-      if (res.ok && json.scheduleText) {
-        const t = extractTriplet(json.scheduleText)
-        if (t) {
-          setTriplet(t)
-          setHours(t.personal)
-          setScheduleText(json.scheduleText)
-        }
+
+      if (!res.ok) {
+        setExtractionError(true)
+        return
       }
+
+      const text: string = json.scheduleText ?? ''
+      const t = extractTriplet(text)
+      if (t) {
+        setTriplet(t)
+        setHours(t.personal)
+        setScheduleText(text)
+      }
+
+      const schedulesCount: number = json.data?.schedulesExtracted ?? json.schedules?.length ?? 0
+      const evaluationsCount: number = json.data?.evaluationsExtracted ?? 0
+      setExtractionSummary({ schedulesCount, evaluationsCount, triplet: t })
+
+      // Build grid slots and notify parent to refresh
+      const newSlots: ScheduleSlot[] = Array.isArray(json.schedules) ? json.schedules : []
+      const newGridSlots = newSlots.length > 0
+        ? buildGridSlots(newSlots, GRID_START, GRID_END)
+        : undefined
+      onUpdate(course.id, t?.personal ?? hours, text, newGridSlots)
+    } catch {
+      setExtractionError(true)
     } finally {
       setLoading(false)
     }
@@ -183,12 +212,13 @@ function CourseSetupCard({ course, onUpdate }: {
       className="rounded-xl p-4 flex flex-col gap-4"
       style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border-subtle)' }}
     >
+      {/* Header row */}
       <div className="flex items-start justify-between gap-2">
-        <div>
+        <div className="min-w-0">
           <p className="font-space-grotesk text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
             {course.code}
           </p>
-          <p className="font-syne font-bold text-[15px] mt-0.5" style={{ color: 'var(--color-text-primary)' }}>
+          <p className="font-syne font-bold text-[15px] mt-0.5 truncate" style={{ color: 'var(--color-text-primary)' }}>
             {course.name}
           </p>
         </div>
@@ -196,7 +226,7 @@ function CourseSetupCard({ course, onUpdate }: {
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={loading}
-          className="font-space-grotesk text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all duration-150"
+          className="cursor-pointer font-space-grotesk text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 whitespace-nowrap flex-shrink-0"
           style={{
             background: 'var(--color-bg-elevated)',
             border: '1px solid var(--color-border-subtle)',
@@ -204,7 +234,7 @@ function CourseSetupCard({ course, onUpdate }: {
             opacity: loading ? 0.5 : 1,
           }}
         >
-          {loading ? 'Lecture…' : 'PDF'}
+          {loading ? 'Extraction…' : 'Importer le plan de cours (PDF)'}
         </button>
         <input
           ref={fileRef}
@@ -216,6 +246,63 @@ function CourseSetupCard({ course, onUpdate }: {
         />
       </div>
 
+      {/* PDF import description */}
+      <p className="font-space-grotesk text-[11px]" style={{ color: 'var(--color-text-muted)', marginTop: '-8px' }}>
+        Claude extraira les horaires, examens et le triplet horaire automatiquement.
+      </p>
+
+      {/* Loading state */}
+      {loading && (
+        <div className="flex items-center gap-2 py-1">
+          <div
+            className="w-3 h-3 rounded-full animate-pulse"
+            style={{ background: 'var(--color-accent-study)' }}
+          />
+          <span className="font-space-grotesk text-[12px]" style={{ color: 'var(--color-accent-study)' }}>
+            Analyse du PDF en cours…
+          </span>
+        </div>
+      )}
+
+      {/* Extraction error */}
+      {extractionError && (
+        <div
+          className="rounded-lg px-3 py-2 font-space-grotesk text-[12px]"
+          style={{ background: 'rgba(255,107,157,0.1)', border: '1px solid rgba(255,107,157,0.25)', color: '#FF6B9D' }}
+        >
+          Impossible de lire le fichier — vérifiez que c'est un PDF valide.
+        </div>
+      )}
+
+      {/* Extraction summary */}
+      {extractionSummary && !loading && (
+        <div
+          className="rounded-lg px-3 py-2 flex flex-col gap-1"
+          style={{ background: 'rgba(168,255,120,0.07)', border: '1px solid rgba(168,255,120,0.2)' }}
+        >
+          <p className="font-space-grotesk text-[12px] font-semibold" style={{ color: '#A8FF78' }}>
+            Extraction réussie
+          </p>
+          <div className="flex gap-4 flex-wrap">
+            <span className="font-space-grotesk text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+              {extractionSummary.schedulesCount} créneau{extractionSummary.schedulesCount !== 1 ? 'x' : ''} détecté{extractionSummary.schedulesCount !== 1 ? 's' : ''}
+            </span>
+            <span className="font-space-grotesk text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+              {extractionSummary.evaluationsCount} évaluation{extractionSummary.evaluationsCount !== 1 ? 's' : ''}
+            </span>
+            {extractionSummary.triplet && (
+              <span className="font-space-grotesk text-[11px] font-semibold" style={{ color: '#4A9EFF' }}>
+                Triplet {extractionSummary.triplet.lecture}-{extractionSummary.triplet.lab}-{extractionSummary.triplet.personal}
+              </span>
+            )}
+          </div>
+          <p className="font-space-grotesk text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+            Ajuste manuellement si besoin.
+          </p>
+        </div>
+      )}
+
+      {/* Triplet display */}
       {triplet && (
         <div className="flex gap-3">
           {(['Cours', 'Lab', 'Perso'] as const).map((label, idx) => {
@@ -230,6 +317,7 @@ function CourseSetupCard({ course, onUpdate }: {
         </div>
       )}
 
+      {/* Hours slider */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
           <label className="font-space-grotesk text-[12px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
@@ -246,7 +334,7 @@ function CourseSetupCard({ course, onUpdate }: {
           step={0.5}
           value={hours}
           onChange={e => setHours(parseFloat(e.target.value))}
-          className="w-full accent-[#4A9EFF] h-1.5 rounded-full"
+          className="w-full cursor-pointer accent-[#4A9EFF]"
           aria-label={`Heures personnelles par semaine pour ${course.name}`}
         />
         <div className="flex justify-between">
@@ -258,7 +346,7 @@ function CourseSetupCard({ course, onUpdate }: {
       <button
         type="button"
         onClick={save}
-        className="self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
+        className="cursor-pointer self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
         style={{
           background: saved ? 'rgba(168,255,120,0.12)' : 'var(--color-accent-study)',
           color: saved ? 'var(--color-accent-rec)' : 'var(--color-bg-base)',
@@ -303,7 +391,11 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
       {/* Frequency */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
-          <label className="font-space-grotesk text-[12px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+          <label
+            htmlFor="gym-freq"
+            className="font-space-grotesk text-[12px] uppercase tracking-wider"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             Séances / semaine
           </label>
           <span className="font-syne font-bold text-[15px]" style={{ color: '#FFD166' }}>
@@ -311,19 +403,30 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
           </span>
         </div>
         <input
-          type="range" min={1} max={7} step={1}
+          id="gym-freq"
+          type="range"
+          min={1}
+          max={7}
+          step={1}
           value={prefs.frequencyPerWeek}
           onChange={e => setPrefs(p => ({ ...p, frequencyPerWeek: parseInt(e.target.value) }))}
-          className="w-full h-1.5 rounded-full"
-          style={{ accentColor: '#FFD166' }}
+          className="w-full cursor-pointer accent-[#FFD166]"
           aria-label="Nombre de séances de gym par semaine"
         />
+        <div className="flex justify-between">
+          <span className="font-space-grotesk text-[10px]" style={{ color: 'var(--color-text-muted)' }}>1×</span>
+          <span className="font-space-grotesk text-[10px]" style={{ color: 'var(--color-text-muted)' }}>7×</span>
+        </div>
       </div>
 
       {/* Duration */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
-          <label className="font-space-grotesk text-[12px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+          <label
+            htmlFor="gym-duration"
+            className="font-space-grotesk text-[12px] uppercase tracking-wider"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             Durée séance
           </label>
           <span className="font-syne font-bold text-[15px]" style={{ color: '#FFD166' }}>
@@ -331,11 +434,14 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
           </span>
         </div>
         <input
-          type="range" min={30} max={120} step={15}
+          id="gym-duration"
+          type="range"
+          min={30}
+          max={120}
+          step={15}
           value={prefs.sessionDurationMinutes}
           onChange={e => setPrefs(p => ({ ...p, sessionDurationMinutes: parseInt(e.target.value) }))}
-          className="w-full h-1.5 rounded-full"
-          style={{ accentColor: '#FFD166' }}
+          className="w-full cursor-pointer accent-[#FFD166]"
           aria-label="Durée de la séance de gym en minutes"
         />
         <div className="flex justify-between">
@@ -357,7 +463,7 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
                 key={dow}
                 type="button"
                 onClick={() => toggleDay(dow)}
-                className="font-space-grotesk text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all duration-150"
+                className="cursor-pointer font-space-grotesk text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all duration-150"
                 style={{
                   background: active ? 'rgba(255,209,102,0.15)' : 'var(--color-bg-elevated)',
                   border: `1px solid ${active ? 'rgba(255,209,102,0.4)' : 'var(--color-border-subtle)'}`,
@@ -385,7 +491,7 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
                 key={t}
                 type="button"
                 onClick={() => setPrefs(p => ({ ...p, preferredTime: t }))}
-                className="flex-1 font-space-grotesk text-[13px] font-semibold py-2 rounded-lg transition-all duration-150 capitalize"
+                className="cursor-pointer flex-1 font-space-grotesk text-[13px] font-semibold py-2 rounded-lg transition-all duration-150 capitalize"
                 style={{
                   background: active ? 'rgba(255,209,102,0.15)' : 'var(--color-bg-elevated)',
                   border: `1px solid ${active ? 'rgba(255,209,102,0.4)' : 'var(--color-border-subtle)'}`,
@@ -403,7 +509,7 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
       <button
         type="button"
         onClick={save}
-        className="self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
+        className="cursor-pointer self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
         style={{
           background: saved ? 'rgba(168,255,120,0.12)' : '#FFD166',
           color: saved ? 'var(--color-accent-rec)' : 'var(--color-bg-base)',
@@ -448,7 +554,7 @@ function SleepScheduleForm({ wakeTime: initWake, sleepTime: initSleep }: { wakeT
               type="time"
               value={value}
               onChange={e => { onChange(e.target.value); setSaved(false) }}
-              className="rounded-lg px-3 py-2 font-space-grotesk text-[14px]"
+              className="cursor-pointer rounded-lg px-3 py-2 font-space-grotesk text-[14px]"
               style={{
                 background: 'var(--color-bg-elevated)',
                 border: '1px solid var(--color-border-subtle)',
@@ -462,7 +568,7 @@ function SleepScheduleForm({ wakeTime: initWake, sleepTime: initSleep }: { wakeT
       <button
         type="button"
         onClick={save}
-        className="self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
+        className="cursor-pointer self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
         style={{
           background: saved ? 'rgba(168,255,120,0.12)' : 'var(--color-accent-study)',
           color: saved ? 'var(--color-accent-rec)' : 'var(--color-bg-base)',
@@ -487,7 +593,25 @@ export function SemesterSetupForm({
   const router = useRouter()
   const [slots, setSlots] = useState<GridSlot[]>(gridSlots)
 
-  function handleCourseUpdate(id: string, hours: number, scheduleText: string) {
+  // Sync when server refreshes (router.refresh() updates props)
+  useEffect(() => { setSlots(gridSlots) }, [gridSlots])
+
+  function handleCourseUpdate(
+    _id: string,
+    _hours: number,
+    _scheduleText: string,
+    newSlots?: GridSlot[],
+  ) {
+    if (newSlots?.length) {
+      setSlots(prev => {
+        // Merge: keep slots from other courses, replace slots for this course
+        // Since GridSlot doesn't track courseId, just append unique by (colIndex, startTime)
+        const appended = newSlots.filter(
+          n => !prev.some(p => p.colIndex === n.colIndex && p.startTime === n.startTime),
+        )
+        return [...prev, ...appended]
+      })
+    }
     router.refresh()
   }
 

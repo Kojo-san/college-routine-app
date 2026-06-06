@@ -68,6 +68,41 @@ export function buildGridSlots(
   return result
 }
 
+// ─── parseClaudeScheduleJson ──────────────────────────────────────────────────
+
+const HHMM_RE = /^\d{2}:\d{2}$/
+
+export function parseClaudeScheduleJson(raw: string): { schedules: ScheduleSlot[]; tripletText: string } {
+  const empty = { schedules: [], tripletText: '' }
+  try {
+    const stripped = raw.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
+    const parsed = JSON.parse(stripped) as Record<string, unknown>
+
+    const tripletText = typeof parsed.tripletText === 'string' ? parsed.tripletText : ''
+
+    const raw_slots = Array.isArray(parsed.schedules) ? parsed.schedules : []
+    const schedules: ScheduleSlot[] = raw_slots
+      .filter((s): s is Record<string, unknown> => s !== null && typeof s === 'object')
+      .filter(s => {
+        const dow = s.dayOfWeek
+        return typeof dow === 'number' && dow >= 0 && dow <= 6
+      })
+      .filter(s => s.type === 'COURS' || s.type === 'LAB')
+      .filter(s => typeof s.startTime === 'string' && HHMM_RE.test(s.startTime as string))
+      .filter(s => typeof s.endTime === 'string' && HHMM_RE.test(s.endTime as string))
+      .map(s => ({
+        dayOfWeek: s.dayOfWeek as number,
+        startTime: s.startTime as string,
+        endTime:   s.endTime as string,
+        type:      s.type as 'COURS' | 'LAB',
+      }))
+
+    return { schedules, tripletText }
+  } catch {
+    return empty
+  }
+}
+
 const TRIPLET_RE = /(\d)\s*[-–]\s*(\d)\s*[-–]\s*(\d)/
 
 export function extractTriplet(text: string): Triplet | null {
