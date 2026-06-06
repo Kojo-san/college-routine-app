@@ -15,27 +15,31 @@ function getClient(): Anthropic | null {
 
 const EXTRACTION_PROMPT = `Extract all weekly course schedule entries from this Polytechnique Montréal student schedule PDF.
 
-Each entry has a course code (e.g. INF2610, LOG2995, CHM2210), a day, start time, end time, and type (lecture or lab).
+Each entry has a course code, group number, day, start time, end time, room, and type (lecture or lab).
 
 Return ONLY a valid JSON object — no explanation, no markdown, no other text:
 {
   "slots": [
     {
       "code": "<COURSE CODE e.g. INF2610>",
+      "group": "<group number e.g. 02>",
       "dayOfWeek": <integer: 0=Sunday 1=Monday 2=Tuesday 3=Wednesday 4=Thursday 5=Friday 6=Saturday>,
       "startTime": "HH:MM",
       "endTime": "HH:MM",
-      "type": "COURS" or "LAB"
+      "type": "COURS" or "LAB",
+      "room": "<room code e.g. A416, L-4810, M-1510, or empty string if unknown>"
     }
   ]
 }
 
 Rules:
-- Use "LAB" only when the entry is explicitly a lab, tutorial, or practical session
+- Use "LAB" only when the entry is explicitly a lab, tutorial, or practical session (marked "Lab. Hebdo.", "Lab. 2 sem.", etc.)
 - Default to "COURS" for lectures and anything ambiguous
-- Include ALL course entries found
+- Include ALL course entries found, one slot per time block per day
 - Course codes are typically 3 letters + 4 digits (INF2610, LOG2995, MTH1115, etc.)
-- Times must be in HH:MM 24-hour format`
+- Times must be in HH:MM 24-hour format
+- The schedule table shows each hour row; each slot spans multiple rows — compute startTime from first row and endTime from last row + 1 hour
+- Group number comes from the parenthetical after the code, e.g. "INF3405 (02)" → group "02"`
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -45,6 +49,9 @@ export interface ImportHoraireResult {
     startTime: string
     endTime: string
     type: 'COURS' | 'LAB'
+    code?: string
+    room?: string
+    group?: string
   }>
   matched: number
   total: number
@@ -142,8 +149,10 @@ export async function POST(request: Request) {
             courseId,
             dayOfWeek: s.dayOfWeek,
             startTime: s.startTime,
-            endTime: s.endTime,
-            type: s.type,
+            endTime:   s.endTime,
+            type:      s.type,
+            room:      s.room  ?? null,
+            group:     s.group ?? null,
           })),
         })
       }
@@ -157,8 +166,11 @@ export async function POST(request: Request) {
   const slots = extracted.map(s => ({
     dayOfWeek: s.dayOfWeek,
     startTime: s.startTime,
-    endTime: s.endTime,
-    type: s.type,
+    endTime:   s.endTime,
+    type:      s.type,
+    code:      s.code,
+    ...(s.room  ? { room:  s.room  } : {}),
+    ...(s.group ? { group: s.group } : {}),
   }))
 
   return Response.json({

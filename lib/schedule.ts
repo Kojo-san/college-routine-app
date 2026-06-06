@@ -5,6 +5,9 @@ export interface ScheduleSlot {
   startTime: string      // "HH:MM"
   endTime: string        // "HH:MM"
   type: 'COURS' | 'LAB'
+  code?: string          // course code, e.g. "INF2610"
+  room?: string          // room, e.g. "A416"
+  group?: string         // group, e.g. "02"
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────

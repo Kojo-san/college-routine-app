@@ -37,14 +37,75 @@ interface ExtractionSummary {
   triplet: { lecture: number; lab: number; personal: number } | null
 }
 
+interface CourseOption {
+  id: string
+  code: string
+  name: string
+}
+
+interface ManualSlotEntry {
+  localId: number
+  courseId: string
+  courseCode: string
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  type: 'COURS' | 'LAB'
+  room?: string
+  group?: string
+}
+
+interface ManualEvalEntry {
+  localId: number
+  title: string
+  weight: number
+  date?: string
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function isApiError(err: string | null): boolean {
+  if (!err) return false
+  return /credit|503|api/i.test(err)
+}
+
 // ─── Visual grid (7h→22h, Lun→Ven) ───────────────────────────────────────────
 
 const GRID_START = 7
 const GRID_END   = 22
 const DAYS_FR    = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven']
 
+const DAY_OPTIONS = [
+  { label: 'Lun', value: 1 },
+  { label: 'Mar', value: 2 },
+  { label: 'Mer', value: 3 },
+  { label: 'Jeu', value: 4 },
+  { label: 'Ven', value: 5 },
+]
+
+const DAY_NAMES: Record<number, string> = { 1: 'Lun', 2: 'Mar', 3: 'Mer', 4: 'Jeu', 5: 'Ven' }
+
+const COURSE_PALETTE = [
+  { bg: 'rgba(155,143,255,0.22)', border: '#9B8FFF', text: '#9B8FFF' },
+  { bg: 'rgba(74,158,255,0.20)', border: '#4A9EFF', text: '#4A9EFF' },
+  { bg: 'rgba(168,255,120,0.18)', border: '#A8FF78', text: '#A8FF78' },
+  { bg: 'rgba(255,209,102,0.18)', border: '#FFD166', text: '#FFD166' },
+  { bg: 'rgba(255,107,157,0.18)', border: '#FF6B9D', text: '#FF6B9D' },
+  { bg: 'rgba(100,220,200,0.18)', border: '#64DCC8', text: '#64DCC8' },
+]
+
+function buildCourseColorMap(slots: GridSlot[]): Map<string, typeof COURSE_PALETTE[0]> {
+  const codes = [...new Set(slots.map(s => s.code).filter((c): c is string => Boolean(c)))]
+  const map = new Map<string, typeof COURSE_PALETTE[0]>()
+  codes.forEach((code, i) => map.set(code, COURSE_PALETTE[i % COURSE_PALETTE.length]))
+  return map
+}
+
+const DEFAULT_COLOR = COURSE_PALETTE[0]
+
 function ScheduleGrid({ slots }: { slots: GridSlot[] }) {
   const hours = Array.from({ length: GRID_END - GRID_START + 1 }, (_, i) => GRID_START + i)
+  const colorMap = buildCourseColorMap(slots)
 
   return (
     <div
@@ -83,11 +144,7 @@ function ScheduleGrid({ slots }: { slots: GridSlot[] }) {
             {DAYS_FR.map((_, col) => (
               <div
                 key={col}
-                style={{
-                  flex: 1,
-                  borderLeft: '1px solid var(--color-border-subtle)',
-                  height: '32px',
-                }}
+                style={{ flex: 1, borderLeft: '1px solid var(--color-border-subtle)', height: '32px' }}
               />
             ))}
           </div>
@@ -98,37 +155,53 @@ function ScheduleGrid({ slots }: { slots: GridSlot[] }) {
           className="absolute inset-0"
           style={{ left: '44px', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', pointerEvents: 'none' }}
         >
-          {slots.map((slot, i) => (
-            <div
-              key={i}
-              style={{
-                gridColumn: slot.colIndex + 1,
-                position: 'absolute',
-                left: `${(slot.colIndex / 5) * 100}%`,
-                width: `${(1 / 5) * 100}%`,
-                top: `${slot.topPct}%`,
-                height: `${slot.heightPct}%`,
-                padding: '2px 4px',
-              }}
-            >
+          {slots.map((slot, i) => {
+            const color = (slot.code ? colorMap.get(slot.code) : undefined) ?? DEFAULT_COLOR
+            return (
               <div
-                className="h-full rounded flex items-center justify-center"
+                key={i}
                 style={{
-                  background: slot.type === 'COURS'
-                    ? 'rgba(155,143,255,0.25)'
-                    : 'rgba(74,158,255,0.2)',
-                  border: `1px solid ${slot.type === 'COURS' ? '#9B8FFF' : '#4A9EFF'}`,
+                  gridColumn: slot.colIndex + 1,
+                  position: 'absolute',
+                  left: `${(slot.colIndex / 5) * 100}%`,
+                  width: `${(1 / 5) * 100}%`,
+                  top: `${slot.topPct}%`,
+                  height: `${slot.heightPct}%`,
+                  padding: '2px 3px',
                 }}
               >
-                <span
-                  className="font-space-grotesk font-semibold text-[9px] uppercase tracking-wider text-center leading-tight"
-                  style={{ color: slot.type === 'COURS' ? '#9B8FFF' : '#4A9EFF' }}
+                <div
+                  className="h-full rounded overflow-hidden flex flex-col items-center justify-center px-1"
+                  style={{ background: color.bg, border: `1px solid ${color.border}` }}
                 >
-                  {slot.type}
-                </span>
+                  {slot.code && (
+                    <span
+                      className="font-space-grotesk font-bold text-[9px] uppercase tracking-wide leading-tight text-center w-full truncate"
+                      style={{ color: color.text }}
+                    >
+                      {slot.code}
+                    </span>
+                  )}
+                  {slot.room && (
+                    <span
+                      className="font-space-grotesk text-[8px] leading-tight text-center w-full truncate"
+                      style={{ color: color.text, opacity: 0.75 }}
+                    >
+                      {slot.room}
+                    </span>
+                  )}
+                  {!slot.code && (
+                    <span
+                      className="font-space-grotesk font-semibold text-[9px] uppercase tracking-wider text-center leading-tight"
+                      style={{ color: color.text }}
+                    >
+                      {slot.type}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>
@@ -148,13 +221,14 @@ function CourseSetupCard({ course, onUpdate }: {
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [extractionSummary, setExtractionSummary] = useState<ExtractionSummary | null>(null)
-  const [extractionError, setExtractionError] = useState(false)
+  const [extractionErrorMsg, setExtractionErrorMsg] = useState<string | null>(null)
+  const [showManual, setShowManual] = useState(false)
 
   async function handleFile(file: File) {
     if (!file.name.toLowerCase().endsWith('.pdf')) return
     setLoading(true)
     setExtractionSummary(null)
-    setExtractionError(false)
+    setExtractionErrorMsg(null)
 
     const formData = new FormData()
     formData.append('file', file)
@@ -167,7 +241,9 @@ function CourseSetupCard({ course, onUpdate }: {
       const json = await res.json()
 
       if (!res.ok) {
-        setExtractionError(true)
+        const msg = json.error ?? 'Erreur inconnue'
+        setExtractionErrorMsg(msg)
+        if (isApiError(msg)) setShowManual(true)
         return
       }
 
@@ -184,13 +260,14 @@ function CourseSetupCard({ course, onUpdate }: {
       setExtractionSummary({ schedulesCount, evaluationsCount, triplet: t })
 
       // Build grid slots and notify parent to refresh
-      const newSlots: ScheduleSlot[] = Array.isArray(json.schedules) ? json.schedules : []
+      const newSlots: ScheduleSlot[] = (Array.isArray(json.schedules) ? json.schedules : [])
+        .map((s: ScheduleSlot) => ({ ...s, code: course.code }))
       const newGridSlots = newSlots.length > 0
         ? buildGridSlots(newSlots, GRID_START, GRID_END)
         : undefined
       onUpdate(course.id, t?.personal ?? hours, text, newGridSlots)
-    } catch {
-      setExtractionError(true)
+    } catch (e) {
+      setExtractionErrorMsg(e instanceof Error ? e.message : 'Erreur réseau')
     } finally {
       setLoading(false)
     }
@@ -265,13 +342,41 @@ function CourseSetupCard({ course, onUpdate }: {
       )}
 
       {/* Extraction error */}
-      {extractionError && (
+      {extractionErrorMsg && !loading && (
         <div
           className="rounded-lg px-3 py-2 font-space-grotesk text-[12px]"
           style={{ background: 'rgba(255,107,157,0.1)', border: '1px solid rgba(255,107,157,0.25)', color: '#FF6B9D' }}
         >
-          Impossible de lire le fichier — vérifiez que c'est un PDF valide.
+          {extractionErrorMsg}
         </div>
+      )}
+
+      {/* Manual entry link (always accessible, hidden when form is open) */}
+      {!showManual && !loading && (
+        <div className="flex justify-end" style={{ marginTop: '-8px' }}>
+          <button
+            type="button"
+            onClick={() => setShowManual(true)}
+            className="cursor-pointer font-space-grotesk text-[11px]"
+            style={{ color: 'var(--color-text-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+          >
+            Saisir manuellement
+          </button>
+        </div>
+      )}
+
+      {/* Manual syllabus fallback */}
+      {showManual && (
+        <ManualSyllabusForm
+          courseId={course.id}
+          onSuccess={(tripletText) => {
+            const t = extractTriplet(tripletText)
+            if (t) { setTriplet(t); setHours(t.personal); setScheduleText(`Triplet saisi : ${tripletText}`) }
+            setExtractionSummary(null)
+            setShowManual(false)
+          }}
+          onClose={() => setShowManual(false)}
+        />
       )}
 
       {/* Extraction summary */}
@@ -359,6 +464,616 @@ function CourseSetupCard({ course, onUpdate }: {
   )
 }
 
+// ─── Manual horaire form ──────────────────────────────────────────────────────
+
+function ManualHoraireForm({
+  courses,
+  onSlotsReady,
+  onClose,
+}: {
+  courses: CourseOption[]
+  onSlotsReady: (slots: GridSlot[]) => void
+  onClose: () => void
+}) {
+  const [courseId, setCourseId] = useState(courses[0]?.id ?? '')
+  const [dayOfWeek, setDayOfWeek] = useState(1)
+  const [startTime, setStartTime] = useState('08:30')
+  const [endTime, setEndTime] = useState('11:30')
+  const [type, setType] = useState<'COURS' | 'LAB'>('COURS')
+  const [room, setRoom] = useState('')
+  const [group, setGroup] = useState('')
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [slots, setSlots] = useState<ManualSlotEntry[]>([])
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const nextIdRef = useRef(0)
+
+  function resetForm() {
+    setCourseId(courses[0]?.id ?? '')
+    setDayOfWeek(1)
+    setStartTime('08:30')
+    setEndTime('11:30')
+    setType('COURS')
+    setRoom('')
+    setGroup('')
+    setEditingId(null)
+  }
+
+  function startEdit(s: ManualSlotEntry) {
+    setCourseId(s.courseId)
+    setDayOfWeek(s.dayOfWeek)
+    setStartTime(s.startTime)
+    setEndTime(s.endTime)
+    setType(s.type)
+    setRoom(s.room ?? '')
+    setGroup(s.group ?? '')
+    setEditingId(s.localId)
+  }
+
+  function commitSlot() {
+    const course = courses.find(c => c.id === courseId)
+    if (!course || !startTime || !endTime) return
+    const entry: ManualSlotEntry = {
+      localId:    editingId ?? nextIdRef.current++,
+      courseId,
+      courseCode: course.code,
+      dayOfWeek,
+      startTime,
+      endTime,
+      type,
+      room:  room.trim()  || undefined,
+      group: group.trim() || undefined,
+    }
+    if (editingId !== null) {
+      setSlots(prev => prev.map(s => s.localId === editingId ? entry : s))
+    } else {
+      setSlots(prev => [...prev, entry])
+    }
+    resetForm()
+  }
+
+  function removeSlot(localId: number) {
+    setSlots(prev => prev.filter(s => s.localId !== localId))
+    if (editingId === localId) resetForm()
+  }
+
+  async function save() {
+    if (slots.length === 0) return
+    setSaving(true)
+    setError(null)
+    setSaved(false)
+    try {
+      const res = await fetch('/api/semestre/manual-horaire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slots: slots.map(s => ({
+            courseId:  s.courseId,
+            dayOfWeek: s.dayOfWeek,
+            startTime: s.startTime,
+            endTime:   s.endTime,
+            type:      s.type,
+            ...(s.room  ? { room:  s.room  } : {}),
+            ...(s.group ? { group: s.group } : {}),
+          })),
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setError(json.error ?? 'Erreur inconnue'); return }
+      setSaved(true)
+      if (Array.isArray(json.slots) && json.slots.length > 0) {
+        onSlotsReady(buildGridSlots(json.slots, GRID_START, GRID_END))
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur réseau')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const isEditing = editingId !== null
+
+  return (
+    <div
+      className="flex flex-col gap-4 pt-4"
+      style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+    >
+      <div className="flex items-center justify-between">
+        <p className="font-space-grotesk text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+          {isEditing ? 'Modifier le créneau' : 'Saisie manuelle'}
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="cursor-pointer font-space-grotesk text-[11px]"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
+          Fermer
+        </button>
+      </div>
+
+      {/* Cours + Type */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1">
+          <label className="font-space-grotesk text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Cours</label>
+          <select
+            value={courseId}
+            onChange={e => setCourseId(e.target.value)}
+            className="cursor-pointer rounded-lg px-3 py-2 font-space-grotesk text-[13px]"
+            style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', outline: 'none' }}
+          >
+            {courses.map(c => (
+              <option key={c.id} value={c.id}>{c.code}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="font-space-grotesk text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Type</label>
+          <div className="flex gap-2 h-[38px]">
+            {(['COURS', 'LAB'] as const).map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setType(t)}
+                className="cursor-pointer flex-1 font-space-grotesk text-[12px] font-semibold rounded-lg"
+                style={{
+                  background: type === t ? (t === 'COURS' ? 'rgba(155,143,255,0.2)' : 'rgba(74,158,255,0.2)') : 'var(--color-bg-elevated)',
+                  border: `1px solid ${type === t ? (t === 'COURS' ? '#9B8FFF' : '#4A9EFF') : 'var(--color-border-subtle)'}`,
+                  color: type === t ? (t === 'COURS' ? '#9B8FFF' : '#4A9EFF') : 'var(--color-text-muted)',
+                }}
+                aria-pressed={type === t}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Jour */}
+      <div className="flex flex-col gap-1">
+        <label className="font-space-grotesk text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Jour</label>
+        <div className="flex gap-2">
+          {DAY_OPTIONS.map(d => (
+            <button
+              key={d.value}
+              type="button"
+              onClick={() => setDayOfWeek(d.value)}
+              className="cursor-pointer flex-1 font-space-grotesk text-[12px] font-semibold py-1.5 rounded-lg"
+              style={{
+                background: dayOfWeek === d.value ? 'rgba(155,143,255,0.15)' : 'var(--color-bg-elevated)',
+                border: `1px solid ${dayOfWeek === d.value ? 'rgba(155,143,255,0.4)' : 'var(--color-border-subtle)'}`,
+                color: dayOfWeek === d.value ? '#9B8FFF' : 'var(--color-text-muted)',
+              }}
+              aria-pressed={dayOfWeek === d.value}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Horaires */}
+      <div className="grid grid-cols-2 gap-3">
+        {[
+          { label: 'Début', value: startTime, onChange: setStartTime },
+          { label: 'Fin',   value: endTime,   onChange: setEndTime },
+        ].map(({ label, value, onChange }) => (
+          <div key={label} className="flex flex-col gap-1">
+            <label className="font-space-grotesk text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>{label}</label>
+            <input
+              type="time"
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              className="cursor-pointer rounded-lg px-3 py-2 font-space-grotesk text-[13px]"
+              style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', outline: 'none' }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Salle + Groupe */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1">
+          <label className="font-space-grotesk text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+            Salle <span style={{ opacity: 0.5 }}>(optionnel)</span>
+          </label>
+          <input
+            type="text"
+            placeholder="ex : A416, L-4810"
+            value={room}
+            onChange={e => setRoom(e.target.value)}
+            className="rounded-lg px-3 py-2 font-space-grotesk text-[13px]"
+            style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', outline: 'none' }}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="font-space-grotesk text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+            Groupe <span style={{ opacity: 0.5 }}>(optionnel)</span>
+          </label>
+          <input
+            type="text"
+            placeholder="ex : 02, 03"
+            value={group}
+            onChange={e => setGroup(e.target.value)}
+            className="rounded-lg px-3 py-2 font-space-grotesk text-[13px]"
+            style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', outline: 'none' }}
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-2 justify-end">
+        {isEditing && (
+          <button
+            type="button"
+            onClick={resetForm}
+            className="cursor-pointer font-space-grotesk text-[12px] px-3 py-1.5 rounded-lg"
+            style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-muted)' }}
+          >
+            Annuler
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={commitSlot}
+          disabled={!courseId}
+          className="cursor-pointer font-space-grotesk text-[12px] font-semibold px-3 py-1.5 rounded-lg"
+          style={{
+            background: isEditing ? 'rgba(74,158,255,0.12)' : 'rgba(155,143,255,0.12)',
+            border: `1px solid ${isEditing ? 'rgba(74,158,255,0.3)' : 'rgba(155,143,255,0.3)'}`,
+            color: isEditing ? '#4A9EFF' : '#9B8FFF',
+            opacity: courseId ? 1 : 0.5,
+          }}
+        >
+          {isEditing ? 'Modifier ce créneau' : '+ Ajouter ce créneau'}
+        </button>
+      </div>
+
+      {/* Liste créneaux */}
+      {slots.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          {slots.map(s => {
+            const isActive = editingId === s.localId
+            return (
+              <div
+                key={s.localId}
+                className="flex items-center justify-between gap-2 rounded-lg px-3 py-1.5 cursor-pointer"
+                style={{
+                  background: isActive ? 'rgba(74,158,255,0.08)' : 'var(--color-bg-elevated)',
+                  border: `1px solid ${isActive ? 'rgba(74,158,255,0.3)' : 'var(--color-border-subtle)'}`,
+                }}
+                onClick={() => startEdit(s)}
+                role="button"
+                aria-label={`Modifier le créneau ${s.courseCode}`}
+              >
+                <span className="font-space-grotesk text-[12px] min-w-0 truncate" style={{ color: 'var(--color-text-primary)' }}>
+                  <span className="font-semibold">{s.courseCode}</span>
+                  {s.group && <span style={{ color: 'var(--color-text-muted)' }}> ({s.group})</span>}
+                  {' — '}{DAY_NAMES[s.dayOfWeek]} {s.startTime}–{s.endTime}{' '}
+                  <span style={{ color: s.type === 'COURS' ? '#9B8FFF' : '#4A9EFF' }}>{s.type}</span>
+                  {s.room && <span style={{ color: 'var(--color-text-muted)' }}> · {s.room}</span>}
+                </span>
+                <button
+                  type="button"
+                  onClick={e => { e.stopPropagation(); removeSlot(s.localId) }}
+                  className="cursor-pointer font-space-grotesk text-[14px] leading-none flex-shrink-0"
+                  style={{ color: 'var(--color-text-muted)' }}
+                  aria-label={`Supprimer le créneau ${s.courseCode}`}
+                >
+                  ×
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {error && (
+        <div
+          className="rounded-lg px-3 py-2 font-space-grotesk text-[12px]"
+          style={{ background: 'rgba(255,107,157,0.1)', border: '1px solid rgba(255,107,157,0.25)', color: '#FF6B9D' }}
+        >
+          {error}
+        </div>
+      )}
+
+      {saved && (
+        <div
+          className="rounded-lg px-3 py-2 font-space-grotesk text-[12px]"
+          style={{ background: 'rgba(168,255,120,0.07)', border: '1px solid rgba(168,255,120,0.2)', color: '#A8FF78' }}
+        >
+          {slots.length} créneau{slots.length !== 1 ? 'x' : ''} sauvegardé{slots.length !== 1 ? 's' : ''}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={slots.length === 0 || saving}
+        className="cursor-pointer self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg"
+        style={{
+          background: saved ? 'rgba(168,255,120,0.12)' : 'var(--color-accent-study)',
+          color: saved ? 'var(--color-accent-rec)' : 'var(--color-bg-base)',
+          border: saved ? '1px solid rgba(168,255,120,0.3)' : 'none',
+          opacity: slots.length === 0 || saving ? 0.5 : 1,
+        }}
+      >
+        {saving ? 'Sauvegarde…' : saved ? 'Sauvegardé ✓' : `Sauvegarder l'horaire (${slots.length})`}
+      </button>
+    </div>
+  )
+}
+
+// ─── Manual syllabus form ─────────────────────────────────────────────────────
+
+function ManualSyllabusForm({
+  courseId,
+  onSuccess,
+  onClose,
+}: {
+  courseId: string
+  onSuccess: (tripletText: string) => void
+  onClose: () => void
+}) {
+  const [tripletX, setTripletX] = useState(3)
+  const [tripletY, setTripletY] = useState(1)
+  const [tripletZ, setTripletZ] = useState(5)
+  const [evalTitle, setEvalTitle] = useState('')
+  const [evalWeight, setEvalWeight] = useState('')
+  const [evalDate, setEvalDate] = useState('')
+  const [evals, setEvals] = useState<ManualEvalEntry[]>([])
+  const [editingEvalId, setEditingEvalId] = useState<number | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const nextIdRef = useRef(0)
+
+  function resetEvalForm() {
+    setEvalTitle('')
+    setEvalWeight('')
+    setEvalDate('')
+    setEditingEvalId(null)
+  }
+
+  function startEvalEdit(e: ManualEvalEntry) {
+    setEvalTitle(e.title)
+    setEvalWeight(String(e.weight))
+    setEvalDate(e.date ?? '')
+    setEditingEvalId(e.localId)
+  }
+
+  function commitEval() {
+    const w = parseInt(evalWeight, 10)
+    if (!evalTitle.trim() || isNaN(w) || w < 1 || w > 100) return
+    const entry: ManualEvalEntry = {
+      localId: editingEvalId ?? nextIdRef.current++,
+      title:   evalTitle.trim(),
+      weight:  w,
+      ...(evalDate ? { date: evalDate } : {}),
+    }
+    if (editingEvalId !== null) {
+      setEvals(prev => prev.map(e => e.localId === editingEvalId ? entry : e))
+    } else {
+      setEvals(prev => [...prev, entry])
+    }
+    resetEvalForm()
+  }
+
+  function removeEval(localId: number) {
+    setEvals(prev => prev.filter(e => e.localId !== localId))
+    if (editingEvalId === localId) resetEvalForm()
+  }
+
+  async function save() {
+    setSaving(true)
+    setError(null)
+    setSaved(false)
+    const tripletText = `${tripletX}-${tripletY}-${tripletZ}`
+    try {
+      const res = await fetch(`/api/academique/${courseId}/manual-syllabus`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tripletText,
+          evaluations: evals.map(e => ({
+            title:  e.title,
+            weight: e.weight,
+            ...(e.date ? { date: e.date } : {}),
+          })),
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setError(json.error ?? 'Erreur inconnue'); return }
+      setSaved(true)
+      onSuccess(tripletText)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur réseau')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div
+      className="flex flex-col gap-4 pt-4"
+      style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+    >
+      <div className="flex items-center justify-between">
+        <p className="font-space-grotesk text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+          Saisie manuelle
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="cursor-pointer font-space-grotesk text-[11px]"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
+          Fermer
+        </button>
+      </div>
+
+      {/* Triplet — unchanged */}
+      <div className="flex flex-col gap-1.5">
+        <label className="font-space-grotesk text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+          Triplet horaire (Cours – Lab – Perso)
+        </label>
+        <div className="flex items-center gap-2">
+          {[
+            { val: tripletX, set: setTripletX, label: 'Cours' },
+            { val: tripletY, set: setTripletY, label: 'Lab' },
+            { val: tripletZ, set: setTripletZ, label: 'Perso' },
+          ].map(({ val, set, label }, idx) => (
+            <div key={label} className="flex items-center gap-2">
+              {idx > 0 && (
+                <span className="font-syne font-bold text-[18px]" style={{ color: 'var(--color-text-muted)' }}>–</span>
+              )}
+              <input
+                type="number"
+                min={0}
+                max={20}
+                value={val}
+                onChange={e => set(parseInt(e.target.value, 10) || 0)}
+                className="rounded-lg px-2 py-1.5 font-syne font-bold text-[16px] text-center w-14"
+                style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', outline: 'none' }}
+                aria-label={label}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Évaluations */}
+      <div className="flex flex-col gap-2">
+        <label className="font-space-grotesk text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+          Évaluations
+        </label>
+
+        <div className="flex gap-2 flex-wrap">
+          <input
+            type="text"
+            placeholder="Titre de l'évaluation"
+            value={evalTitle}
+            onChange={e => setEvalTitle(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') commitEval() }}
+            className="rounded-lg px-3 py-1.5 font-space-grotesk text-[12px] flex-1 min-w-[120px]"
+            style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', outline: 'none' }}
+          />
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              placeholder="0"
+              min={1}
+              max={100}
+              value={evalWeight}
+              onChange={e => setEvalWeight(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') commitEval() }}
+              className="rounded-lg px-2 py-1.5 font-space-grotesk text-[12px] w-14 text-center"
+              style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', outline: 'none' }}
+              aria-label="Pondération %"
+            />
+            <span className="font-space-grotesk text-[11px]" style={{ color: 'var(--color-text-muted)' }}>%</span>
+          </div>
+          <input
+            type="date"
+            value={evalDate}
+            onChange={e => setEvalDate(e.target.value)}
+            className="cursor-pointer rounded-lg px-2 py-1.5 font-space-grotesk text-[12px]"
+            style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', outline: 'none' }}
+            aria-label="Date (optionnelle)"
+          />
+          <div className="flex gap-2">
+            {editingEvalId !== null && (
+              <button
+                type="button"
+                onClick={resetEvalForm}
+                className="cursor-pointer font-space-grotesk text-[11px] px-2.5 py-1.5 rounded-lg"
+                style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-muted)' }}
+              >
+                Annuler
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={commitEval}
+              disabled={!evalTitle.trim() || !evalWeight}
+              className="cursor-pointer font-space-grotesk text-[11px] font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap"
+              style={{
+                background: editingEvalId !== null ? 'rgba(74,158,255,0.15)' : 'rgba(74,158,255,0.12)',
+                border: '1px solid rgba(74,158,255,0.3)',
+                color: '#4A9EFF',
+                opacity: evalTitle.trim() && evalWeight ? 1 : 0.5,
+              }}
+            >
+              {editingEvalId !== null ? 'Modifier' : '+ Ajouter'}
+            </button>
+          </div>
+        </div>
+
+        {evals.length > 0 && (
+          <div className="flex flex-col gap-1">
+            {evals.map(e => {
+              const isActive = editingEvalId === e.localId
+              return (
+                <div
+                  key={e.localId}
+                  className="flex items-center justify-between gap-2 rounded-lg px-3 py-1.5 cursor-pointer"
+                  style={{
+                    background: isActive ? 'rgba(74,158,255,0.08)' : 'var(--color-bg-elevated)',
+                    border: `1px solid ${isActive ? 'rgba(74,158,255,0.3)' : 'var(--color-border-subtle)'}`,
+                  }}
+                  onClick={() => startEvalEdit(e)}
+                  role="button"
+                  aria-label={`Modifier ${e.title}`}
+                >
+                  <span className="font-space-grotesk text-[12px] min-w-0 truncate" style={{ color: 'var(--color-text-primary)' }}>
+                    {e.title}
+                    <span className="font-semibold" style={{ color: '#4A9EFF' }}> — {e.weight}%</span>
+                    {e.date && <span style={{ color: 'var(--color-text-muted)' }}> ({e.date})</span>}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={ev => { ev.stopPropagation(); removeEval(e.localId) }}
+                    className="cursor-pointer font-space-grotesk text-[14px] leading-none flex-shrink-0"
+                    style={{ color: 'var(--color-text-muted)' }}
+                    aria-label={`Supprimer ${e.title}`}
+                  >
+                    ×
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <div
+          className="rounded-lg px-3 py-2 font-space-grotesk text-[12px]"
+          style={{ background: 'rgba(255,107,157,0.1)', border: '1px solid rgba(255,107,157,0.25)', color: '#FF6B9D' }}
+        >
+          {error}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={saving}
+        className="cursor-pointer self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg"
+        style={{
+          background: saved ? 'rgba(168,255,120,0.12)' : 'var(--color-accent-study)',
+          color: saved ? 'var(--color-accent-rec)' : 'var(--color-bg-base)',
+          border: saved ? '1px solid rgba(168,255,120,0.3)' : 'none',
+          opacity: saving ? 0.5 : 1,
+        }}
+      >
+        {saving ? 'Sauvegarde…' : saved ? 'Sauvegardé ✓' : 'Sauvegarder'}
+      </button>
+    </div>
+  )
+}
+
 // ─── Session schedule import ──────────────────────────────────────────────────
 
 interface SessionImportResult {
@@ -367,11 +1082,18 @@ interface SessionImportResult {
   unmatched: string[]
 }
 
-function SessionScheduleImport({ onSlotsReady }: { onSlotsReady: (slots: GridSlot[]) => void }) {
+function SessionScheduleImport({
+  courses,
+  onSlotsReady,
+}: {
+  courses: CourseOption[]
+  onSlotsReady: (slots: GridSlot[]) => void
+}) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<SessionImportResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showManual, setShowManual] = useState(false)
 
   async function handleFile(file: File) {
     if (!file.name.toLowerCase().endsWith('.pdf')) return
@@ -390,7 +1112,9 @@ function SessionScheduleImport({ onSlotsReady }: { onSlotsReady: (slots: GridSlo
       const json = await res.json()
 
       if (!res.ok) {
-        setError(json.error ?? 'Erreur inconnue')
+        const msg = json.error ?? 'Erreur inconnue'
+        setError(msg)
+        if (isApiError(msg)) setShowManual(true)
         return
       }
 
@@ -400,7 +1124,8 @@ function SessionScheduleImport({ onSlotsReady }: { onSlotsReady: (slots: GridSlo
         onSlotsReady(buildGridSlots(json.slots, GRID_START, GRID_END))
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur réseau')
+      const msg = e instanceof Error ? e.message : 'Erreur réseau'
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -476,6 +1201,28 @@ function SessionScheduleImport({ onSlotsReady }: { onSlotsReady: (slots: GridSlo
             </p>
           )}
         </div>
+      )}
+
+      {/* Link to manual entry (always accessible) */}
+      {!showManual && courses.length > 0 && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShowManual(true)}
+            className="cursor-pointer font-space-grotesk text-[11px]"
+            style={{ color: 'var(--color-text-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+          >
+            Saisir manuellement
+          </button>
+        </div>
+      )}
+
+      {showManual && (
+        <ManualHoraireForm
+          courses={courses}
+          onSlotsReady={onSlotsReady}
+          onClose={() => setShowManual(false)}
+        />
       )}
     </div>
   )
@@ -752,7 +1499,10 @@ export function SemesterSetupForm({
 
       {/* ── Import horaire de session ── */}
       <section aria-labelledby="session-import-section">
-        <SessionScheduleImport onSlotsReady={handleSessionSlotsReady} />
+        <SessionScheduleImport
+          courses={courses.map(c => ({ id: c.id, code: c.code, name: c.name }))}
+          onSlotsReady={handleSessionSlotsReady}
+        />
       </section>
 
       {/* ── Grille horaire visuelle ── */}

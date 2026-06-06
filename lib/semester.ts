@@ -9,6 +9,9 @@ export interface GridSlot {
   type: 'COURS' | 'LAB'
   startTime: string
   endTime: string
+  code?: string       // course code, e.g. "INF2610"
+  room?: string       // room, e.g. "A416"
+  group?: string      // group number, e.g. "02"
 }
 
 export interface Triplet {
@@ -61,7 +64,10 @@ export function buildGridSlots(
       heightPct,
       type: slot.type,
       startTime: slot.startTime,
-      endTime: slot.endTime,
+      endTime:   slot.endTime,
+      ...(slot.code  ? { code:  slot.code  } : {}),
+      ...(slot.room  ? { room:  slot.room  } : {}),
+      ...(slot.group ? { group: slot.group } : {}),
     })
   }
 
@@ -95,6 +101,8 @@ export function parseClaudeScheduleJson(raw: string): { schedules: ScheduleSlot[
         startTime: s.startTime as string,
         endTime:   s.endTime as string,
         type:      s.type as 'COURS' | 'LAB',
+        ...(typeof s.room  === 'string' && s.room  ? { room:  s.room  as string } : {}),
+        ...(typeof s.group === 'string' && s.group ? { group: s.group as string } : {}),
       }))
 
     return { schedules, tripletText }
@@ -111,6 +119,8 @@ export interface ParsedCourseSlot {
   startTime: string
   endTime: string
   type: 'COURS' | 'LAB'
+  room?: string
+  group?: string
 }
 
 export function parsePolyHoraireJson(raw: string): ParsedCourseSlot[] {
@@ -132,6 +142,8 @@ export function parsePolyHoraireJson(raw: string): ParsedCourseSlot[] {
         startTime: s.startTime as string,
         endTime:   s.endTime as string,
         type:      s.type as 'COURS' | 'LAB',
+        ...(typeof s.room  === 'string' && s.room  ? { room:  (s.room  as string).trim() } : {}),
+        ...(typeof s.group === 'string' && s.group ? { group: (s.group as string).trim() } : {}),
       }))
   } catch {
     return []

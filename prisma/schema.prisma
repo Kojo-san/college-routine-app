@@ -190,6 +190,8 @@ model CourseSchedule {
   startTime  String       // "HH:MM"
   endTime    String       // "HH:MM"
   type       ScheduleType
+  room       String?      // ex: "A416", "L-4810"
+  group      String?      // ex: "02", "03"
   createdAt  DateTime     @default(now())
 
   courseId String

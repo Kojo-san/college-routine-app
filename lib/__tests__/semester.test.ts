@@ -66,6 +66,22 @@ describe('buildGridSlots', () => {
     const grid = buildGridSlots(outOfRange, 7, 22)
     expect(grid).toHaveLength(0)
   })
+
+  it('passes through code, room, group when present', () => {
+    const withMeta: ScheduleSlot[] = [
+      { dayOfWeek: 1, startTime: '08:30', endTime: '11:30', type: 'COURS', code: 'INF2610', room: 'M-1510', group: '02' },
+    ]
+    const grid = buildGridSlots(withMeta, 7, 22)
+    expect(grid[0].code).toBe('INF2610')
+    expect(grid[0].room).toBe('M-1510')
+    expect(grid[0].group).toBe('02')
+  })
+
+  it('omits code/room/group when absent', () => {
+    const grid = buildGridSlots(slots, 7, 22)
+    expect(grid[0].code).toBeUndefined()
+    expect(grid[0].room).toBeUndefined()
+  })
 })
 
 describe('extractTriplet', () => {
@@ -254,5 +270,23 @@ describe('parsePolyHoraireJson', () => {
       { code: 'INF2610', dayOfWeek: 1, startTime: '09:00', endTime: '11:00', type: 'COURS' },
     ]})
     expect(parsePolyHoraireJson(raw)).toHaveLength(1)
+  })
+
+  it('passes through room and group when present', () => {
+    const raw = JSON.stringify({ slots: [
+      { code: 'INF3405', dayOfWeek: 4, startTime: '08:30', endTime: '11:30', type: 'COURS', room: 'A416', group: '02' },
+    ]})
+    const result = parsePolyHoraireJson(raw)
+    expect(result[0].room).toBe('A416')
+    expect(result[0].group).toBe('02')
+  })
+
+  it('omits room and group when absent', () => {
+    const raw = JSON.stringify({ slots: [
+      { code: 'INF2610', dayOfWeek: 5, startTime: '08:30', endTime: '11:30', type: 'COURS' },
+    ]})
+    const result = parsePolyHoraireJson(raw)
+    expect(result[0].room).toBeUndefined()
+    expect(result[0].group).toBeUndefined()
   })
 })
