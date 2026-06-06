@@ -359,6 +359,128 @@ function CourseSetupCard({ course, onUpdate }: {
   )
 }
 
+// ─── Session schedule import ──────────────────────────────────────────────────
+
+interface SessionImportResult {
+  matched: number
+  total: number
+  unmatched: string[]
+}
+
+function SessionScheduleImport({ onSlotsReady }: { onSlotsReady: (slots: GridSlot[]) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<SessionImportResult | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleFile(file: File) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) return
+    setLoading(true)
+    setResult(null)
+    setError(null)
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await fetch('/api/semestre/import-horaire', {
+        method: 'POST',
+        body: formData,
+      })
+      const json = await res.json()
+
+      if (!res.ok) {
+        setError(json.error ?? 'Erreur inconnue')
+        return
+      }
+
+      setResult({ matched: json.matched, total: json.total, unmatched: json.unmatched ?? [] })
+
+      if (Array.isArray(json.slots) && json.slots.length > 0) {
+        onSlotsReady(buildGridSlots(json.slots, GRID_START, GRID_END))
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur réseau')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div
+      className="rounded-xl p-5 flex flex-col gap-4"
+      style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border-subtle)' }}
+    >
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <p className="font-syne font-bold text-[16px]" style={{ color: 'var(--color-text-primary)' }}>
+            Horaire de session
+          </p>
+          <p className="font-space-grotesk text-[12px] mt-1" style={{ color: 'var(--color-text-muted)' }}>
+            Importe ton horaire officiel Polytechnique pour remplir automatiquement la grille.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={loading}
+          className="cursor-pointer font-space-grotesk text-[12px] font-semibold px-4 py-2 rounded-lg transition-all duration-150 whitespace-nowrap"
+          style={{
+            background: 'rgba(155,143,255,0.12)',
+            border: '1px solid rgba(155,143,255,0.35)',
+            color: '#9B8FFF',
+            opacity: loading ? 0.5 : 1,
+          }}
+        >
+          {loading ? 'Extraction…' : 'Importer mon horaire Polytechnique (PDF)'}
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".pdf,application/pdf"
+          className="sr-only"
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+          aria-hidden="true"
+        />
+      </div>
+
+      {loading && (
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: '#9B8FFF' }} />
+          <span className="font-space-grotesk text-[12px]" style={{ color: '#9B8FFF' }}>
+            Claude analyse ton horaire…
+          </span>
+        </div>
+      )}
+
+      {error && (
+        <div
+          className="rounded-lg px-3 py-2.5 font-space-grotesk text-[12px]"
+          style={{ background: 'rgba(255,107,157,0.08)', border: '1px solid rgba(255,107,157,0.2)', color: '#FF6B9D' }}
+        >
+          <span className="font-semibold">Erreur</span> — {error}
+        </div>
+      )}
+
+      {result && !loading && (
+        <div
+          className="rounded-lg px-3 py-2.5 flex flex-col gap-1"
+          style={{ background: 'rgba(168,255,120,0.06)', border: '1px solid rgba(168,255,120,0.18)' }}
+        >
+          <p className="font-space-grotesk text-[12px] font-semibold" style={{ color: '#A8FF78' }}>
+            {result.matched} cours placés sur {result.total}
+          </p>
+          {result.unmatched.length > 0 && (
+            <p className="font-space-grotesk text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+              Non reconnus : {result.unmatched.join(', ')} — ajoute ces cours dans la section Académique d'abord.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Gym preferences form ──────────────────────────────────────────────────────
 
 const DAY_LABELS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
@@ -615,8 +737,23 @@ export function SemesterSetupForm({
     router.refresh()
   }
 
+  function handleSessionSlotsReady(newSlots: GridSlot[]) {
+    setSlots(prev => {
+      const appended = newSlots.filter(
+        n => !prev.some(p => p.colIndex === n.colIndex && p.startTime === n.startTime),
+      )
+      return [...prev, ...appended]
+    })
+    router.refresh()
+  }
+
   return (
     <div className="flex flex-col gap-10 max-w-3xl">
+
+      {/* ── Import horaire de session ── */}
+      <section aria-labelledby="session-import-section">
+        <SessionScheduleImport onSlotsReady={handleSessionSlotsReady} />
+      </section>
 
       {/* ── Grille horaire visuelle ── */}
       <section aria-labelledby="grid-section">
@@ -631,7 +768,7 @@ export function SemesterSetupForm({
             style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border-subtle)' }}
           >
             <p className="font-space-grotesk text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
-              Importe le PDF d'un cours pour voir ses créneaux ici.
+              Importe ton horaire de session ou le PDF d'un cours pour voir les créneaux ici.
             </p>
           </div>
         )}

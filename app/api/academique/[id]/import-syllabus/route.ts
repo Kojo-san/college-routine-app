@@ -1,4 +1,5 @@
 import { parsePdfText, buildDeadlineInputs } from '@/lib/syllabus'
+import type { SyllabusEvaluation } from '@/lib/syllabus'
 import { parseClaudeScheduleJson } from '@/lib/semester'
 import { getOptionalSession } from '@/lib/session'
 import prisma from '@/lib/prisma'
@@ -14,8 +15,11 @@ function getClient(): Anthropic | null {
   return _client
 }
 
-function buildExtractionPrompt(pdfText: string): string {
-  return `Extract the weekly recurring schedule slots from this university course syllabus (Quebec). Also extract the credit/hour triplet notation (e.g. "3-1-4.5" means 3h lecture, 1h lab, 4.5h personal work per week).
+const EXTRACTION_PROMPT = `Extract the following from this university course syllabus (Quebec, Polytechnique Montréal):
+
+1. Weekly recurring schedule slots
+2. The credit/hour triplet notation (e.g. "3-1-4.5" or "4-2-6")
+3. All evaluations/assessments with their weights and dates
 
 Return ONLY a valid JSON object — no explanation, no markdown, no other text:
 {
@@ -27,12 +31,17 @@ Return ONLY a valid JSON object — no explanation, no markdown, no other text:
       "type": "COURS" or "LAB"
     }
   ],
-  "tripletText": "<X-Y-Z triplet string, e.g. 3-1-4.5, or empty string if not found>"
-}
+  "tripletText": "<X-Y-Z triplet string, e.g. 3-1-4.5, or empty string if not found>",
+  "evaluations": [
+    {
+      "title": "<evaluation name>",
+      "weight": <integer 1-100>,
+      "date": "<YYYY-MM-DD, or null if not specified>"
+    }
+  ]
+}`
 
-SYLLABUS TEXT:
-${pdfText.slice(0, 4000)}`
-}
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -50,107 +59,144 @@ export async function POST(
     return Response.json({ error: 'Cours introuvable' }, { status: 404 })
   }
 
-  let pdfText: string
+  // ── Step 1: receive file ──────────────────────────────────────────────────
+  let fileBuffer: Buffer
   try {
     const formData = await request.formData()
     const file = formData.get('file')
     if (!file || typeof file === 'string') {
-      return Response.json({ error: 'Fichier PDF requis' }, { status: 400 })
+      return Response.json({ error: 'Fichier PDF manquant', step: 'upload' }, { status: 400 })
     }
-
-    const buffer = Buffer.from(await (file as File).arrayBuffer())
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>
-    const parsed = await pdfParse(buffer)
-    pdfText = parsed.text
-  } catch {
-    return Response.json({ error: 'Impossible de lire le fichier PDF' }, { status: 422 })
+    fileBuffer = Buffer.from(await (file as File).arrayBuffer())
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return Response.json({ error: `Réception du fichier échouée : ${msg}`, step: 'upload' }, { status: 400 })
   }
 
-  const syllabus = parsePdfText(pdfText)
+  // ── Step 2: Claude API — PDF sent directly ────────────────────────────────
+  const syllabus = parsePdfText('')  // regex fallback — returns empty without pdf-parse
   const today = new Date()
-  const deadlineInputs = buildDeadlineInputs(courseId, syllabus.evaluations, today)
 
-  // Claude API for schedule extraction — falls back to regex result if unavailable
   let extractedSlots = syllabus.schedules
   let tripletText = ''
+  let claudeEvaluations: SyllabusEvaluation[] = []
+
   const client = getClient()
   if (client) {
     try {
       const resp = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1024,
-        messages: [{ role: 'user', content: buildExtractionPrompt(pdfText) }],
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'document' as const,
+              source: {
+                type: 'base64' as const,
+                media_type: 'application/pdf' as const,
+                data: fileBuffer.toString('base64'),
+              },
+            },
+            { type: 'text' as const, text: EXTRACTION_PROMPT },
+          ],
+        }],
       })
       const raw = resp.content
         .filter(b => b.type === 'text')
         .map(b => (b as { type: string; text?: string }).text ?? '')
         .join('')
+
       const claudeResult = parseClaudeScheduleJson(raw)
       if (claudeResult.schedules.length > 0) extractedSlots = claudeResult.schedules
       tripletText = claudeResult.tripletText
-    } catch {
-      // fallback to regex
+
+      // Parse evaluations from same JSON response
+      try {
+        const stripped = raw.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
+        const parsed = JSON.parse(stripped) as Record<string, unknown>
+        if (Array.isArray(parsed.evaluations)) {
+          claudeEvaluations = (parsed.evaluations as unknown[])
+            .filter((e): e is Record<string, unknown> => e !== null && typeof e === 'object')
+            .filter(e => typeof e.title === 'string' && typeof e.weight === 'number')
+            .map(e => ({
+              title:  (e.title as string).trim(),
+              weight: Math.round(e.weight as number),
+              ...(typeof e.date === 'string' && DATE_RE.test(e.date as string)
+                ? { date: e.date as string }
+                : {}),
+            }))
+            .filter(e => e.title.length > 0 && e.weight >= 1 && e.weight <= 100)
+        }
+      } catch { /* ignore — evaluations are best-effort */ }
+
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      console.warn(`[import-syllabus] Claude extraction failed for course ${courseId}: ${msg}`)
     }
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.coursePlan.upsert({
-      where: { courseId },
-      create: {
-        courseId,
-        sourceFileName: 'syllabus.pdf',
-        topics: syllabus.topics,
-        evaluationRules: syllabus.evaluations.map(e =>
-          `${e.title} — ${e.weight}%${e.date ? ` (${e.date})` : ''}`,
-        ),
-      },
-      update: {
-        topics: syllabus.topics,
-        evaluationRules: syllabus.evaluations.map(e =>
-          `${e.title} — ${e.weight}%${e.date ? ` (${e.date})` : ''}`,
-        ),
-      },
+  const finalEvaluations = claudeEvaluations.length > 0 ? claudeEvaluations : syllabus.evaluations
+  const deadlineInputs = buildDeadlineInputs(courseId, finalEvaluations, today)
+
+  // ── Step 3: persist ───────────────────────────────────────────────────────
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.coursePlan.upsert({
+        where: { courseId },
+        create: {
+          courseId,
+          sourceFileName: 'syllabus.pdf',
+          topics: syllabus.topics,
+          evaluationRules: finalEvaluations.map(e =>
+            `${e.title} — ${e.weight}%${e.date ? ` (${e.date})` : ''}`,
+          ),
+        },
+        update: {
+          topics: syllabus.topics,
+          evaluationRules: finalEvaluations.map(e =>
+            `${e.title} — ${e.weight}%${e.date ? ` (${e.date})` : ''}`,
+          ),
+        },
+      })
+
+      if (deadlineInputs.length > 0) {
+        await tx.deadline.createMany({
+          data: deadlineInputs.map(d => ({
+            courseId,
+            title: d.title,
+            dueDate: d.dueDate,
+            weight: d.weight,
+            priority: d.priority,
+          })),
+          skipDuplicates: true,
+        })
+      }
+
+      if (extractedSlots.length > 0) {
+        await tx.courseSchedule.deleteMany({ where: { courseId } })
+        await tx.courseSchedule.createMany({
+          data: extractedSlots.map(s => ({
+            courseId,
+            dayOfWeek: s.dayOfWeek,
+            startTime: s.startTime,
+            endTime: s.endTime,
+            type: s.type,
+          })),
+        })
+      }
     })
-
-    if (deadlineInputs.length > 0) {
-      await tx.deadline.createMany({
-        data: deadlineInputs.map(d => ({
-          courseId,
-          title: d.title,
-          dueDate: d.dueDate,
-          weight: d.weight,
-          priority: d.priority,
-        })),
-        skipDuplicates: true,
-      })
-    }
-
-    if (extractedSlots.length > 0) {
-      await tx.courseSchedule.deleteMany({ where: { courseId } })
-      await tx.courseSchedule.createMany({
-        data: extractedSlots.map(s => ({
-          courseId,
-          dayOfWeek: s.dayOfWeek,
-          startTime: s.startTime,
-          endTime: s.endTime,
-          type: s.type,
-        })),
-      })
-    }
-  })
-
-  // Embed triplet in scheduleText if Claude found it but the raw PDF text doesn't contain it
-  const scheduleText = tripletText
-    ? `${pdfText}\n\nTriplet extrait : ${tripletText}`
-    : pdfText
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return Response.json({ error: `Sauvegarde échouée : ${msg}`, step: 'db' }, { status: 500 })
+  }
 
   return Response.json({
-    scheduleText,
+    scheduleText: tripletText ? `Triplet extrait : ${tripletText}` : '',
     schedules: extractedSlots,
     data: {
       topicsExtracted:      syllabus.topics.length,
-      evaluationsExtracted: syllabus.evaluations.length,
+      evaluationsExtracted: finalEvaluations.length,
       deadlinesCreated:     deadlineInputs.length,
       schedulesExtracted:   extractedSlots.length,
     },

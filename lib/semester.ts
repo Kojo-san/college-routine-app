@@ -103,6 +103,41 @@ export function parseClaudeScheduleJson(raw: string): { schedules: ScheduleSlot[
   }
 }
 
+// ─── parsePolyHoraireJson ─────────────────────────────────────────────────────
+
+export interface ParsedCourseSlot {
+  code: string
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  type: 'COURS' | 'LAB'
+}
+
+export function parsePolyHoraireJson(raw: string): ParsedCourseSlot[] {
+  try {
+    const stripped = raw.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
+    const parsed = JSON.parse(stripped) as Record<string, unknown>
+    const rawSlots = Array.isArray(parsed.slots) ? parsed.slots : []
+
+    return (rawSlots as unknown[])
+      .filter((s): s is Record<string, unknown> => s !== null && typeof s === 'object')
+      .filter(s => typeof s.code === 'string' && (s.code as string).trim().length > 0)
+      .filter(s => typeof s.dayOfWeek === 'number' && (s.dayOfWeek as number) >= 0 && (s.dayOfWeek as number) <= 6)
+      .filter(s => s.type === 'COURS' || s.type === 'LAB')
+      .filter(s => typeof s.startTime === 'string' && HHMM_RE.test(s.startTime as string))
+      .filter(s => typeof s.endTime === 'string' && HHMM_RE.test(s.endTime as string))
+      .map(s => ({
+        code:      (s.code as string).trim().toUpperCase(),
+        dayOfWeek: s.dayOfWeek as number,
+        startTime: s.startTime as string,
+        endTime:   s.endTime as string,
+        type:      s.type as 'COURS' | 'LAB',
+      }))
+  } catch {
+    return []
+  }
+}
+
 const TRIPLET_RE = /(\d)\s*[-–]\s*(\d)\s*[-–]\s*(\d)/
 
 export function extractTriplet(text: string): Triplet | null {

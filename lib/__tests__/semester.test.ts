@@ -4,6 +4,7 @@ import {
   buildGridSlots,
   extractTriplet,
   parseClaudeScheduleJson,
+  parsePolyHoraireJson,
 } from '../semester'
 import type { GridSlot } from '../semester'
 import type { ScheduleSlot } from '../schedule'
@@ -179,5 +180,79 @@ describe('parseClaudeScheduleJson', () => {
     })
     const result = parseClaudeScheduleJson(raw)
     expect(result.schedules).toHaveLength(1)
+  })
+})
+
+// ─── parsePolyHoraireJson ─────────────────────────────────────────────────────
+
+describe('parsePolyHoraireJson', () => {
+  it('tracer: extracts course slots from clean JSON string', () => {
+    const raw = JSON.stringify({
+      slots: [
+        { code: 'INF2610', dayOfWeek: 3, startTime: '08:30', endTime: '11:30', type: 'COURS' },
+        { code: 'LOG2995', dayOfWeek: 2, startTime: '09:30', endTime: '17:35', type: 'COURS' },
+      ],
+    })
+    const result = parsePolyHoraireJson(raw)
+    expect(result).toHaveLength(2)
+    expect(result[0]).toMatchObject({ code: 'INF2610', dayOfWeek: 3, startTime: '08:30', endTime: '11:30', type: 'COURS' })
+    expect(result[1].code).toBe('LOG2995')
+  })
+
+  it('strips markdown ```json fenced block before parsing', () => {
+    const inner = JSON.stringify({ slots: [{ code: 'CHM2210', dayOfWeek: 1, startTime: '13:00', endTime: '15:00', type: 'COURS' }] })
+    const result = parsePolyHoraireJson('```json\n' + inner + '\n```')
+    expect(result).toHaveLength(1)
+    expect(result[0].code).toBe('CHM2210')
+  })
+
+  it('returns empty array on malformed JSON', () => {
+    expect(parsePolyHoraireJson('not json { broken')).toEqual([])
+  })
+
+  it('filters out slots with dayOfWeek outside 0–6', () => {
+    const raw = JSON.stringify({ slots: [
+      { code: 'INF2610', dayOfWeek: 8, startTime: '08:00', endTime: '10:00', type: 'COURS' },
+      { code: 'LOG2995', dayOfWeek: 2, startTime: '08:00', endTime: '10:00', type: 'COURS' },
+    ]})
+    expect(parsePolyHoraireJson(raw)).toHaveLength(1)
+  })
+
+  it('filters out slots with invalid type', () => {
+    const raw = JSON.stringify({ slots: [
+      { code: 'INF2610', dayOfWeek: 1, startTime: '08:00', endTime: '10:00', type: 'SEMINAR' },
+      { code: 'LOG2995', dayOfWeek: 2, startTime: '08:00', endTime: '10:00', type: 'LAB' },
+    ]})
+    const result = parsePolyHoraireJson(raw)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('LAB')
+  })
+
+  it('filters out slots with times not matching HH:MM', () => {
+    const raw = JSON.stringify({ slots: [
+      { code: 'INF2610', dayOfWeek: 1, startTime: '8:30', endTime: '10:00', type: 'COURS' },
+      { code: 'LOG2995', dayOfWeek: 2, startTime: '09:30', endTime: '11:00', type: 'COURS' },
+    ]})
+    expect(parsePolyHoraireJson(raw)).toHaveLength(1)
+  })
+
+  it('trims and uppercases course code', () => {
+    const raw = JSON.stringify({ slots: [
+      { code: '  inf2610  ', dayOfWeek: 1, startTime: '09:00', endTime: '11:00', type: 'COURS' },
+    ]})
+    expect(parsePolyHoraireJson(raw)[0].code).toBe('INF2610')
+  })
+
+  it('returns empty array when slots field is missing', () => {
+    const raw = JSON.stringify({ other: 'data' })
+    expect(parsePolyHoraireJson(raw)).toEqual([])
+  })
+
+  it('filters out slots with empty code', () => {
+    const raw = JSON.stringify({ slots: [
+      { code: '', dayOfWeek: 1, startTime: '09:00', endTime: '11:00', type: 'COURS' },
+      { code: 'INF2610', dayOfWeek: 1, startTime: '09:00', endTime: '11:00', type: 'COURS' },
+    ]})
+    expect(parsePolyHoraireJson(raw)).toHaveLength(1)
   })
 })
