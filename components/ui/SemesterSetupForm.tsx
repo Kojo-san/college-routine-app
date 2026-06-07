@@ -69,6 +69,10 @@ function isApiError(err: string | null): boolean {
   return /credit|503|api/i.test(err)
 }
 
+function formatDecimalFr(n: number): string {
+  return n.toString().replace('.', ',')
+}
+
 // ─── Visual grid (7h→22h, Lun→Ven) ───────────────────────────────────────────
 
 const GRID_START = 7
@@ -548,7 +552,7 @@ function CourseSetupCard({ course, onUpdate }: {
             </span>
             {extractionSummary.triplet && (
               <span className="font-space-grotesk text-[11px] font-semibold" style={{ color: '#4A9EFF' }}>
-                Triplet {extractionSummary.triplet.lecture}-{extractionSummary.triplet.lab}-{extractionSummary.triplet.personal}
+                Triplet {formatDecimalFr(extractionSummary.triplet.lecture)}-{formatDecimalFr(extractionSummary.triplet.lab)}-{formatDecimalFr(extractionSummary.triplet.personal)}
               </span>
             )}
           </div>
@@ -565,7 +569,7 @@ function CourseSetupCard({ course, onUpdate }: {
             const val = [triplet.lecture, triplet.lab, triplet.personal][idx]
             return (
               <div key={label} className="flex flex-col items-center gap-0.5">
-                <span className="font-syne font-bold text-[16px]" style={{ color: 'var(--color-text-primary)' }}>{val}</span>
+                <span className="font-syne font-bold text-[16px]" style={{ color: 'var(--color-text-primary)' }}>{formatDecimalFr(val)}</span>
                 <span className="font-space-grotesk text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>{label}</span>
               </div>
             )
@@ -580,7 +584,7 @@ function CourseSetupCard({ course, onUpdate }: {
             Heures perso / semaine
           </label>
           <span className="font-syne font-bold text-[15px]" style={{ color: 'var(--color-accent-study)' }}>
-            {hours}h
+            {formatDecimalFr(hours)}h
           </span>
         </div>
         <input
