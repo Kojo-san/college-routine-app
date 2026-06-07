@@ -10,6 +10,8 @@ import {
   estimateSessionMinutes,
 } from '@/lib/gym'
 import type { GymTabType } from '@/lib/gym'
+import { fetchExercisesForTab } from '@/lib/exercisedb'
+import type { ExerciseDbExercise } from '@/lib/exercisedb'
 import { getDailyPlan } from '@/lib/planning'
 import { verifySession } from '@/lib/session'
 import prisma from '@/lib/prisma'
@@ -27,6 +29,45 @@ function SectionHeading({ id, children }: { id: string; children: React.ReactNod
       {children}
     </h2>
   )
+}
+
+// Normalise ExerciseDB exercise into a shape the card can consume
+function exerciseDbToCard(
+  ex: ExerciseDbExercise,
+  accentText: string,
+  accentBg: string,
+) {
+  return {
+    key: ex.id,
+    name: ex.name,
+    muscleGroup: ex.target,
+    equipment: ex.equipment,
+    gifUrl: ex.gifUrl ?? null,
+    instructions: ex.instructions,
+    accentText,
+    accentBg,
+  }
+}
+
+// Normalise Prisma exercise (fallback)
+function prismaToCard(
+  ex: Exercise,
+  accentText: string,
+  accentBg: string,
+) {
+  return {
+    key: ex.id,
+    name: ex.name,
+    muscleGroup: ex.muscleGroup,
+    equipment: ex.equipment,
+    sets: ex.sets,
+    reps: ex.reps,
+    level: ex.level,
+    description: ex.description,
+    gifUrl: null as string | null,
+    accentText,
+    accentBg,
+  }
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -55,22 +96,33 @@ export default async function GymPage({
     ? (requestedType as GymTabType)
     : todayTab
 
-  const dbTypes = TAB_TO_DB_TYPES[activeTab]
   const colors = SESSION_TYPE_COLORS[activeTab]
-
-  // Fetch exercises for the active tab (server-side Prisma, no HTTP overhead)
-  const exercises: Exercise[] = await prisma.exercise.findMany({
-    where: { type: { in: dbTypes } },
-    orderBy: [{ type: 'asc' }, { level: 'asc' }, { name: 'asc' }],
-  })
-
-  const sessionDuration = gymPrefs?.sessionDurationMinutes ?? estimateSessionMinutes(exercises.length)
-
-  const gymBloc = plan?.timeBlocks.find(b => b.typeActivite === 'FITNESS') ?? null
-
-  // Accent values for card badges
-  const accentBg = colors.bg
   const accentText = colors.text
+  const accentBg = colors.bg
+
+  // ── Try ExerciseDB first (24h cached), then Prisma fallback ────────────────
+  const liveExercises = await fetchExercisesForTab(activeTab)
+
+  type CardProps = ReturnType<typeof exerciseDbToCard> | ReturnType<typeof prismaToCard>
+  let cards: CardProps[]
+  let source: 'exercisedb' | 'prisma'
+
+  if (liveExercises.length > 0) {
+    cards = liveExercises.map(ex => exerciseDbToCard(ex, accentText, accentBg))
+    source = 'exercisedb'
+  } else {
+    // Prisma fallback
+    const dbTypes = TAB_TO_DB_TYPES[activeTab]
+    const prismaExercises: Exercise[] = await prisma.exercise.findMany({
+      where: { type: { in: dbTypes } },
+      orderBy: [{ type: 'asc' }, { level: 'asc' }, { name: 'asc' }],
+    })
+    cards = prismaExercises.map(ex => prismaToCard(ex, accentText, accentBg))
+    source = 'prisma'
+  }
+
+  const sessionDuration = gymPrefs?.sessionDurationMinutes ?? estimateSessionMinutes(cards.length)
+  const gymBloc = plan?.timeBlocks.find(b => b.typeActivite === 'FITNESS') ?? null
 
   return (
     <PageLayout title="Gym" etudiantNom={user?.name ?? undefined}>
@@ -146,7 +198,10 @@ export default async function GymPage({
               {activeTab}
             </p>
             <p className="font-space-grotesk text-[13px] mt-1" style={{ color: 'var(--color-text-muted)' }}>
-              {exercises.length} exercice{exercises.length !== 1 ? 's' : ''} · ~{sessionDuration} min
+              {cards.length} exercice{cards.length !== 1 ? 's' : ''} · ~{sessionDuration} min
+              {source === 'prisma' && (
+                <span style={{ marginLeft: 8, opacity: 0.6 }}>(catalogue local)</span>
+              )}
             </p>
           </div>
           <Image
@@ -163,7 +218,7 @@ export default async function GymPage({
         <section aria-labelledby="exercises-heading">
           <SectionHeading id="exercises-heading">Exercices</SectionHeading>
 
-          {exercises.length === 0 ? (
+          {cards.length === 0 ? (
             <div
               className="rounded-xl p-8 flex flex-col items-center gap-4 text-center mt-4"
               style={{
@@ -180,27 +235,28 @@ export default async function GymPage({
                 className="object-contain opacity-70"
               />
               <p className="font-syne font-bold text-[16px]" style={{ color: 'var(--color-text-primary)' }}>
-                Aucun exercice
+                Aucun exercice disponible
               </p>
               <p className="font-space-grotesk text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
-                Le catalogue ne contient pas encore d'exercices pour ce type.
+                Vérifie ta connexion ou réessaie dans quelques instants.
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-3 mt-4">
-              {exercises.map(ex => (
+              {cards.map(card => (
                 <GymExerciseCard
-                  key={ex.id}
-                  name={ex.name}
-                  muscleGroup={ex.muscleGroup}
-                  equipment={ex.equipment}
-                  sets={ex.sets}
-                  reps={ex.reps}
-                  level={ex.level}
-                  description={ex.description}
-                  exerciseDbId={ex.exerciseDbId ?? null}
-                  accentText={accentText}
-                  accentBg={accentBg}
+                  key={card.key}
+                  name={card.name}
+                  muscleGroup={card.muscleGroup}
+                  equipment={card.equipment}
+                  gifUrl={card.gifUrl}
+                  accentText={card.accentText}
+                  accentBg={card.accentBg}
+                  sets={'sets' in card ? card.sets : undefined}
+                  reps={'reps' in card ? card.reps : undefined}
+                  level={'level' in card ? card.level : undefined}
+                  description={'description' in card ? card.description : undefined}
+                  instructions={'instructions' in card ? card.instructions : undefined}
                 />
               ))}
             </div>
