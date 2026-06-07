@@ -150,6 +150,45 @@ export function parsePolyHoraireJson(raw: string): ParsedCourseSlot[] {
   }
 }
 
+// ─── detectScheduleConflicts ──────────────────────────────────────────────────
+
+export interface SlotCandidate {
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  courseCode?: string
+}
+
+export interface ConflictInfo {
+  existingCode: string
+  day: string
+  startTime: string
+  endTime: string
+}
+
+const DOW_LABEL: Record<number, string> = { 1: 'Lun', 2: 'Mar', 3: 'Mer', 4: 'Jeu', 5: 'Ven' }
+
+export function detectScheduleConflicts(
+  incoming: SlotCandidate,
+  existing: SlotCandidate[],
+): ConflictInfo[] {
+  return existing
+    .filter(e => e.dayOfWeek === incoming.dayOfWeek)
+    .filter(e => {
+      const iStart = parseMinutes(incoming.startTime)
+      const iEnd   = parseMinutes(incoming.endTime)
+      const eStart = parseMinutes(e.startTime)
+      const eEnd   = parseMinutes(e.endTime)
+      return iStart < eEnd && eStart < iEnd
+    })
+    .map(e => ({
+      existingCode: e.courseCode ?? '?',
+      day: DOW_LABEL[e.dayOfWeek] ?? String(e.dayOfWeek),
+      startTime: e.startTime,
+      endTime: e.endTime,
+    }))
+}
+
 const TRIPLET_RE = /(\d)\s*[-–]\s*(\d)\s*[-–]\s*(\d)/
 
 export function extractTriplet(text: string): Triplet | null {

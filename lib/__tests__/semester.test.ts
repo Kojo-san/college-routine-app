@@ -5,6 +5,7 @@ import {
   extractTriplet,
   parseClaudeScheduleJson,
   parsePolyHoraireJson,
+  detectScheduleConflicts,
 } from '../semester'
 import type { GridSlot } from '../semester'
 import type { ScheduleSlot } from '../schedule'
@@ -288,5 +289,61 @@ describe('parsePolyHoraireJson', () => {
     const result = parsePolyHoraireJson(raw)
     expect(result[0].room).toBeUndefined()
     expect(result[0].group).toBeUndefined()
+  })
+})
+
+describe('detectScheduleConflicts', () => {
+  it('returns no conflicts when slots are on different days', () => {
+    const incoming = { dayOfWeek: 1, startTime: '09:00', endTime: '11:00', courseCode: 'INF2610' }
+    const existing = [{ dayOfWeek: 2, startTime: '09:00', endTime: '11:00', courseCode: 'INF3405' }]
+    expect(detectScheduleConflicts(incoming, existing)).toEqual([])
+  })
+
+  it('returns no conflicts when existing ends before incoming starts (same day)', () => {
+    const incoming = { dayOfWeek: 1, startTime: '13:00', endTime: '15:00', courseCode: 'INF2610' }
+    const existing = [{ dayOfWeek: 1, startTime: '09:00', endTime: '11:00', courseCode: 'INF3405' }]
+    expect(detectScheduleConflicts(incoming, existing)).toEqual([])
+  })
+
+  it('returns no conflicts when slots are adjacent (touching edges)', () => {
+    const incoming = { dayOfWeek: 1, startTime: '11:00', endTime: '13:00', courseCode: 'INF2610' }
+    const existing = [{ dayOfWeek: 1, startTime: '09:00', endTime: '11:00', courseCode: 'INF3405' }]
+    expect(detectScheduleConflicts(incoming, existing)).toEqual([])
+  })
+
+  it('detects conflict when slots partially overlap on same day', () => {
+    const incoming = { dayOfWeek: 1, startTime: '10:00', endTime: '12:00', courseCode: 'INF2610' }
+    const existing = [{ dayOfWeek: 1, startTime: '09:00', endTime: '11:00', courseCode: 'INF3405' }]
+    expect(detectScheduleConflicts(incoming, existing)).toHaveLength(1)
+  })
+
+  it('detects conflict when incoming is fully contained in existing', () => {
+    const incoming = { dayOfWeek: 3, startTime: '10:00', endTime: '11:00', courseCode: 'INF2610' }
+    const existing = [{ dayOfWeek: 3, startTime: '09:00', endTime: '12:00', courseCode: 'INF3405' }]
+    expect(detectScheduleConflicts(incoming, existing)).toHaveLength(1)
+  })
+
+  it('returns correct ConflictInfo fields', () => {
+    const incoming = { dayOfWeek: 1, startTime: '10:00', endTime: '12:00', courseCode: 'INF2610' }
+    const existing = [{ dayOfWeek: 1, startTime: '09:00', endTime: '11:00', courseCode: 'INF3405' }]
+    const conflicts = detectScheduleConflicts(incoming, existing)
+    expect(conflicts[0]).toEqual({
+      existingCode: 'INF3405',
+      day: 'Lun',
+      startTime: '09:00',
+      endTime: '11:00',
+    })
+  })
+
+  it('returns all conflicts when multiple existing slots overlap', () => {
+    const incoming = { dayOfWeek: 2, startTime: '09:00', endTime: '12:00', courseCode: 'INF2610' }
+    const existing = [
+      { dayOfWeek: 2, startTime: '08:00', endTime: '10:00', courseCode: 'INF3405' },
+      { dayOfWeek: 2, startTime: '11:00', endTime: '13:00', courseCode: 'LOG2995' },
+      { dayOfWeek: 2, startTime: '14:00', endTime: '16:00', courseCode: 'MTH2304' },
+    ]
+    const conflicts = detectScheduleConflicts(incoming, existing)
+    expect(conflicts).toHaveLength(2)
+    expect(conflicts.map(c => c.existingCode)).toEqual(['INF3405', 'LOG2995'])
   })
 })

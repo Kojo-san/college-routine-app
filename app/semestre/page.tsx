@@ -66,7 +66,7 @@ export default async function SemestrePage() {
   )
 
   return (
-    <PageLayout title="Semestre" etudiantNom={user?.name ?? undefined}>
+    <PageLayout title="Planification du trimestre" etudiantNom={user?.name ?? undefined}>
       <SemesterSetupForm
         courses={courses}
         wakeTime={setup?.wakeTime ?? '07:00'}

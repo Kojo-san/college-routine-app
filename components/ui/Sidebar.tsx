@@ -11,7 +11,7 @@ const NAV = [
   { href: '/planning',   label: 'Planning'   },
   { href: '/academique', label: 'Académique' },
   { href: '/gym',        label: 'Gym'        },
-  { href: '/semestre',   label: 'Semestre'   },
+  { href: '/semestre',   label: 'Planification'   },
   { href: '/settings',   label: 'Réglages'   },
 ]
 

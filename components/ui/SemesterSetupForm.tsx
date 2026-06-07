@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { GridSlot } from '@/lib/semester'
-import { extractTriplet, buildGridSlots } from '@/lib/semester'
+import type { GridSlot, ConflictInfo } from '@/lib/semester'
+import { extractTriplet, buildGridSlots, detectScheduleConflicts } from '@/lib/semester'
 import type { ScheduleSlot } from '@/lib/schedule'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -86,12 +86,12 @@ const DAY_OPTIONS = [
 const DAY_NAMES: Record<number, string> = { 1: 'Lun', 2: 'Mar', 3: 'Mer', 4: 'Jeu', 5: 'Ven' }
 
 const COURSE_PALETTE = [
-  { bg: 'rgba(155,143,255,0.22)', border: '#9B8FFF', text: '#9B8FFF' },
-  { bg: 'rgba(74,158,255,0.20)', border: '#4A9EFF', text: '#4A9EFF' },
-  { bg: 'rgba(168,255,120,0.18)', border: '#A8FF78', text: '#A8FF78' },
-  { bg: 'rgba(255,209,102,0.18)', border: '#FFD166', text: '#FFD166' },
-  { bg: 'rgba(255,107,157,0.18)', border: '#FF6B9D', text: '#FF6B9D' },
-  { bg: 'rgba(100,220,200,0.18)', border: '#64DCC8', text: '#64DCC8' },
+  { bg: 'rgba(155,143,255,0.22)', border: '#9B8FFF', text: '#9B8FFF', glow: 'rgba(155,143,255,0.35)' },
+  { bg: 'rgba(74,158,255,0.20)',  border: '#4A9EFF', text: '#4A9EFF', glow: 'rgba(74,158,255,0.35)'  },
+  { bg: 'rgba(168,255,120,0.18)', border: '#A8FF78', text: '#A8FF78', glow: 'rgba(168,255,120,0.35)' },
+  { bg: 'rgba(255,209,102,0.18)', border: '#FFD166', text: '#FFD166', glow: 'rgba(255,209,102,0.35)' },
+  { bg: 'rgba(255,107,157,0.18)', border: '#FF6B9D', text: '#FF6B9D', glow: 'rgba(255,107,157,0.35)' },
+  { bg: 'rgba(100,220,200,0.18)', border: '#64DCC8', text: '#64DCC8', glow: 'rgba(100,220,200,0.35)' },
 ]
 
 function buildCourseColorMap(slots: GridSlot[]): Map<string, typeof COURSE_PALETTE[0]> {
@@ -103,108 +103,259 @@ function buildCourseColorMap(slots: GridSlot[]): Map<string, typeof COURSE_PALET
 
 const DEFAULT_COLOR = COURSE_PALETTE[0]
 
-function ScheduleGrid({ slots }: { slots: GridSlot[] }) {
-  const hours = Array.from({ length: GRID_END - GRID_START + 1 }, (_, i) => GRID_START + i)
+const ROW_H = 44 // pixels per hour slot
+
+function ScheduleGrid({
+  slots,
+  courseNameMap = {},
+}: {
+  slots: GridSlot[]
+  courseNameMap?: Record<string, string>
+}) {
+  const [tooltip, setTooltip] = useState<{ slot: GridSlot; x: number; y: number } | null>(null)
   const colorMap = buildCourseColorMap(slots)
+  const numHours = GRID_END - GRID_START // 15
+  const hourLines = Array.from({ length: numHours + 1 }, (_, i) => GRID_START + i) // 7..22
 
   return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{ border: '1px solid var(--color-border-subtle)', background: 'var(--color-bg-surface)' }}
-    >
-      {/* Header */}
-      <div className="grid gap-0" style={{ gridTemplateColumns: '44px repeat(5, 1fr)' }}>
-        <div />
-        {DAYS_FR.map(d => (
-          <div
-            key={d}
-            className="font-space-grotesk text-[11px] font-semibold uppercase tracking-widest text-center py-2"
-            style={{ color: 'var(--color-text-muted)', borderLeft: '1px solid var(--color-border-subtle)' }}
-          >
-            {d}
-          </div>
-        ))}
-      </div>
-
-      {/* Grid body */}
-      <div className="relative" style={{ gridTemplateColumns: '44px repeat(5, 1fr)' }}>
-        {/* Hour labels + dividers */}
-        {hours.map(h => (
-          <div
-            key={h}
-            className="flex"
-            style={{ height: '32px', borderTop: '1px solid var(--color-border-subtle)' }}
-          >
-            <div
-              className="font-space-grotesk text-[10px] flex items-start justify-end pr-2 pt-0.5 flex-shrink-0"
-              style={{ width: '44px', color: 'var(--color-text-muted)' }}
-            >
-              {h}h
-            </div>
-            {DAYS_FR.map((_, col) => (
-              <div
-                key={col}
-                style={{ flex: 1, borderLeft: '1px solid var(--color-border-subtle)', height: '32px' }}
-              />
-            ))}
-          </div>
-        ))}
-
-        {/* Course blocks overlay */}
+    <>
+      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <div
-          className="absolute inset-0"
-          style={{ left: '44px', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', pointerEvents: 'none' }}
+          style={{
+            minWidth: '500px',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            border: '1px solid var(--color-border-subtle)',
+            background: 'var(--color-bg-surface)',
+          }}
         >
-          {slots.map((slot, i) => {
-            const color = (slot.code ? colorMap.get(slot.code) : undefined) ?? DEFAULT_COLOR
-            return (
+          {/* Day headers */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '44px repeat(5, 1fr)',
+              borderBottom: '1px solid var(--color-border-subtle)',
+            }}
+          >
+            <div />
+            {DAYS_FR.map(d => (
               <div
-                key={i}
+                key={d}
                 style={{
-                  gridColumn: slot.colIndex + 1,
-                  position: 'absolute',
-                  left: `${(slot.colIndex / 5) * 100}%`,
-                  width: `${(1 / 5) * 100}%`,
-                  top: `${slot.topPct}%`,
-                  height: `${slot.heightPct}%`,
-                  padding: '2px 3px',
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  textAlign: 'center',
+                  padding: '10px 0 9px',
+                  color: 'var(--color-text-muted)',
+                  borderLeft: '1px solid var(--color-border-subtle)',
                 }}
               >
-                <div
-                  className="h-full rounded overflow-hidden flex flex-col items-center justify-center px-1"
-                  style={{ background: color.bg, border: `1px solid ${color.border}` }}
-                >
-                  {slot.code && (
-                    <span
-                      className="font-space-grotesk font-bold text-[9px] uppercase tracking-wide leading-tight text-center w-full truncate"
-                      style={{ color: color.text }}
-                    >
-                      {slot.code}
-                    </span>
-                  )}
-                  {slot.room && (
-                    <span
-                      className="font-space-grotesk text-[8px] leading-tight text-center w-full truncate"
-                      style={{ color: color.text, opacity: 0.75 }}
-                    >
-                      {slot.room}
-                    </span>
-                  )}
-                  {!slot.code && (
-                    <span
-                      className="font-space-grotesk font-semibold text-[9px] uppercase tracking-wider text-center leading-tight"
-                      style={{ color: color.text }}
-                    >
-                      {slot.type}
-                    </span>
-                  )}
-                </div>
+                {d}
               </div>
-            )
-          })}
+            ))}
+          </div>
+
+          {/* Grid body — fixed height, absolute children */}
+          <div style={{ position: 'relative', height: `${numHours * ROW_H}px` }}>
+
+            {/* Hour lines + labels */}
+            {hourLines.map((h, i) => (
+              <div
+                key={h}
+                style={{ position: 'absolute', top: `${i * ROW_H}px`, left: 0, right: 0, pointerEvents: 'none' }}
+              >
+                <span style={{
+                  position: 'absolute',
+                  left: 0,
+                  width: '40px',
+                  top: '-8px',
+                  paddingRight: '6px',
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  fontSize: '10px',
+                  color: 'var(--color-text-muted)',
+                  textAlign: 'right',
+                  lineHeight: 1,
+                  userSelect: 'none',
+                }}>
+                  {h}h
+                </span>
+                {i > 0 && (
+                  <div style={{ marginLeft: '44px', height: '1px', background: 'var(--color-border-subtle)' }} />
+                )}
+              </div>
+            ))}
+
+            {/* Column separators */}
+            {[0, 1, 2, 3, 4].map(col => (
+              <div
+                key={col}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left: `calc(44px + ${col} * (100% - 44px) / 5)`,
+                  width: '1px',
+                  background: 'var(--color-border-subtle)',
+                  pointerEvents: 'none',
+                }}
+              />
+            ))}
+
+            {/* Course blocks */}
+            {slots.map((slot, i) => {
+              const color = (slot.code ? colorMap.get(slot.code) : undefined) ?? DEFAULT_COLOR
+              const topPx    = (slot.topPct    / 100) * (numHours * ROW_H)
+              const heightPx = (slot.heightPct / 100) * (numHours * ROW_H)
+              const PAD = 2
+
+              return (
+                <div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    left: `calc(44px + ${slot.colIndex} * (100% - 44px) / 5 + ${PAD}px)`,
+                    width: `calc((100% - 44px) / 5 - ${PAD * 2}px)`,
+                    top: `${topPx + PAD}px`,
+                    height: `${Math.max(heightPx - PAD * 2, 10)}px`,
+                    zIndex: 1,
+                  }}
+                  onMouseEnter={e => setTooltip({ slot, x: e.clientX, y: e.clientY })}
+                  onMouseMove={e => setTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null)}
+                  onMouseLeave={() => setTooltip(null)}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      borderRadius: '6px',
+                      border: `1px solid ${color.border}`,
+                      background: color.bg,
+                      boxShadow: `0 0 10px ${color.glow}`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'flex-start',
+                      padding: '3px 6px',
+                      overflow: 'hidden',
+                      cursor: 'default',
+                      gap: '1px',
+                    }}
+                  >
+                    {/* Course code — always shown */}
+                    <span style={{
+                      fontFamily: 'Space Grotesk, sans-serif',
+                      fontWeight: 700,
+                      fontSize: '9px',
+                      letterSpacing: '0.05em',
+                      textTransform: 'uppercase',
+                      color: color.text,
+                      lineHeight: 1.2,
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {slot.code ?? slot.type}
+                    </span>
+                    {/* Type badge — block ≥ 40px */}
+                    {heightPx >= 40 && (
+                      <span style={{
+                        fontFamily: 'Space Grotesk, sans-serif',
+                        fontSize: '8px',
+                        fontWeight: 600,
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        color: color.text,
+                        opacity: 0.7,
+                        lineHeight: 1.2,
+                      }}>
+                        {slot.type}
+                      </span>
+                    )}
+                    {/* Time range — block ≥ 54px */}
+                    {heightPx >= 54 && (
+                      <span style={{
+                        fontFamily: 'Space Grotesk, sans-serif',
+                        fontSize: '8px',
+                        color: color.text,
+                        opacity: 0.55,
+                        lineHeight: 1.2,
+                        marginTop: '1px',
+                      }}>
+                        {slot.startTime}–{slot.endTime}
+                      </span>
+                    )}
+                    {/* Room — block ≥ 80px */}
+                    {heightPx >= 80 && slot.room && (
+                      <span style={{
+                        fontFamily: 'Space Grotesk, sans-serif',
+                        fontSize: '8px',
+                        color: color.text,
+                        opacity: 0.5,
+                        lineHeight: 1.2,
+                      }}>
+                        {slot.room}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Hover tooltip */}
+      {tooltip && (() => {
+        const slot = tooltip.slot
+        const color = (slot.code ? colorMap.get(slot.code) : undefined) ?? DEFAULT_COLOR
+        const name = slot.code ? (courseNameMap[slot.code] ?? slot.code) : slot.type
+        const tx = Math.max(8, Math.min(tooltip.x + 14, window.innerWidth - 214))
+        const ty = tooltip.y + 10
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              left: `${tx}px`,
+              top: `${ty}px`,
+              zIndex: 9999,
+              background: '#12121F',
+              border: `1px solid ${color.border}`,
+              borderRadius: '8px',
+              padding: '10px 14px',
+              boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 16px ${color.glow}`,
+              pointerEvents: 'none',
+              minWidth: '160px',
+              maxWidth: '210px',
+            }}
+          >
+            <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '13px', color: '#F0F0FF', marginBottom: '6px', lineHeight: 1.3 }}>
+              {name}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              <span style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '11px', fontWeight: 600, color: color.text, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {slot.type}
+              </span>
+              <span style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '11px', color: '#8888AA' }}>
+                {slot.startTime} → {slot.endTime}
+              </span>
+              {slot.room && (
+                <span style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '11px', color: '#8888AA' }}>
+                  Salle {slot.room}
+                </span>
+              )}
+              {slot.group && (
+                <span style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '11px', color: '#8888AA' }}>
+                  Groupe {slot.group}
+                </span>
+              )}
+            </div>
+          </div>
+        )
+      })()}
+    </>
   )
 }
 
@@ -438,7 +589,7 @@ function CourseSetupCard({ course, onUpdate }: {
           max={20}
           step={0.5}
           value={hours}
-          onChange={e => setHours(parseFloat(e.target.value))}
+          onChange={e => { setHours(parseFloat(e.target.value)); setSaved(false) }}
           className="w-full cursor-pointer accent-[#4A9EFF]"
           aria-label={`Heures personnelles par semaine pour ${course.name}`}
         />
@@ -451,11 +602,14 @@ function CourseSetupCard({ course, onUpdate }: {
       <button
         type="button"
         onClick={save}
-        className="cursor-pointer self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
+        disabled={saved}
+        className="self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
         style={{
           background: saved ? 'rgba(168,255,120,0.12)' : 'var(--color-accent-study)',
           color: saved ? 'var(--color-accent-rec)' : 'var(--color-bg-base)',
           border: saved ? '1px solid rgba(168,255,120,0.3)' : 'none',
+          cursor: saved ? 'default' : 'pointer',
+          opacity: saved ? 0.85 : 1,
         }}
       >
         {saved ? 'Sauvegardé ✓' : 'Sauvegarder'}
@@ -487,6 +641,8 @@ function ManualHoraireForm({
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pendingEntry, setPendingEntry] = useState<ManualSlotEntry | null>(null)
+  const [pendingConflicts, setPendingConflicts] = useState<ConflictInfo[]>([])
   const nextIdRef = useRef(0)
 
   function resetForm() {
@@ -511,6 +667,15 @@ function ManualHoraireForm({
     setEditingId(s.localId)
   }
 
+  function applyEntry(entry: ManualSlotEntry) {
+    if (editingId !== null) {
+      setSlots(prev => prev.map(s => s.localId === editingId ? entry : s))
+    } else {
+      setSlots(prev => [...prev, entry])
+    }
+    resetForm()
+  }
+
   function commitSlot() {
     const course = courses.find(c => c.id === courseId)
     if (!course || !startTime || !endTime) return
@@ -525,12 +690,33 @@ function ManualHoraireForm({
       room:  room.trim()  || undefined,
       group: group.trim() || undefined,
     }
-    if (editingId !== null) {
-      setSlots(prev => prev.map(s => s.localId === editingId ? entry : s))
-    } else {
-      setSlots(prev => [...prev, entry])
+    // Check conflicts against existing slots (excluding current edited one)
+    const others = slots.filter(s => s.localId !== editingId)
+    const conflicts = detectScheduleConflicts(
+      { dayOfWeek: entry.dayOfWeek, startTime: entry.startTime, endTime: entry.endTime, courseCode: entry.courseCode },
+      others.map(s => ({ dayOfWeek: s.dayOfWeek, startTime: s.startTime, endTime: s.endTime, courseCode: s.courseCode })),
+    )
+    if (conflicts.length > 0) {
+      setPendingEntry(entry)
+      setPendingConflicts(conflicts)
+      return
     }
-    resetForm()
+    applyEntry(entry)
+  }
+
+  function resolveConflict(replace: boolean) {
+    if (!pendingEntry) return
+    if (replace) {
+      // Remove all conflicting slots then add new entry
+      const conflictKeys = pendingConflicts.map(c => `${c.day}|${c.startTime}|${c.endTime}`)
+      setSlots(prev => prev.filter(s => {
+        const key = `${DAY_NAMES[s.dayOfWeek]}|${s.startTime}|${s.endTime}`
+        return !conflictKeys.includes(key)
+      }))
+      applyEntry(pendingEntry)
+    }
+    setPendingEntry(null)
+    setPendingConflicts([])
   }
 
   function removeSlot(localId: number) {
@@ -726,7 +912,7 @@ function ManualHoraireForm({
             opacity: courseId ? 1 : 0.5,
           }}
         >
-          {isEditing ? 'Modifier ce créneau' : '+ Ajouter ce créneau'}
+          {isEditing ? 'Valider les changements' : '+ Ajouter ce créneau'}
         </button>
       </div>
 
@@ -766,6 +952,44 @@ function ManualHoraireForm({
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Conflict modal */}
+      {pendingEntry && pendingConflicts.length > 0 && (
+        <div
+          className="rounded-xl p-4 flex flex-col gap-3"
+          style={{ background: 'rgba(255,209,102,0.08)', border: '1px solid rgba(255,209,102,0.3)' }}
+          role="alertdialog"
+          aria-label="Conflit de créneau"
+        >
+          <p className="font-space-grotesk text-[13px] font-semibold" style={{ color: '#FFD166' }}>
+            Conflit détecté
+          </p>
+          <p className="font-space-grotesk text-[12px]" style={{ color: 'var(--color-text-primary)' }}>
+            {pendingConflicts.map(c =>
+              `Ce créneau chevauche ${c.existingCode} (${c.day} ${c.startTime}–${c.endTime}).`
+            ).join(' ')}
+            {' '}Voulez-vous le remplacer ou annuler ?
+          </p>
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => resolveConflict(false)}
+              className="cursor-pointer font-space-grotesk text-[12px] px-3 py-1.5 rounded-lg"
+              style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-muted)' }}
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={() => resolveConflict(true)}
+              className="cursor-pointer font-space-grotesk text-[12px] font-semibold px-3 py-1.5 rounded-lg"
+              style={{ background: 'rgba(255,209,102,0.15)', border: '1px solid rgba(255,209,102,0.4)', color: '#FFD166' }}
+            >
+              Remplacer
+            </button>
+          </div>
         </div>
       )}
 
@@ -1005,7 +1229,7 @@ function ManualSyllabusForm({
                 opacity: evalTitle.trim() && evalWeight ? 1 : 0.5,
               }}
             >
-              {editingEvalId !== null ? 'Modifier' : '+ Ajouter'}
+              {editingEvalId !== null ? 'Valider les changements' : '+ Ajouter'}
             </button>
           </div>
         </div>
@@ -1237,6 +1461,7 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
   const [saved, setSaved] = useState(false)
 
   function toggleDay(dow: number) {
+    setSaved(false)
     setPrefs(p => ({
       ...p,
       preferredDays: p.preferredDays.includes(dow)
@@ -1278,7 +1503,7 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
           max={7}
           step={1}
           value={prefs.frequencyPerWeek}
-          onChange={e => setPrefs(p => ({ ...p, frequencyPerWeek: parseInt(e.target.value) }))}
+          onChange={e => { setSaved(false); setPrefs(p => ({ ...p, frequencyPerWeek: parseInt(e.target.value) })) }}
           className="w-full cursor-pointer accent-[#FFD166]"
           aria-label="Nombre de séances de gym par semaine"
         />
@@ -1309,7 +1534,7 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
           max={120}
           step={15}
           value={prefs.sessionDurationMinutes}
-          onChange={e => setPrefs(p => ({ ...p, sessionDurationMinutes: parseInt(e.target.value) }))}
+          onChange={e => { setSaved(false); setPrefs(p => ({ ...p, sessionDurationMinutes: parseInt(e.target.value) })) }}
           className="w-full cursor-pointer accent-[#FFD166]"
           aria-label="Durée de la séance de gym en minutes"
         />
@@ -1359,7 +1584,7 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
               <button
                 key={t}
                 type="button"
-                onClick={() => setPrefs(p => ({ ...p, preferredTime: t }))}
+                onClick={() => { setSaved(false); setPrefs(p => ({ ...p, preferredTime: t })) }}
                 className="cursor-pointer flex-1 font-space-grotesk text-[13px] font-semibold py-2 rounded-lg transition-all duration-150 capitalize"
                 style={{
                   background: active ? 'rgba(255,209,102,0.15)' : 'var(--color-bg-elevated)',
@@ -1378,11 +1603,14 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
       <button
         type="button"
         onClick={save}
-        className="cursor-pointer self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
+        disabled={saved}
+        className="self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
         style={{
           background: saved ? 'rgba(168,255,120,0.12)' : '#FFD166',
           color: saved ? 'var(--color-accent-rec)' : 'var(--color-bg-base)',
           border: saved ? '1px solid rgba(168,255,120,0.3)' : 'none',
+          cursor: saved ? 'default' : 'pointer',
+          opacity: saved ? 0.85 : 1,
         }}
       >
         {saved ? 'Sauvegardé ✓' : 'Sauvegarder'}
@@ -1437,11 +1665,14 @@ function SleepScheduleForm({ wakeTime: initWake, sleepTime: initSleep }: { wakeT
       <button
         type="button"
         onClick={save}
-        className="cursor-pointer self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
+        disabled={saved}
+        className="self-end font-space-grotesk text-[13px] font-semibold px-4 py-2 rounded-lg transition-all duration-150"
         style={{
           background: saved ? 'rgba(168,255,120,0.12)' : 'var(--color-accent-study)',
           color: saved ? 'var(--color-accent-rec)' : 'var(--color-bg-base)',
           border: saved ? '1px solid rgba(168,255,120,0.3)' : 'none',
+          cursor: saved ? 'default' : 'pointer',
+          opacity: saved ? 0.85 : 1,
         }}
       >
         {saved ? 'Sauvegardé ✓' : 'Sauvegarder'}
@@ -1508,10 +1739,13 @@ export function SemesterSetupForm({
       {/* ── Grille horaire visuelle ── */}
       <section aria-labelledby="grid-section">
         <h2 id="grid-section" className="font-syne font-bold text-[18px] mb-4" style={{ color: 'var(--color-text-primary)' }}>
-          Grille horaire fixe
+          Grille horaire
         </h2>
         {slots.length > 0 ? (
-          <ScheduleGrid slots={slots} />
+          <ScheduleGrid
+            slots={slots}
+            courseNameMap={Object.fromEntries(courses.map(c => [c.code, c.name]))}
+          />
         ) : (
           <div
             className="rounded-xl p-8 text-center"
