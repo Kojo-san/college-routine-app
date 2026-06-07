@@ -2,6 +2,7 @@ import { PrismaClient } from '../app/generated/prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { neonConfig } from '@neondatabase/serverless'
 import ws from 'ws'
+import { seedExercises } from './exercises-seed'
 
 neonConfig.webSocketConstructor = ws
 
@@ -131,6 +132,7 @@ async function main() {
     console.log(`  ✓ ${rule.id}`)
   }
 
+  await seedExercises(prisma)
   console.log('Done.')
 }
 

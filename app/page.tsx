@@ -5,6 +5,7 @@ import type { TimelineBlock } from '@/components/ui/Timeline'
 import { RecommendationCard } from '@/components/ui/RecommendationCard'
 import { GeneratePlanButton } from '@/components/ui/GeneratePlanButton'
 import { getDailyPlan } from '@/lib/planning'
+import { getRotationTypeForDayOfWeek } from '@/lib/gym'
 import prisma from '@/lib/prisma'
 import type { RecommendationType } from '@/app/generated/prisma/client'
 
@@ -96,8 +97,9 @@ export default async function DashboardPage() {
 
   // ── Gym suggestion: first FITNESS bloc in today's plan ──
   const gymBloc = plan?.timeBlocks.find(b => b.typeActivite === 'FITNESS') ?? null
+  const todayGymTab = getRotationTypeForDayOfWeek(today.getDay())
   const gymSuggestion = gymBloc
-    ? `Tu peux aller au gym à ${formatHHMM(gymBloc.startTime)} — Push Day`
+    ? `Tu peux aller au gym à ${formatHHMM(gymBloc.startTime)} — ${todayGymTab}`
     : null
 
   const firstRec = plan?.recommendations[0] ?? null
@@ -151,7 +153,7 @@ export default async function DashboardPage() {
         {/* ── Gym suggestion ── */}
         {gymSuggestion && (
           <section aria-labelledby="dash-gym">
-            <Link href="/gym" className="block">
+            <Link href={`/gym?type=${encodeURIComponent(todayGymTab)}`} className="block">
               <div
                 className="rounded-xl p-4 flex items-center justify-between gap-4 transition-all duration-150 hover:opacity-80"
                 style={{

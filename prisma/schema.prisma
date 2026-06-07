@@ -68,6 +68,22 @@ enum ScheduleType {
   LAB
 }
 
+enum ExerciseType {
+  PUSH
+  PULL
+  LEGS
+  ABS
+  FULL_BODY
+  CARDIO
+  STRETCHING
+}
+
+enum ExerciseLevel {
+  DEBUTANT
+  INTERMEDIAIRE
+  AVANCE
+}
+
 // ==================== UTILISATEUR ====================
 
 model User {
@@ -137,6 +153,19 @@ model GymPreferences {
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Exercise {
+  id           String        @id @default(cuid())
+  name         String
+  type         ExerciseType
+  muscleGroup  String
+  sets         Int
+  reps         String
+  level        ExerciseLevel
+  equipment    String
+  description  String
+  exerciseDbId String?
 }
 
 // Héritage par table unique (STI) pour Goal

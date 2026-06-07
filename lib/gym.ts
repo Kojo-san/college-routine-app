@@ -1,128 +1,78 @@
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface WgerExercise {
-  id: number
-  name: string
-  category: string
-  muscles: string[]
-  sets: number
-  reps: number
-  durationMinutes: number
+/** Tab display types used in the /gym UI */
+export type GymTabType =
+  | 'Push Day'
+  | 'Pull Day'
+  | 'Legs & Abs'
+  | 'Full Body'
+  | 'Cardio'
+  | 'Stretching'
+
+/** Raw exercise types stored in Prisma */
+export type ExerciseDbType =
+  | 'PUSH'
+  | 'PULL'
+  | 'LEGS'
+  | 'ABS'
+  | 'FULL_BODY'
+  | 'CARDIO'
+  | 'STRETCHING'
+
+/** Maps each UI tab to the DB exercise types it displays */
+export const TAB_TO_DB_TYPES: Record<GymTabType, ExerciseDbType[]> = {
+  'Push Day':   ['PUSH'],
+  'Pull Day':   ['PULL'],
+  'Legs & Abs': ['LEGS', 'ABS'],
+  'Full Body':  ['FULL_BODY'],
+  'Cardio':     ['CARDIO'],
+  'Stretching': ['STRETCHING'],
 }
 
-export type GymSessionType = 'Push Day' | 'Pull Day' | 'Leg Day' | 'Full Body' | 'Cardio' | 'Stretching'
+export const ALL_GYM_TABS: GymTabType[] = [
+  'Push Day',
+  'Pull Day',
+  'Legs & Abs',
+  'Full Body',
+  'Cardio',
+  'Stretching',
+]
 
-// Core rotation: Push/Pull/Legs/Full Body. Cardio and Stretching are extra categories.
-const ROTATION: GymSessionType[] = ['Push Day', 'Pull Day', 'Leg Day', 'Full Body']
-
-// wger category IDs (from https://wger.de/api/v2/exercisecategory/)
-// 8=Arms, 9=Legs, 10=Abs, 11=Chest, 12=Back, 13=Shoulders, 14=Calves
-const WGER_CATEGORY: Record<GymSessionType, number> = {
-  'Push Day':   11,   // Chest (chest + shoulders + triceps)
-  'Pull Day':   12,   // Back
-  'Leg Day':    9,    // Legs
-  'Full Body':  11,   // default to chest for full body
-  'Cardio':     10,   // Abs (no pure cardio category in wger)
-  'Stretching': 14,   // Calves (closest to flexibility)
+/**
+ * Day-of-week rotation for automatic tab selection.
+ * 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+ */
+const DAY_ROTATION: Record<number, GymTabType> = {
+  0: 'Full Body',
+  1: 'Push Day',
+  2: 'Pull Day',
+  3: 'Legs & Abs',
+  4: 'Full Body',
+  5: 'Cardio',
+  6: 'Stretching',
 }
 
-// ─── Pure functions ───────────────────────────────────────────────────────────
-
-export function getGymRotationType(sessionIndex: number): GymSessionType {
-  const i = ((sessionIndex % ROTATION.length) + ROTATION.length) % ROTATION.length
-  return ROTATION[i]
+export function getRotationTypeForDayOfWeek(dayOfWeek: number): GymTabType {
+  return DAY_ROTATION[dayOfWeek] ?? 'Full Body'
 }
 
-export function mapWgerCategory(gymType: string): number {
-  return WGER_CATEGORY[gymType as GymSessionType] ?? 11
+export function getTodayGymTab(): GymTabType {
+  return getRotationTypeForDayOfWeek(new Date().getDay())
 }
 
-export function buildWgerUrl(params: {
-  language?: number
-  category?: number
-  limit?: number
-  offset?: number
-}): string {
-  const base = 'https://wger.de/api/v2/exercise/'
-  const p = new URLSearchParams()
-  p.set('format', 'json')
-  if (params.language !== undefined) p.set('language', String(params.language))
-  if (params.category  !== undefined) p.set('category',  String(params.category))
-  if (params.limit     !== undefined) p.set('limit',     String(params.limit))
-  if (params.offset    !== undefined) p.set('offset',    String(params.offset))
-  return `${base}?${p.toString()}`
+export const SESSION_TYPE_COLORS: Record<
+  GymTabType,
+  { bg: string; border: string; text: string; glow: string }
+> = {
+  'Push Day':   { bg: 'rgba(255,209,102,0.10)', border: 'rgba(255,209,102,0.3)', text: '#FFD166', glow: 'rgba(255,209,102,0.35)' },
+  'Pull Day':   { bg: 'rgba(74,158,255,0.10)',  border: 'rgba(74,158,255,0.3)',  text: '#4A9EFF', glow: 'rgba(74,158,255,0.35)'  },
+  'Legs & Abs': { bg: 'rgba(168,255,120,0.10)', border: 'rgba(168,255,120,0.3)', text: '#A8FF78', glow: 'rgba(168,255,120,0.35)' },
+  'Full Body':  { bg: 'rgba(155,143,255,0.10)', border: 'rgba(155,143,255,0.3)', text: '#9B8FFF', glow: 'rgba(155,143,255,0.35)' },
+  'Cardio':     { bg: 'rgba(255,107,157,0.10)', border: 'rgba(255,107,157,0.3)', text: '#FF6B9D', glow: 'rgba(255,107,157,0.35)' },
+  'Stretching': { bg: 'rgba(255,179,71,0.10)',  border: 'rgba(255,179,71,0.3)',  text: '#FFB347', glow: 'rgba(255,179,71,0.35)'  },
 }
 
-export function filterExercisesForDuration(
-  exercises: WgerExercise[],
-  durationMinutes: number,
-): WgerExercise[] {
-  if (durationMinutes <= 0) return []
-  const result: WgerExercise[] = []
-  let remaining = durationMinutes
-  for (const ex of exercises) {
-    if (ex.durationMinutes > remaining) continue
-    result.push(ex)
-    remaining -= ex.durationMinutes
-    if (remaining <= 0) break
-  }
-  return result
-}
-
-// ─── wger API client ──────────────────────────────────────────────────────────
-
-interface WgerApiExercise {
-  id: number
-  name: string
-  muscles: Array<{ name_en: string }>
-  muscles_secondary: Array<{ name_en: string }>
-  category: { name: string }
-  description: string
-}
-
-interface WgerApiResponse {
-  results: WgerApiExercise[]
-  count: number
-}
-
-function estimateDuration(sets: number, reps: number): number {
-  // ~40s per set including rest
-  return Math.round((sets * 40 + sets * (reps / 2)) / 60) + 1
-}
-
-export async function fetchWgerExercises(
-  gymType: GymSessionType,
-  durationMinutes: number,
-): Promise<WgerExercise[]> {
-  const category = mapWgerCategory(gymType)
-  const url = buildWgerUrl({ language: 2, category, limit: 30 })
-
-  const res = await fetch(url, { next: { revalidate: 86400 } })
-  if (!res.ok) return []
-
-  const data: WgerApiResponse = await res.json()
-
-  const defaultSets = 3
-  const defaultReps = gymType === 'Cardio' ? 0 : 10
-
-  const exercises: WgerExercise[] = data.results
-    .filter(e => e.name && e.name.length > 2)
-    .map(e => {
-      const muscles = [
-        ...e.muscles.map(m => m.name_en),
-        ...e.muscles_secondary.map(m => m.name_en),
-      ].filter(Boolean)
-
-      return {
-        id: e.id,
-        name: e.name,
-        category: e.category?.name ?? gymType,
-        muscles: muscles.length > 0 ? muscles : ['Muscles généraux'],
-        sets: defaultSets,
-        reps: defaultReps,
-        durationMinutes: estimateDuration(defaultSets, defaultReps),
-      }
-    })
-
-  return filterExercisesForDuration(exercises, durationMinutes)
+/** Estimate session duration from exercise count (~5 min/exercise + warmup) */
+export function estimateSessionMinutes(exerciseCount: number): number {
+  return Math.round(exerciseCount * 5 + 10)
 }
