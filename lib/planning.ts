@@ -124,7 +124,7 @@ export interface GymPrefsInput {
   frequencyPerWeek: number         // 1–7
   sessionDurationMinutes: number   // 30–120
   preferredDays: number[]          // 0=Dim … 6=Sam
-  preferredTime: 'matin' | 'après-midi' | 'soir'
+  preferredTime: 'matin' | 'après-midi' | 'soir' | null
 }
 
 export interface CourseHoursInput {
@@ -312,7 +312,7 @@ export function findGymSlot(
   })
   if (hasExamTomorrow) return null
 
-  const [winStart, winEnd] = GYM_TIME_WINDOWS[gymPrefs.preferredTime] ?? [wakeMin, sleepMin]
+  const [winStart, winEnd] = (gymPrefs.preferredTime != null ? GYM_TIME_WINDOWS[gymPrefs.preferredTime] : null) ?? [wakeMin, sleepMin]
   const duration = gymPrefs.sessionDurationMinutes
 
   let cursor = Math.max(wakeMin, winStart)

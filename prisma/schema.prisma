@@ -131,7 +131,7 @@ model GymPreferences {
   frequencyPerWeek      Int      @default(3)   // 1–7
   sessionDurationMinutes Int     @default(60)   // 30–120
   preferredDays         Int[]    // 0=Dim … 6=Sam
-  preferredTime         String   @default("matin") // matin | après-midi | soir
+  preferredTime         String?  // matin | après-midi | soir | null
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 

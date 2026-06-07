@@ -23,7 +23,7 @@ export async function PUT(request: Request) {
     typeof frequencyPerWeek !== 'number' || frequencyPerWeek < 1 || frequencyPerWeek > 7 ||
     typeof sessionDurationMinutes !== 'number' || sessionDurationMinutes < 30 || sessionDurationMinutes > 120 ||
     !Array.isArray(preferredDays) ||
-    !['matin', 'après-midi', 'soir'].includes(preferredTime)
+    (preferredTime !== null && !['matin', 'après-midi', 'soir'].includes(preferredTime))
   ) {
     return Response.json({ error: 'Paramètres de préférences gym invalides' }, { status: 400 })
   }

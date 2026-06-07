@@ -74,8 +74,8 @@ export default async function SemestrePage() {
         gymPrefs={{
           frequencyPerWeek:      gymPrefs?.frequencyPerWeek      ?? 3,
           sessionDurationMinutes: gymPrefs?.sessionDurationMinutes ?? 60,
-          preferredDays:          gymPrefs?.preferredDays          ?? [1, 3, 5],
-          preferredTime:          (gymPrefs?.preferredTime as 'matin' | 'après-midi' | 'soir') ?? 'soir',
+          preferredDays:          gymPrefs?.preferredDays          ?? [],
+          preferredTime:          (gymPrefs?.preferredTime ?? null) as 'matin' | 'après-midi' | 'soir' | null,
         }}
         gridSlots={allSlots}
       />

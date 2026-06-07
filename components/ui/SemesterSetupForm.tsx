@@ -20,7 +20,7 @@ interface GymPrefsData {
   frequencyPerWeek: number
   sessionDurationMinutes: number
   preferredDays: number[]
-  preferredTime: 'matin' | 'après-midi' | 'soir'
+  preferredTime: 'matin' | 'après-midi' | 'soir' | null
 }
 
 interface SemesterSetupFormProps {
@@ -1156,8 +1156,13 @@ function ManualSyllabusForm({
                 type="number"
                 min={0}
                 max={20}
+                step={0.5}
                 value={val}
-                onChange={e => set(parseInt(e.target.value, 10) || 0)}
+                onChange={e => {
+                  const raw = parseFloat(e.target.value)
+                  const rounded = Math.round(raw * 2) / 2
+                  set(isNaN(rounded) ? 0 : Math.max(0, Math.min(20, rounded)))
+                }}
                 className="rounded-lg px-2 py-1.5 font-syne font-bold text-[16px] text-center w-14"
                 style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', outline: 'none' }}
                 aria-label={label}
@@ -1366,7 +1371,7 @@ function SessionScheduleImport({
             Horaire de session
           </p>
           <p className="font-space-grotesk text-[12px] mt-1" style={{ color: 'var(--color-text-muted)' }}>
-            Importe ton horaire officiel Polytechnique pour remplir automatiquement la grille.
+            Importe ton horaire officiel pour remplir automatiquement la grille.
           </p>
         </div>
         <button
@@ -1381,7 +1386,7 @@ function SessionScheduleImport({
             opacity: loading ? 0.5 : 1,
           }}
         >
-          {loading ? 'Extraction…' : 'Importer mon horaire Polytechnique (PDF)'}
+          {loading ? 'Extraction…' : 'Importer mon horaire (PDF)'}
         </button>
         <input
           ref={fileRef}
@@ -1570,6 +1575,9 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
             )
           })}
         </div>
+        <p className="font-space-grotesk text-[11px]" style={{ color: 'var(--color-text-muted)', opacity: 0.7 }}>
+          Optionnel — si aucun jour choisi, le planning suggère automatiquement les meilleurs créneaux disponibles
+        </p>
       </div>
 
       {/* Preferred time */}
@@ -1578,14 +1586,19 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
           Moment préféré
         </p>
         <div className="flex gap-2">
-          {(['matin', 'après-midi', 'soir'] as const).map(t => {
-            const active = prefs.preferredTime === t
+          {([
+            { label: 'Peu importe', value: null },
+            { label: 'Matin',       value: 'matin'      },
+            { label: 'Après-Midi',  value: 'après-midi' },
+            { label: 'Soir',        value: 'soir'       },
+          ] as { label: string; value: 'matin' | 'après-midi' | 'soir' | null }[]).map(({ label, value }) => {
+            const active = prefs.preferredTime === value
             return (
               <button
-                key={t}
+                key={label}
                 type="button"
-                onClick={() => { setSaved(false); setPrefs(p => ({ ...p, preferredTime: t })) }}
-                className="cursor-pointer flex-1 font-space-grotesk text-[13px] font-semibold py-2 rounded-lg transition-all duration-150 capitalize"
+                onClick={() => { setSaved(false); setPrefs(p => ({ ...p, preferredTime: value })) }}
+                className="cursor-pointer flex-1 font-space-grotesk text-[12px] font-semibold py-2 rounded-lg transition-all duration-150"
                 style={{
                   background: active ? 'rgba(255,209,102,0.15)' : 'var(--color-bg-elevated)',
                   border: `1px solid ${active ? 'rgba(255,209,102,0.4)' : 'var(--color-border-subtle)'}`,
@@ -1593,7 +1606,7 @@ function GymPrefsForm({ initial }: { initial: GymPrefsData }) {
                 }}
                 aria-pressed={active}
               >
-                {t}
+                {label}
               </button>
             )
           })}

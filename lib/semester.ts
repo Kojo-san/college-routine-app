@@ -189,14 +189,14 @@ export function detectScheduleConflicts(
     }))
 }
 
-const TRIPLET_RE = /(\d)\s*[-–]\s*(\d)\s*[-–]\s*(\d)/
+const TRIPLET_RE = /(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)/
 
 export function extractTriplet(text: string): Triplet | null {
   const match = TRIPLET_RE.exec(text)
   if (!match) return null
   return {
-    lecture:  parseInt(match[1], 10),
-    lab:      parseInt(match[2], 10),
-    personal: parseInt(match[3], 10),
+    lecture:  parseFloat(match[1]),
+    lab:      parseFloat(match[2]),
+    personal: parseFloat(match[3]),
   }
 }
