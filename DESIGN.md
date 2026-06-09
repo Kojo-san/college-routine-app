@@ -66,7 +66,7 @@ Syne uniquement sur H1–H3. Jamais en corps de texte, jamais en label UI.
 | Asset           | Rôle                                                              |
 | --------------- | ----------------------------------------------------------------- |
 | `bear-logo.png` | Logo sidebar + favicon. Présent en permanence, 32×32px.          |
-| `bear.png`      | États vides, onboarding, félicitations. 120–200px.               |
+| `bear_no_background.png`      | États vides, onboarding, félicitations. 120–200px.               |
 | `bear-neon.png` | Carte de Recommandation. 48×48px, toujours en haut à droite.     |
 
 Le bear ne parle jamais directement. Sa présence suffit à signaler le type de contexte.
@@ -822,7 +822,7 @@ Affiché quand aucun contenu n'existe dans une section. Le bear accompagne toujo
 
 ```
         🐻
-   bear.png (140px)
+   bear_no_background.png (140px)
 
    Aucun Planning pour aujourd'hui
 

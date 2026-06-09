@@ -88,7 +88,7 @@ export default async function PlanningPage() {
 
           <div className="bg-bg-surface border border-border-subtle rounded-xl p-8 flex flex-col items-center gap-4 text-center">
             <Image
-              src="/assets/bear.png"
+              src="/assets/bear_no_background.png"
               width={120}
               height={120}
               alt=""

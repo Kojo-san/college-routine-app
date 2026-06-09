@@ -557,7 +557,7 @@ export function OnboardingForm({ name }: { name: string }) {
         {/* Header */}
         <div className="flex flex-col items-center gap-3">
           <Image
-            src="/assets/bear.png"
+            src="/assets/bear_no_background.png"
             alt=""
             aria-hidden
             width={60}
