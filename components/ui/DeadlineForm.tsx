@@ -40,7 +40,7 @@ export function DeadlineForm({ courseId, onClose }: DeadlineFormProps) {
     setErrorMsg('')
 
     try {
-      const res = await fetch(`/api/academique/${courseId}/deadlines`, {
+      const res = await fetch(`/api/cours/${courseId}/deadlines`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

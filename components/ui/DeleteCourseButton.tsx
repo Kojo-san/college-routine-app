@@ -15,8 +15,8 @@ export function DeleteCourseButton({ courseId }: DeleteCourseButtonProps) {
     if (step === 'idle') { setStep('confirm'); return }
     setStep('loading')
     try {
-      await fetch(`/api/academique/${courseId}`, { method: 'DELETE' })
-      router.push('/academique')
+      await fetch(`/api/cours/${courseId}`, { method: 'DELETE' })
+      router.push('/cours')
       router.refresh()
     } catch {
       setStep('idle')

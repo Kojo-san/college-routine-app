@@ -6,7 +6,7 @@ import { getCourses } from '@/lib/courses'
 import { verifySession } from '@/lib/session'
 import prisma from '@/lib/prisma'
 
-export default async function AcademiquePage() {
+export default async function CoursPage() {
   const { userId } = await verifySession()
   const [user, courses] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
@@ -14,7 +14,7 @@ export default async function AcademiquePage() {
   ])
 
   return (
-    <PageLayout title="Académique" etudiantNom={user?.name ?? undefined}>
+    <PageLayout title="Cours" etudiantNom={user?.name ?? undefined}>
       <div className="flex flex-col gap-6 max-w-5xl">
 
         {/* ── Formulaire de création ── */}

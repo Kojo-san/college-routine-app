@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { DeadlineChip } from '@/components/ui/DeadlineChip'
 import { TaskItem } from '@/components/ui/TaskItem'
-import { SyllabusImporter } from '@/components/ui/SyllabusImporter'
 import { TaskSection } from '@/components/ui/TaskSection'
 import { DeadlineSection } from '@/components/ui/DeadlineSection'
 import { DeleteCourseButton } from '@/components/ui/DeleteCourseButton'
@@ -66,7 +65,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
         {/* ── Navigation ── */}
         <Link
-          href="/academique"
+          href="/cours"
           className="inline-flex items-center gap-2 font-space-grotesk text-[13px] text-text-muted hover:text-text-primary transition-colors"
         >
           ← Retour aux Cours
@@ -87,7 +86,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
         <DeadlineSection courseId={id}>
           {course.deadlines.length === 0 ? (
             <p className="font-space-grotesk text-[13px] text-text-muted">
-              Aucune Échéance — utilise le formulaire ou importe le syllabus.
+              Aucune Échéance — utilise le formulaire pour en ajouter.
             </p>
           ) : (
             <div className="flex flex-col gap-3">
@@ -118,7 +117,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
         <TaskSection courseId={id} taskCount={pendingTasks.length}>
           {pendingTasks.length === 0 ? (
             <p className="font-space-grotesk text-[13px] text-text-muted">
-              Aucune Tâche en cours — crée-en une ou importe le syllabus.
+              Aucune Tâche en cours — crée-en une.
             </p>
           ) : (
             <div className="bg-bg-surface border border-border-subtle rounded-xl px-4">
@@ -161,20 +160,6 @@ export default async function CourseDetailPage({ params }: PageProps) {
             </div>
           </section>
         )}
-
-        {/* ── Import syllabus ── */}
-        <section aria-labelledby="heading-syllabus">
-          <h2
-            id="heading-syllabus"
-            className="font-syne text-[18px] font-bold text-text-primary mb-2"
-          >
-            Importer le syllabus
-          </h2>
-          <p className="font-space-grotesk text-[12px] text-text-muted mb-4">
-            Dépose le PDF du plan de cours pour extraire automatiquement les sujets et les Échéances.
-          </p>
-          <SyllabusImporter courseId={course.id} courseName={course.name} />
-        </section>
 
         {/* ── Zone danger ── */}
         <section className="border-t border-border-subtle pt-6">

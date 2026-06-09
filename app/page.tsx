@@ -5,7 +5,6 @@ import type { TimelineBlock } from '@/components/ui/Timeline'
 import { RecommendationCard } from '@/components/ui/RecommendationCard'
 import { GeneratePlanButton } from '@/components/ui/GeneratePlanButton'
 import { getDailyPlan } from '@/lib/planning'
-import { getRotationTypeForDayOfWeek } from '@/lib/gym'
 import prisma from '@/lib/prisma'
 import type { RecommendationType } from '@/app/generated/prisma/client'
 
@@ -95,13 +94,6 @@ export default async function DashboardPage() {
     ? plan.timeBlocks[plan.timeBlocks.length - 1].endTime.getHours()
     : 23
 
-  // ── Gym suggestion: first FITNESS bloc in today's plan ──
-  const gymBloc = plan?.timeBlocks.find(b => b.typeActivite === 'FITNESS') ?? null
-  const todayGymTab = getRotationTypeForDayOfWeek(today.getDay())
-  const gymSuggestion = gymBloc
-    ? `Tu peux aller au gym à ${formatHHMM(gymBloc.startTime)} — ${todayGymTab}`
-    : null
-
   const firstRec = plan?.recommendations[0] ?? null
 
   return (
@@ -147,33 +139,6 @@ export default async function DashboardPage() {
                 ))}
               </ul>
             </div>
-          </section>
-        )}
-
-        {/* ── Gym suggestion ── */}
-        {gymSuggestion && (
-          <section aria-labelledby="dash-gym">
-            <Link href={`/gym?type=${encodeURIComponent(todayGymTab)}`} className="block">
-              <div
-                className="rounded-xl p-4 flex items-center justify-between gap-4 transition-all duration-150 hover:opacity-80"
-                style={{
-                  background: 'rgba(255,209,102,0.08)',
-                  border: '1px solid rgba(255,209,102,0.25)',
-                }}
-              >
-                <div>
-                  <p className="font-syne font-bold text-[14px]" style={{ color: '#FFD166' }}>
-                    Gym aujourd'hui
-                  </p>
-                  <p className="font-space-grotesk text-[13px] text-text-muted mt-0.5">
-                    {gymSuggestion}
-                  </p>
-                </div>
-                <span className="font-space-grotesk text-[12px] font-semibold text-text-muted whitespace-nowrap">
-                  Voir →
-                </span>
-              </div>
-            </Link>
           </section>
         )}
 

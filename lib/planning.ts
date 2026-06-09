@@ -703,7 +703,7 @@ export async function generateDailyPlan(
   userId: string,
   date: Date,
 ): Promise<DailyPlanSummary> {
-  const [userPrefs, rawCourses, healthData, dbRules, dbSchedules, dbGymPrefs, dbSemester] = await Promise.all([
+  const [userPrefs, rawCourses, healthData, dbRules, dbSchedules, dbSemester] = await Promise.all([
     prisma.planningPreferences.findUnique({ where: { userId } }),
     prisma.course.findMany({
       where: { userId },
@@ -719,7 +719,6 @@ export async function generateDailyPlan(
       where: { course: { userId } },
       select: { dayOfWeek: true, startTime: true, endTime: true, type: true },
     }),
-    prisma.gymPreferences.findUnique({ where: { userId } }),
     prisma.semesterSetup.findUnique({ where: { userId } }),
   ])
 
@@ -738,14 +737,7 @@ export async function generateDailyPlan(
         preferredSleepTime: dbSemester?.sleepTime ?? DEFAULT_PREFS.preferredSleepTime,
       }
 
-  const gymPrefs: GymPrefsInput | null = dbGymPrefs
-    ? {
-        frequencyPerWeek:      dbGymPrefs.frequencyPerWeek,
-        sessionDurationMinutes: dbGymPrefs.sessionDurationMinutes,
-        preferredDays:          dbGymPrefs.preferredDays,
-        preferredTime:          dbGymPrefs.preferredTime as GymPrefsInput['preferredTime'],
-      }
-    : null
+  const gymPrefs: GymPrefsInput | null = null
 
   const courseHours: CourseHoursInput[] = rawCourses.flatMap(c =>
     c.personalHours.map(h => ({

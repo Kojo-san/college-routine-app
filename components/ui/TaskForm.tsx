@@ -40,7 +40,7 @@ export function TaskForm({ courseId, onClose }: TaskFormProps) {
     setErrorMsg('')
 
     try {
-      const res = await fetch(`/api/academique/${courseId}/tasks`, {
+      const res = await fetch(`/api/cours/${courseId}/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

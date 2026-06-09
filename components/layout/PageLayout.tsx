@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Sidebar } from '@/components/ui/Sidebar'
+import { SidebarNav } from '@/components/ui/sidebar-nav'
 
 interface PageLayoutProps {
   children: ReactNode
@@ -7,13 +7,13 @@ interface PageLayoutProps {
   etudiantNom?: string
 }
 
-export function PageLayout({ children, title, etudiantNom }: PageLayoutProps) {
+export function PageLayout({ children, title }: PageLayoutProps) {
   return (
-    <div className="min-h-screen bg-bg-base flex flex-col lg:grid lg:grid-cols-[220px_1fr]">
-      <Sidebar etudiantNom={etudiantNom} />
+    <div className="min-h-screen bg-bg-base">
+      <SidebarNav />
 
-      {/* Zone principale */}
-      <div className="flex flex-col flex-1 lg:min-h-screen lg:overflow-auto">
+      {/* Zone principale — offset by fixed sidebar width */}
+      <div className="ml-[80px] flex flex-col min-h-screen">
 
         {/* En-tête de page */}
         <header

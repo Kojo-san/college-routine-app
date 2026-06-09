@@ -31,7 +31,7 @@ export function DeleteTaskButton({ taskId, courseId }: DeleteTaskButtonProps) {
     e.stopPropagation()
     if (step === 'idle') { setStep('confirm'); return }
     setStep('loading')
-    fetch(`/api/academique/${courseId}/tasks/${taskId}`, { method: 'DELETE' })
+    fetch(`/api/cours/${courseId}/tasks/${taskId}`, { method: 'DELETE' })
       .then(() => router.refresh())
       .catch(() => setStep('idle'))
   }

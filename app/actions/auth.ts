@@ -52,23 +52,57 @@ export async function logout() {
   redirect('/login')
 }
 
-type OnboardingState = { error?: string } | undefined
+export interface GymPreferencesInput {
+  sessionsPerWeek: number
+  sessionDuration: number
+  preferredTimes: string[]
+  daysToAvoid: string[]
+}
 
-export async function completeOnboarding(state: OnboardingState, formData: FormData): Promise<OnboardingState> {
+export interface ExtraActivity {
+  name: string
+  type: string
+  recurrence: string
+}
+
+export interface OnboardingInput {
+  name: string
+  program: string
+  semesterStart: string
+  wakeTime: string
+  sleepTime: string
+  includeGym: boolean
+  gymPreferences: GymPreferencesInput | null
+  extraActivities: ExtraActivity[]
+}
+
+export async function completeOnboarding(input: OnboardingInput): Promise<{ error?: string } | void> {
   const { userId } = await verifySession()
-
-  const wakeTime  = (formData.get('wakeTime') as string)?.trim()
-  const sleepTime = (formData.get('sleepTime') as string)?.trim()
-  const gymTime   = (formData.get('gymTime') as string)?.trim() || null
-  const maxHours  = parseFloat(formData.get('maxDailyStudyHours') as string)
+  const { name, program, semesterStart, wakeTime, sleepTime, includeGym, gymPreferences, extraActivities } = input
 
   if (!wakeTime || !sleepTime) return { error: 'Heure de réveil et de coucher requises.' }
-  if (isNaN(maxHours) || maxHours < 1 || maxHours > 16) return { error: "Heures d'étude invalides (1–16)." }
+  if (!name || name.trim().length < 2) return { error: 'Le nom doit contenir au moins 2 caractères.' }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      name: name.trim(),
+      program: program || null,
+      semesterStart: semesterStart || null,
+      wakeTime,
+      sleepTime,
+      includeGym,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      gymPreferences:  (includeGym && gymPreferences ? gymPreferences : undefined) as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      extraActivities: (extraActivities.length > 0 ? extraActivities : undefined) as any,
+    },
+  })
 
   await prisma.planningPreferences.upsert({
     where:  { userId },
-    create: { userId, preferredWakeTime: wakeTime, preferredSleepTime: sleepTime, preferredGymTime: gymTime, maxDailyStudyHours: maxHours },
-    update: { preferredWakeTime: wakeTime, preferredSleepTime: sleepTime, preferredGymTime: gymTime, maxDailyStudyHours: maxHours },
+    create: { userId, preferredWakeTime: wakeTime, preferredSleepTime: sleepTime, maxDailyStudyHours: 6 },
+    update: { preferredWakeTime: wakeTime, preferredSleepTime: sleepTime },
   })
 
   redirect('/planning')

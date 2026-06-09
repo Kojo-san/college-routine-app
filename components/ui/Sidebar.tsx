@@ -7,12 +7,11 @@ import { useState, useEffect } from 'react'
 import { logout } from '@/app/actions/auth'
 
 const NAV = [
-  { href: '/',           label: 'Dashboard'  },
-  { href: '/planning',   label: 'Planning'   },
-  { href: '/academique', label: 'Académique' },
-  { href: '/gym',        label: 'Gym'        },
-  { href: '/semestre',   label: 'Planification'   },
-  { href: '/settings',   label: 'Réglages'   },
+  { href: '/',         label: 'Dashboard' },
+  { href: '/planning', label: 'Planning'  },
+  { href: '/cours',    label: 'Cours'     },
+  { href: '/agenda',   label: 'Agenda'    },
+  { href: '/settings', label: 'Réglages'  },
 ]
 
 function MenuIcon() {

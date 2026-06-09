@@ -29,7 +29,7 @@ export function CourseForm() {
     setErrorMsg('')
 
     try {
-      const res = await fetch('/api/academique', {
+      const res = await fetch('/api/cours', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

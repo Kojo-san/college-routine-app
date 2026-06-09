@@ -38,7 +38,7 @@ export function CourseCard({ id, code, name, difficultyLevel, taskCount, deadlin
 
   return (
     <Link
-      href={`/academique/${id}`}
+      href={`/cours/${id}`}
       className="block bg-bg-surface border border-border-subtle rounded-xl p-4 hover:border-accent-study/50 transition-colors focus-ring"
     >
       {/* Header */}
