@@ -12,13 +12,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
             'linear-gradient(to right, #000000 0%, #000000 55%, #1a0a2e 80%, transparent 100%)',
         }}
       >
-        {/* CR logo */}
-        <span
-          className="absolute top-8 left-8 font-syne"
-          style={{ fontSize: '18px', color: '#C9006B', fontWeight: 700, letterSpacing: '0.05em' }}
-        >
-          CR
-        </span>
+
 
         {/* Form content */}
         <div className="w-full" style={{ maxWidth: '380px' }}>
