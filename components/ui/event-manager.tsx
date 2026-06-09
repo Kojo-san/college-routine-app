@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, Fragment } from "react"
+import { useState, useCallback, useMemo, Fragment, forwardRef, useImperativeHandle } from "react"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/Input"
@@ -69,6 +69,13 @@ export interface EventManagerProps {
   availableTags?: string[]
 }
 
+export interface EventManagerHandle {
+  openCreate(defaults?: Partial<Omit<Event, "id">>): void
+  addEvents(events: Event[]): void
+  removeEvents(ids: string[]): void
+  confirmEvents(ids: string[]): void
+}
+
 const defaultColors = [
   { name: "Blue", value: "blue", bg: "bg-blue-500", text: "text-blue-700" },
   { name: "Green", value: "green", bg: "bg-green-500", text: "text-green-700" },
@@ -78,7 +85,7 @@ const defaultColors = [
   { name: "Red", value: "red", bg: "bg-red-500", text: "text-red-700" },
 ]
 
-export function EventManager({
+export const EventManager = forwardRef<EventManagerHandle, EventManagerProps>(function EventManager({
   events: initialEvents = [],
   onEventCreate,
   onEventUpdate,
@@ -88,7 +95,7 @@ export function EventManager({
   defaultView = "month",
   className,
   availableTags = ["Important", "Urgent", "Work", "Personal", "Team", "Client"],
-}: EventManagerProps) {
+}: EventManagerProps, ref) {
   const [events, setEvents] = useState<Event[]>(initialEvents)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<"month" | "week" | "day" | "list">(defaultView)
@@ -103,6 +110,37 @@ export function EventManager({
     category: categories[0],
     tags: [],
   })
+
+  useImperativeHandle(ref, () => ({
+    openCreate(defaults?: Partial<Omit<Event, "id">>) {
+      setNewEvent({
+        title: "",
+        description: "",
+        color: colors[0].value,
+        category: categories[0],
+        tags: [],
+        ...defaults,
+      })
+      setIsCreating(true)
+      setIsDialogOpen(true)
+    },
+    addEvents(incoming: Event[]) {
+      setEvents((prev) => {
+        const existingIds = new Set(prev.map((e) => e.id))
+        return [...prev, ...incoming.filter((e) => !existingIds.has(e.id))]
+      })
+    },
+    removeEvents(ids: string[]) {
+      const idSet = new Set(ids)
+      setEvents((prev) => prev.filter((e) => !idSet.has(e.id)))
+    },
+    confirmEvents(ids: string[]) {
+      const idSet = new Set(ids)
+      setEvents((prev) =>
+        prev.map((e) => (idSet.has(e.id) ? { ...e, suggested: false } : e))
+      )
+    },
+  }))
 
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedColors, setSelectedColors] = useState<string[]>([])
@@ -786,7 +824,7 @@ export function EventManager({
       </Dialog>
     </div>
   )
-}
+})
 
 // ── EventCard ────────────────────────────────────────────────────────────────
 

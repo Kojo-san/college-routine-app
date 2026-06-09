@@ -42,7 +42,7 @@ export default async function AgendaPage() {
   const [user, courses, dailyPlans] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, includeGym: true, gymPreferences: true },
+      select: { name: true, includeGym: true, gymPreferences: true, extraActivities: true },
     }),
     prisma.course.findMany({
       where: { userId },
@@ -109,9 +109,11 @@ export default async function AgendaPage() {
   return (
     <PageLayout title="Agenda" etudiantNom={user?.name ?? undefined}>
       <AgendaClient
+        userId={userId}
         initialEvents={events}
         includeGym={user?.includeGym ?? false}
         gymPreferences={user?.gymPreferences ?? null}
+        extraActivities={user?.extraActivities ?? null}
       />
     </PageLayout>
   )
