@@ -96,7 +96,7 @@ export function SidebarNav() {
     <aside
       aria-label="Navigation principale"
       className="fixed inset-y-0 left-0 z-40 w-[80px] flex flex-col items-center pt-6 pb-6 overflow-visible"
-      style={{ background: '#2C1810' }}
+      style={{ background: '#12121F' }}
     >
       {/* Logo */}
       <div className="mb-8 flex items-center justify-center w-[60px] h-[60px] flex-shrink-0">

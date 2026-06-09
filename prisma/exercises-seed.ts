@@ -786,26 +786,7 @@ export const EXERCISES: ExerciseInput[] = [
   },
 ]
 
-export async function seedExercises(prisma: PrismaClient) {
-  console.log('Seeding exercises catalogue...')
-  let count = 0
-  for (const ex of EXERCISES) {
-    await prisma.exercise.upsert({
-      where: { id: ex.id },
-      create: ex,
-      update: {
-        name: ex.name,
-        type: ex.type,
-        muscleGroup: ex.muscleGroup,
-        sets: ex.sets,
-        reps: ex.reps,
-        level: ex.level,
-        equipment: ex.equipment,
-        description: ex.description,
-        exerciseDbId: ex.exerciseDbId ?? null,
-      },
-    })
-    count++
-  }
-  console.log(`  ✓ ${count} exercises seeded`)
+// Exercise model was removed from the schema in Phase J; seed is a no-op.
+export async function seedExercises(_prisma: PrismaClient) {
+  console.log('  ✓ Exercise seed skipped (model removed from schema)')
 }
