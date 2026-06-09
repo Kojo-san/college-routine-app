@@ -138,6 +138,41 @@
   }
 }
 
+/* Invert the native date/time picker icon so it reads white on dark backgrounds */
+.auth-input[type="date"]::-webkit-calendar-picker-indicator,
+.auth-input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.45;
+  cursor: pointer;
+}
+
+/* Dark option background for auth-flow selects */
+.auth-input option {
+  background-color: #1a0535;
+  color: white;
+}
+
+/* ── Onboarding ── */
+.ob-add-activity-btn {
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  width: 100%;
+  height: 48px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: border-color 200ms ease, color 200ms ease;
+}
+.ob-add-activity-btn:hover {
+  border-color: #C9006B;
+  color: #C9006B;
+}
+
 @layer utilities {
   /* SVG bar glow — single class keeps compositing to one layer per bar */
   .recovery-bar-glow {

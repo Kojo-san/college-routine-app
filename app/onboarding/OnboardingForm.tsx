@@ -29,16 +29,16 @@ const STEP_TITLES = [
 ]
 const TOTAL_STEPS = 5
 
-const GYM_TIMES   = ['Matin', 'Midi', 'Après-midi', 'Soir']
-const WEEK_DAYS   = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-const GYM_DURATIONS = [
+const GYM_TIMES      = ['Matin', 'Midi', 'Après-midi', 'Soir']
+const WEEK_DAYS      = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+const GYM_DURATIONS  = [
   { label: '30 min', value: 30 },
   { label: '45 min', value: 45 },
   { label: '60 min', value: 60 },
   { label: '90 min', value: 90 },
 ]
-const ACTIVITY_TYPES      = ['Emploi', 'Bénévolat', 'Sport', 'Club', 'Autre']
-const RECURRENCE_OPTIONS  = ['Chaque semaine', 'Aux deux semaines', 'Variable']
+const ACTIVITY_TYPES     = ['Emploi', 'Bénévolat', 'Sport', 'Club', 'Autre']
+const RECURRENCE_OPTIONS = ['Chaque semaine', 'Aux deux semaines', 'Variable']
 
 const DEFAULT_GYM: GymPreferencesInput = {
   sessionsPerWeek: 3,
@@ -47,19 +47,29 @@ const DEFAULT_GYM: GymPreferencesInput = {
   daysToAvoid:     [],
 }
 
-// ── Styling helpers ────────────────────────────────────────────────────────
+// ── Styling constants ──────────────────────────────────────────────────────
 
-const inputCls =
-  'w-full px-3 py-2.5 rounded-lg bg-bg-elevated border border-border-subtle ' +
-  'font-space-grotesk text-sm text-text-primary placeholder:text-text-muted ' +
-  'focus:outline-none focus:border-[#4A9EFF]/70 focus:ring-1 focus:ring-[#4A9EFF]/20 transition-colors'
+const LABEL_STYLE: React.CSSProperties = {
+  fontSize: '11px',
+  textTransform: 'uppercase',
+  letterSpacing: '0.12em',
+  color: 'rgba(255,255,255,0.6)',
+  marginBottom: '8px',
+  display: 'block',
+}
 
-const labelCls = 'block font-space-grotesk text-[13px] font-medium text-text-muted mb-1'
+const MUTED_TEXT: React.CSSProperties = {
+  fontSize: '14px',
+  color: 'rgba(255,255,255,0.5)',
+  lineHeight: '1.6',
+}
+
+// ── Helper components ──────────────────────────────────────────────────────
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col">
-      <label className={labelCls}>{label}</label>
+      <label className="font-space-grotesk" style={LABEL_STYLE}>{label}</label>
       {children}
     </div>
   )
@@ -72,12 +82,17 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={
-        'px-3 py-1.5 rounded-full text-[12px] font-space-grotesk font-medium transition-all border ' +
-        (selected
-          ? 'bg-[#4A9EFF] text-white border-[#4A9EFF]'
-          : 'bg-bg-elevated text-text-muted border-border-subtle hover:border-[#4A9EFF]/50')
-      }
+      className="font-space-grotesk"
+      style={{
+        padding: '8px 16px',
+        borderRadius: '20px',
+        fontSize: '13px',
+        border: selected ? 'none' : '1px solid rgba(255,255,255,0.25)',
+        background: selected ? 'linear-gradient(135deg, #4E2A84, #C9006B)' : 'transparent',
+        color: selected ? 'white' : 'rgba(255,255,255,0.7)',
+        cursor: 'pointer',
+        transition: 'all 200ms ease',
+      }}
     >
       {label}
     </button>
@@ -86,8 +101,26 @@ function Chip({
 
 function SummarySection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="p-3 bg-bg-elevated rounded-xl border border-border-subtle">
-      <p className="font-syne font-bold text-[11px] text-text-muted uppercase tracking-wider mb-2">{title}</p>
+    <div
+      style={{
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '8px',
+        padding: '12px 16px',
+      }}
+    >
+      <p
+        className="font-space-grotesk"
+        style={{
+          fontSize: '11px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          color: 'rgba(255,255,255,0.4)',
+          marginBottom: '8px',
+        }}
+      >
+        {title}
+      </p>
       <div className="flex flex-col gap-1">{children}</div>
     </div>
   )
@@ -96,8 +129,12 @@ function SummarySection({ title, children }: { title: string; children: React.Re
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between items-center gap-4">
-      <span className="font-space-grotesk text-[13px] text-text-muted">{label}</span>
-      <span className="font-space-grotesk text-[13px] text-text-primary font-medium text-right">{value}</span>
+      <span className="font-space-grotesk" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
+        {label}
+      </span>
+      <span className="font-space-grotesk font-medium text-right" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.9)' }}>
+        {value}
+      </span>
     </div>
   )
 }
@@ -119,7 +156,6 @@ export function OnboardingForm({ name }: { name: string }) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | undefined>()
 
-  // Activity draft state
   const [showActivityForm, setShowActivityForm] = useState(false)
   const [activityDraft, setActivityDraft] = useState<Omit<ExtraActivity, never>>({
     name: '',
@@ -209,13 +245,13 @@ export function OnboardingForm({ name }: { name: string }) {
       // ── Step 1: Infos de base ────────────────────────────────────────────
       case 1:
         return (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-8">
             <Field label="Ton nom">
               <input
                 type="text"
                 value={form.name}
                 onChange={e => setField('name', e.target.value)}
-                className={inputCls}
+                className="auth-input font-space-grotesk"
                 placeholder="Ton prénom et nom"
                 autoFocus
               />
@@ -225,7 +261,7 @@ export function OnboardingForm({ name }: { name: string }) {
                 type="text"
                 value={form.program}
                 onChange={e => setField('program', e.target.value)}
-                className={inputCls}
+                className="auth-input font-space-grotesk"
                 placeholder="Ex : Génie logiciel, Droit, Médecine..."
               />
             </Field>
@@ -234,7 +270,7 @@ export function OnboardingForm({ name }: { name: string }) {
                 type="date"
                 value={form.semesterStart}
                 onChange={e => setField('semesterStart', e.target.value)}
-                className={inputCls}
+                className="auth-input font-space-grotesk"
               />
             </Field>
           </div>
@@ -243,8 +279,8 @@ export function OnboardingForm({ name }: { name: string }) {
       // ── Step 2: Horaires de sommeil ──────────────────────────────────────
       case 2:
         return (
-          <div className="flex flex-col gap-5">
-            <p className="font-space-grotesk text-sm text-text-muted leading-relaxed">
+          <div className="flex flex-col gap-8">
+            <p className="font-space-grotesk" style={MUTED_TEXT}>
               Ces horaires seront utilisés pour afficher les blocs de sommeil dans ton agenda.
             </p>
             <Field label="À quelle heure tu te couches généralement ?">
@@ -252,7 +288,7 @@ export function OnboardingForm({ name }: { name: string }) {
                 type="time"
                 value={form.sleepTime}
                 onChange={e => setField('sleepTime', e.target.value)}
-                className={inputCls}
+                className="auth-input font-space-grotesk"
               />
             </Field>
             <Field label="À quelle heure tu te lèves généralement ?">
@@ -260,7 +296,7 @@ export function OnboardingForm({ name }: { name: string }) {
                 type="time"
                 value={form.wakeTime}
                 onChange={e => setField('wakeTime', e.target.value)}
-                className={inputCls}
+                className="auth-input font-space-grotesk"
               />
             </Field>
           </div>
@@ -269,13 +305,13 @@ export function OnboardingForm({ name }: { name: string }) {
       // ── Step 3: Entraînement physique ────────────────────────────────────
       case 3:
         return (
-          <div className="flex flex-col gap-5">
-            <p className="font-space-grotesk text-sm text-text-muted">
+          <div className="flex flex-col gap-6">
+            <p className="font-space-grotesk" style={MUTED_TEXT}>
               Est-ce que tu veux intégrer l&apos;entraînement physique à ton agenda ?
             </p>
 
-            {/* YES / NO */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* YES / NO toggle */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               {([true, false] as const).map(val => {
                 const active = form.includeGym === val
                 return (
@@ -283,16 +319,21 @@ export function OnboardingForm({ name }: { name: string }) {
                     key={String(val)}
                     type="button"
                     onClick={() => setField('includeGym', val)}
-                    className={
-                      'py-4 rounded-xl font-syne font-bold text-[15px] transition-all border ' +
-                      (active
-                        ? val
-                          ? 'bg-[#4A9EFF] text-white border-[#4A9EFF]'
-                          : 'bg-bg-elevated text-text-primary border-text-muted/40'
-                        : 'bg-bg-elevated text-text-muted border-border-subtle hover:border-[#4A9EFF]/40')
-                    }
+                    className="font-syne font-bold"
+                    style={{
+                      height: '48px',
+                      borderRadius: '24px',
+                      border: active ? 'none' : '1px solid rgba(255,255,255,0.25)',
+                      background: active
+                        ? 'linear-gradient(135deg, #4E2A84, #C9006B)'
+                        : 'transparent',
+                      color: active ? 'white' : 'rgba(255,255,255,0.6)',
+                      fontSize: '15px',
+                      cursor: 'pointer',
+                      transition: 'all 200ms ease',
+                    }}
                   >
-                    {val ? 'Oui ✓' : 'Non'}
+                    {val ? 'Oui' : 'Non'}
                   </button>
                 )
               })}
@@ -300,30 +341,44 @@ export function OnboardingForm({ name }: { name: string }) {
 
             {/* Gym preferences — revealed on YES */}
             {form.includeGym && (
-              <div className="flex flex-col gap-4 pt-2 border-t border-border-subtle">
-
+              <div
+                className="flex flex-col gap-6"
+                style={{ paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}
+              >
                 <Field label="Combien de séances par semaine ?">
-                  <div className="flex gap-2 mt-1 flex-wrap">
-                    {[1, 2, 3, 4, 5, 6, 7].map(n => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() =>
-                          setForm(f => ({
-                            ...f,
-                            gymPreferences: { ...f.gymPreferences, sessionsPerWeek: n },
-                          }))
-                        }
-                        className={
-                          'w-11 h-11 rounded-lg font-space-grotesk font-bold text-[14px] transition-all border flex-shrink-0 ' +
-                          (form.gymPreferences.sessionsPerWeek === n
-                            ? 'bg-[#4A9EFF] text-white border-[#4A9EFF]'
-                            : 'bg-bg-elevated text-text-muted border-border-subtle hover:border-[#4A9EFF]/50')
-                        }
-                      >
-                        {n}
-                      </button>
-                    ))}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                    {[1, 2, 3, 4, 5, 6, 7].map(n => {
+                      const active = form.gymPreferences.sessionsPerWeek === n
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() =>
+                            setForm(f => ({
+                              ...f,
+                              gymPreferences: { ...f.gymPreferences, sessionsPerWeek: n },
+                            }))
+                          }
+                          className="font-space-grotesk font-bold"
+                          style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '4px',
+                            border: active ? 'none' : '1px solid rgba(255,255,255,0.25)',
+                            background: active
+                              ? 'linear-gradient(135deg, #4E2A84, #C9006B)'
+                              : 'transparent',
+                            color: active ? 'white' : 'rgba(255,255,255,0.5)',
+                            fontSize: '14px',
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                            transition: 'all 200ms ease',
+                          }}
+                        >
+                          {n}
+                        </button>
+                      )
+                    })}
                   </div>
                 </Field>
 
@@ -336,7 +391,7 @@ export function OnboardingForm({ name }: { name: string }) {
                         gymPreferences: { ...f.gymPreferences, sessionDuration: parseInt(e.target.value) },
                       }))
                     }
-                    className={inputCls}
+                    className="auth-input font-space-grotesk"
                   >
                     {GYM_DURATIONS.map(d => (
                       <option key={d.value} value={d.value}>{d.label}</option>
@@ -345,8 +400,8 @@ export function OnboardingForm({ name }: { name: string }) {
                 </Field>
 
                 <div>
-                  <p className={labelCls}>Moments préférés ?</p>
-                  <div className="flex flex-wrap gap-2 mt-1">
+                  <label className="font-space-grotesk" style={LABEL_STYLE}>Moments préférés ?</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
                     {GYM_TIMES.map(t => (
                       <Chip
                         key={t}
@@ -359,8 +414,8 @@ export function OnboardingForm({ name }: { name: string }) {
                 </div>
 
                 <div>
-                  <p className={labelCls}>Jours à éviter ?</p>
-                  <div className="flex flex-wrap gap-2 mt-1">
+                  <label className="font-space-grotesk" style={LABEL_STYLE}>Jours à éviter ?</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
                     {WEEK_DAYS.map(d => (
                       <Chip
                         key={d}
@@ -371,7 +426,6 @@ export function OnboardingForm({ name }: { name: string }) {
                     ))}
                   </div>
                 </div>
-
               </div>
             )}
           </div>
@@ -380,12 +434,15 @@ export function OnboardingForm({ name }: { name: string }) {
       // ── Step 4: Activités extra-universitaires ───────────────────────────
       case 4:
         return (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             <div>
-              <p className="font-space-grotesk text-sm text-text-muted leading-relaxed">
+              <p className="font-space-grotesk" style={MUTED_TEXT}>
                 Est-ce que tu as d&apos;autres activités régulières en dehors des cours ?
               </p>
-              <p className="font-space-grotesk text-[12px] text-text-muted mt-1">
+              <p
+                className="font-space-grotesk"
+                style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}
+              >
                 Ex : job étudiant, bénévolat, club, sport d&apos;équipe...
               </p>
             </div>
@@ -396,13 +453,27 @@ export function OnboardingForm({ name }: { name: string }) {
                 {form.extraActivities.map(activity => (
                   <div
                     key={activity.id}
-                    className="flex items-center justify-between p-3 bg-bg-elevated rounded-xl border border-border-subtle"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 16px',
+                      background: '#ffffff08',
+                      border: '1px solid #ffffff15',
+                      borderRadius: '8px',
+                    }}
                   >
                     <div>
-                      <p className="font-space-grotesk font-medium text-[14px] text-text-primary">
+                      <p
+                        className="font-space-grotesk font-medium"
+                        style={{ fontSize: '14px', color: 'white' }}
+                      >
                         {activity.name}
                       </p>
-                      <p className="font-space-grotesk text-[12px] text-text-muted">
+                      <p
+                        className="font-space-grotesk"
+                        style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}
+                      >
                         {activity.type} · {activity.recurrence}
                       </p>
                     </div>
@@ -410,7 +481,20 @@ export function OnboardingForm({ name }: { name: string }) {
                       type="button"
                       onClick={() => removeActivity(activity.id)}
                       aria-label={`Supprimer ${activity.name}`}
-                      className="w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-red-400 hover:bg-red-400/10 transition-colors text-lg leading-none flex-shrink-0"
+                      className="ob-remove-btn"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '20px',
+                        lineHeight: 1,
+                        cursor: 'pointer',
+                        color: 'rgba(255,255,255,0.4)',
+                        flexShrink: 0,
+                        padding: '4px 6px',
+                        transition: 'color 200ms ease',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#C9006B' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.4)' }}
                     >
                       ×
                     </button>
@@ -421,24 +505,34 @@ export function OnboardingForm({ name }: { name: string }) {
 
             {/* Inline activity form OR add button */}
             {showActivityForm ? (
-              <div className="flex flex-col gap-3 p-4 bg-bg-elevated rounded-xl border border-border-subtle">
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '20px',
+                  padding: '20px 16px',
+                  background: '#ffffff08',
+                  border: '1px solid #ffffff15',
+                  borderRadius: '8px',
+                }}
+              >
                 <Field label="Nom de l'activité">
                   <input
                     type="text"
                     value={activityDraft.name}
                     onChange={e => setActivityDraft(d => ({ ...d, name: e.target.value }))}
-                    className={inputCls}
+                    className="auth-input font-space-grotesk"
                     placeholder="Ex : Job chez Tim Hortons"
                     autoFocus
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addActivity() } }}
                   />
                 </Field>
-                <div className="grid grid-cols-2 gap-3">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <Field label="Type">
                     <select
                       value={activityDraft.type}
                       onChange={e => setActivityDraft(d => ({ ...d, type: e.target.value }))}
-                      className={inputCls}
+                      className="auth-input font-space-grotesk"
                     >
                       {ACTIVITY_TYPES.map(t => <option key={t}>{t}</option>)}
                     </select>
@@ -447,20 +541,28 @@ export function OnboardingForm({ name }: { name: string }) {
                     <select
                       value={activityDraft.recurrence}
                       onChange={e => setActivityDraft(d => ({ ...d, recurrence: e.target.value }))}
-                      className={inputCls}
+                      className="auth-input font-space-grotesk"
                     >
                       {RECURRENCE_OPTIONS.map(r => <option key={r}>{r}</option>)}
                     </select>
                   </Field>
                 </div>
-                <div className="flex gap-2 justify-end pt-1">
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                   <button
                     type="button"
                     onClick={() => {
                       setShowActivityForm(false)
                       setActivityDraft({ name: '', type: 'Emploi', recurrence: 'Chaque semaine' })
                     }}
-                    className="px-4 py-2 font-space-grotesk text-[13px] text-text-muted hover:text-text-primary transition-colors rounded-lg"
+                    className="font-space-grotesk hover:underline"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'rgba(255,255,255,0.4)',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      padding: '8px 12px',
+                    }}
                   >
                     Annuler
                   </button>
@@ -468,7 +570,8 @@ export function OnboardingForm({ name }: { name: string }) {
                     type="button"
                     onClick={addActivity}
                     disabled={!activityDraft.name.trim()}
-                    className="px-4 py-2 bg-[#4A9EFF] text-white rounded-lg font-space-grotesk text-[13px] font-medium disabled:opacity-40 hover:bg-[#3a8eef] transition-colors"
+                    className="auth-submit-btn font-space-grotesk"
+                    style={{ width: 'auto', height: '36px', padding: '0 20px', fontSize: '13px' }}
                   >
                     Ajouter
                   </button>
@@ -478,9 +581,9 @@ export function OnboardingForm({ name }: { name: string }) {
               <button
                 type="button"
                 onClick={() => setShowActivityForm(true)}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-border-subtle text-text-muted hover:text-text-primary hover:border-[#4A9EFF]/50 transition-all font-space-grotesk text-[13px]"
+                className="ob-add-activity-btn font-space-grotesk"
               >
-                <span className="text-[18px] leading-none font-light">+</span>
+                <span style={{ fontSize: '18px', lineHeight: 1, fontWeight: 300 }}>+</span>
                 Ajouter une activité
               </button>
             )}
@@ -491,7 +594,10 @@ export function OnboardingForm({ name }: { name: string }) {
       case 5:
         return (
           <div className="flex flex-col gap-3">
-            <p className="font-space-grotesk text-sm text-text-muted leading-relaxed">
+            <p
+              className="font-space-grotesk"
+              style={{ ...MUTED_TEXT, fontSize: '13px', marginBottom: '4px' }}
+            >
               Voici un résumé de tes préférences. Tu pourras tout modifier dans les réglages.
             </p>
 
@@ -525,7 +631,12 @@ export function OnboardingForm({ name }: { name: string }) {
                   )}
                 </>
               ) : (
-                <p className="font-space-grotesk text-[13px] text-text-muted italic">Non inclus</p>
+                <p
+                  className="font-space-grotesk"
+                  style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}
+                >
+                  Non inclus
+                </p>
               )}
             </SummarySection>
 
@@ -535,7 +646,12 @@ export function OnboardingForm({ name }: { name: string }) {
                   <SummaryRow key={a.id} label={a.name} value={`${a.type} · ${a.recurrence}`} />
                 ))
               ) : (
-                <p className="font-space-grotesk text-[13px] text-text-muted italic">Aucune</p>
+                <p
+                  className="font-space-grotesk"
+                  style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}
+                >
+                  Aucune
+                </p>
               )}
             </SummarySection>
           </div>
@@ -548,71 +664,121 @@ export function OnboardingForm({ name }: { name: string }) {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  const isLastStep = step === TOTAL_STEPS
+
   return (
-    <div className="min-h-screen bg-bg-base flex items-center justify-center p-4">
-      <div
-        className="w-full max-w-md bg-bg-surface border border-border-subtle rounded-2xl p-8 flex flex-col gap-5"
-        style={{ boxShadow: '0 0 40px rgba(74, 158, 255, 0.08)' }}
-      >
-        {/* Header */}
-        <div className="flex flex-col items-center gap-3">
+    <div
+      className="min-h-screen flex items-center justify-center p-6"
+      style={{
+        background: 'linear-gradient(135deg, #000000 0%, #0d0118 40%, #1a0535 70%, #2d0a4e 100%)',
+      }}
+    >
+      <div className="w-full" style={{ maxWidth: '480px' }}>
+
+        {/* ── Header ── */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '40px',
+          }}
+        >
           <Image
-            src="/assets/bear_no_background.png"
+            src="/assets/bear_no_background.PNG"
             alt=""
             aria-hidden
-            width={60}
-            height={60}
+            width={100}
+            height={100}
             className="object-contain"
+            priority
           />
-          <div className="text-center">
-            <h1 className="font-syne font-bold text-xl text-text-primary">
+
+          <div style={{ textAlign: 'center' }}>
+            <h1
+              className="font-syne font-bold"
+              style={{ fontSize: '24px', color: 'white', lineHeight: '1.2' }}
+            >
               {step === 1 ? `Bienvenue, ${form.name} !` : STEP_TITLES[step - 1]}
             </h1>
-            <p className="font-space-grotesk text-[12px] text-text-muted mt-1">
+            <p
+              className="font-space-grotesk"
+              style={{
+                color: 'rgba(255,255,255,0.33)',
+                fontSize: '12px',
+                letterSpacing: '0.1em',
+                marginTop: '8px',
+              }}
+            >
               Étape {step} sur {TOTAL_STEPS}
             </p>
           </div>
-        </div>
 
-        {/* Progress bar */}
-        <div className="w-full h-1 bg-bg-elevated rounded-full overflow-hidden">
+          {/* Progress bar */}
           <div
-            className="h-full rounded-full transition-all duration-300 ease-out"
             style={{
-              width: `${(step / TOTAL_STEPS) * 100}%`,
-              background: 'linear-gradient(90deg, #4A9EFF, #a78bfa)',
+              width: '100%',
+              height: '2px',
+              background: 'rgba(255,255,255,0.08)',
+              borderRadius: '1px',
+              overflow: 'hidden',
+              marginTop: '4px',
             }}
-          />
+          >
+            <div
+              style={{
+                height: '100%',
+                width: `${(step / TOTAL_STEPS) * 100}%`,
+                background: 'linear-gradient(to right, #4E2A84, #C9006B)',
+                transition: 'width 400ms ease',
+              }}
+            />
+          </div>
         </div>
 
-        {/* Step content */}
-        <div>{renderStep()}</div>
+        {/* ── Step content ── */}
+        <div style={{ marginBottom: '32px' }}>{renderStep()}</div>
 
-        {/* Error */}
+        {/* ── Error ── */}
         {error && (
-          <p role="alert" className="font-space-grotesk text-[13px] text-red-400">
+          <p
+            role="alert"
+            className="font-space-grotesk"
+            style={{ fontSize: '13px', color: '#FF6B9D', marginBottom: '16px' }}
+          >
             {error}
           </p>
         )}
 
-        {/* Navigation */}
-        <div className={`flex gap-3 ${step > 1 ? 'justify-between' : 'justify-end'}`}>
+        {/* ── Navigation ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {step > 1 && (
             <button
               type="button"
               onClick={prev}
               disabled={pending}
-              className="px-5 py-2.5 rounded-xl border border-border-subtle font-space-grotesk text-[14px] text-text-muted hover:text-text-primary hover:border-text-muted/40 transition-all disabled:opacity-40"
+              className="font-space-grotesk hover:underline"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'rgba(255,255,255,0.4)',
+                fontSize: '13px',
+                cursor: 'pointer',
+                alignSelf: 'flex-start',
+                padding: 0,
+              }}
             >
               ← Précédent
             </button>
           )}
 
-          {step < TOTAL_STEPS ? (
+          {!isLastStep ? (
             <button
               type="button"
               onClick={next}
-              className="px-6 py-2.5 rounded-xl bg-[#4A9EFF] text-white font-space-grotesk text-[14px] font-medium hover:bg-[#3a8eef] transition-colors"
+              className="auth-submit-btn font-space-grotesk"
+              style={{ height: '52px' }}
             >
               Suivant →
             </button>
@@ -621,7 +787,8 @@ export function OnboardingForm({ name }: { name: string }) {
               type="button"
               onClick={handleSubmit}
               disabled={pending}
-              className="px-6 py-2.5 rounded-xl bg-[#4A9EFF] text-white font-space-grotesk text-[14px] font-medium hover:bg-[#3a8eef] transition-colors disabled:opacity-40"
+              className="auth-submit-btn font-space-grotesk"
+              style={{ height: '52px' }}
             >
               {pending ? 'Enregistrement…' : 'Commencer mon Planning →'}
             </button>
