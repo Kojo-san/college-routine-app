@@ -11,12 +11,19 @@ const BADGE_VARIANT: Partial<Record<BlocType, BadgeVariant>> = {
 }
 
 const GLOW: Record<BlocType, React.CSSProperties> = {
-  study:    { boxShadow: 'var(--glow-study)',    borderLeft: '3px solid var(--color-accent-study)' },
+  study:    {
+    background: 'rgba(78, 42, 132, 0.4)',
+    borderLeft: '3px solid #4E2A84',
+    boxShadow: 'var(--glow-study)',
+  },
   fitness:  { boxShadow: 'var(--glow-fitness)',  borderLeft: '3px solid var(--color-accent-fit)'   },
   recovery: { boxShadow: 'var(--glow-recovery)', borderLeft: '3px solid var(--color-accent-rec)'   },
   cours:    { boxShadow: 'var(--glow-cours)',     borderLeft: '3px solid var(--color-accent-cours)' },
-  task:     { borderLeft: '3px solid var(--color-border-subtle)' },
-  meal:     {},
+  task:     { borderLeft: '3px solid rgba(255, 255, 255, 0.15)' },
+  meal:     {
+    background: 'rgba(201, 0, 107, 0.2)',
+    borderLeft: '3px solid #C9006B',
+  },
 }
 
 const PROGRESS_COLOR: Record<BlocType, string> = {

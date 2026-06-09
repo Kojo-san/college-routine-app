@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, type CSSProperties } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -22,10 +22,10 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { href: '/',         label: 'Accueil',  Icon: IoHomeOutline,     from: '#a955ff', to: '#ea51ff' },
-  { href: '/agenda',   label: 'Agenda',   Icon: IoCalendarOutline, from: '#56CCF2', to: '#2F80ED' },
-  { href: '/cours',    label: 'Cours',    Icon: IoSchoolOutline,   from: '#FF9966', to: '#FF5E62' },
-  { href: '/settings', label: 'Réglages', Icon: IoSettingsOutline, from: '#ffa9c6', to: '#f434e2' },
+  { href: '/',         label: 'Accueil',  Icon: IoHomeOutline,     from: '#C9006B', to: '#8B0055' },
+  { href: '/agenda',   label: 'Agenda',   Icon: IoCalendarOutline, from: '#C9006B', to: '#8B0055' },
+  { href: '/cours',    label: 'Cours',    Icon: IoSchoolOutline,   from: '#C9006B', to: '#8B0055' },
+  { href: '/settings', label: 'Réglages', Icon: IoSettingsOutline, from: '#C9006B', to: '#8B0055' },
 ]
 
 function NavPill({
@@ -61,11 +61,11 @@ function NavPill({
           style={{ background: gradient }}
         />
 
-        {/* Icon — always visible; active gets accent color, inactive gets gray */}
+        {/* Icon — always visible; active gets magenta, inactive gets gray */}
         <span
           aria-hidden="true"
           className="absolute inset-0 z-10 flex items-center justify-center transition-all duration-300 scale-100 opacity-100 group-hover:scale-0 group-hover:opacity-0"
-          style={{ color: isActive ? from : '#9CA3AF' }}
+          style={{ color: isActive ? '#C9006B' : '#9CA3AF' }}
         >
           <Icon size={22} />
         </span>
@@ -94,14 +94,37 @@ function getInitials(name?: string): string {
 
 function UserAvatarButton({ userName }: { userName?: string }) {
   const [open, setOpen] = useState(false)
+  const [popoverStyle, setPopoverStyle] = useState<CSSProperties>({})
+  const avatarRef = useRef<HTMLButtonElement>(null)
   const initials = getInitials(userName)
 
+  function handleToggle() {
+    if (!open && avatarRef.current) {
+      const rect = avatarRef.current.getBoundingClientRect()
+      setPopoverStyle({
+        position: 'fixed',
+        bottom: window.innerHeight - rect.top + 8,
+        left: rect.right + 8,
+        zIndex: 9999,
+        minWidth: '180px',
+        background: '#1a0535',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+        borderRadius: '8px',
+        padding: '8px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+        whiteSpace: 'nowrap',
+      })
+    }
+    setOpen(o => !o)
+  }
+
   return (
-    <div className="mt-auto flex flex-col items-center pb-2 relative">
+    <div className="mt-auto flex flex-col items-center pb-2">
       <button
+        ref={avatarRef}
         type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-10 h-10 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center font-space-grotesk text-[13px] font-semibold text-text-muted hover:text-text-primary hover:border-text-muted/40 transition-all select-none cursor-pointer"
+        onClick={handleToggle}
+        className="w-10 h-10 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center font-space-grotesk text-[13px] font-semibold text-text-muted hover:text-white hover:border-[#C9006B]/60 transition-all select-none cursor-pointer"
         aria-label="Menu utilisateur"
         aria-expanded={open}
       >
@@ -111,16 +134,13 @@ function UserAvatarButton({ userName }: { userName?: string }) {
       {open && (
         <>
           <div
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-[9998]"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 bg-bg-surface border border-border-subtle rounded-xl shadow-2xl p-2 min-w-[148px]">
+          <div style={popoverStyle}>
             <form action={logout}>
-              <button
-                type="submit"
-                className="w-full px-3 py-2 text-left font-space-grotesk text-[13px] text-text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
-              >
+              <button type="submit" className="sidebar-logout-btn">
                 Se déconnecter
               </button>
             </form>
@@ -138,7 +158,7 @@ export function SidebarNav({ userName }: { userName?: string }) {
     <aside
       aria-label="Navigation principale"
       className="fixed inset-y-0 left-0 z-40 w-[80px] flex flex-col pt-6 pb-6 overflow-visible"
-      style={{ background: '#12121F' }}
+      style={{ background: 'rgba(10, 1, 24, 0.92)', backdropFilter: 'blur(12px)', borderRight: '1px solid rgba(255,255,255,0.06)' }}
     >
       {/* Logo */}
       <div

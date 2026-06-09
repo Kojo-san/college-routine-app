@@ -1097,7 +1097,7 @@ function MonthView({
               <div
                 className={cn(
                   "mb-1 flex h-5 w-5 items-center justify-center rounded-full text-xs sm:h-6 sm:w-6 sm:text-sm text-text-primary",
-                  isToday && "bg-accent-study text-bg-base font-semibold",
+                  isToday && "bg-[#C9006B] text-white font-semibold",
                 )}
               >
                 {day.getDate()}
@@ -1182,13 +1182,13 @@ function WeekView({
               key={day.toISOString()}
               className="border-r border-border-subtle p-2 text-center text-xs font-medium last:border-r-0"
             >
-              <div className={cn("text-text-muted", isToday && "text-accent-study font-bold")}>
+              <div className={cn("text-text-muted", isToday && "text-white font-bold underline decoration-[#C9006B] underline-offset-2")}>
                 {day.toLocaleDateString("fr-FR", { weekday: "short" })}
               </div>
               <div
                 className={cn(
                   "text-[10px] text-text-muted",
-                  isToday && "text-accent-study font-semibold",
+                  isToday && "text-white font-semibold",
                 )}
               >
                 {day.toLocaleDateString("fr-FR", { day: "numeric" })}

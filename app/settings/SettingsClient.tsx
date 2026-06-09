@@ -66,14 +66,14 @@ function parseActivities(raw: unknown): (ExtraActivity & { id: string })[] {
 const inputCls =
   'w-full px-3 py-2.5 rounded-lg bg-bg-elevated border border-border-subtle ' +
   'font-space-grotesk text-sm text-text-primary placeholder:text-text-muted ' +
-  'focus:outline-none focus:border-[#4A9EFF]/70 focus:ring-1 focus:ring-[#4A9EFF]/20 transition-colors'
+  'focus:outline-none focus:border-[#C9006B]/70 focus:ring-1 focus:ring-[#C9006B]/20 transition-colors'
 
 const labelCls = 'block font-space-grotesk text-[13px] font-medium text-text-muted mb-1'
 
 const sectionCls =
   'bg-bg-surface border border-border-subtle rounded-xl p-6 flex flex-col gap-4'
 
-const sectionTitleCls = 'font-syne font-bold text-[16px] text-text-primary'
+const sectionTitleCls = 'font-syne font-bold text-[16px] text-white'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -92,8 +92,8 @@ function Chip({ label, selected, onClick }: { label: string; selected: boolean; 
       className={
         'px-3 py-1.5 rounded-full text-[12px] font-space-grotesk font-medium transition-all border cursor-pointer ' +
         (selected
-          ? 'bg-[#4A9EFF] text-white border-[#4A9EFF]'
-          : 'bg-bg-elevated text-text-muted border-border-subtle hover:border-[#4A9EFF]/50')
+          ? 'bg-[#C9006B] text-white border-[#C9006B]'
+          : 'bg-bg-elevated text-text-muted border-border-subtle hover:border-[#C9006B]/50')
       }
     >
       {label}
@@ -106,7 +106,7 @@ function SaveButton({ pending, label = 'Enregistrer' }: { pending: boolean; labe
     <button
       type="submit"
       disabled={pending}
-      className="self-end px-5 py-2 bg-[#4A9EFF] text-white rounded-lg font-space-grotesk text-[13px] font-medium hover:bg-[#3a8eef] transition-colors disabled:opacity-40 cursor-pointer"
+      className="self-end px-5 py-2 app-btn-primary rounded-lg font-space-grotesk text-[13px] font-medium cursor-pointer"
     >
       {pending ? 'Enregistrement…' : label}
     </button>
@@ -302,7 +302,7 @@ export function SettingsClient({ user }: { user: UserData }) {
             role="switch"
             aria-checked={includeGym}
             onClick={() => setIncludeGym(v => !v)}
-            className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${includeGym ? 'bg-[#4A9EFF]' : 'bg-bg-elevated border border-border-subtle'}`}
+            className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${includeGym ? 'bg-[#C9006B]' : 'bg-bg-elevated border border-border-subtle'}`}
           >
             <span
               className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${includeGym ? 'translate-x-5' : 'translate-x-0'}`}
@@ -324,8 +324,8 @@ export function SettingsClient({ user }: { user: UserData }) {
                     className={
                       'w-11 h-11 rounded-lg font-space-grotesk font-bold text-[14px] transition-all border flex-shrink-0 cursor-pointer ' +
                       (gymPrefs.sessionsPerWeek === n
-                        ? 'bg-[#4A9EFF] text-white border-[#4A9EFF]'
-                        : 'bg-bg-elevated text-text-muted border-border-subtle hover:border-[#4A9EFF]/50')
+                        ? 'bg-[#C9006B] text-white border-[#C9006B]'
+                        : 'bg-bg-elevated text-text-muted border-border-subtle hover:border-[#C9006B]/50')
                     }
                   >
                     {n}
@@ -464,7 +464,7 @@ export function SettingsClient({ user }: { user: UserData }) {
                 type="button"
                 onClick={addActivity}
                 disabled={!activityDraft.name.trim()}
-                className="px-4 py-2 bg-[#4A9EFF] text-white rounded-lg font-space-grotesk text-[13px] font-medium disabled:opacity-40 hover:bg-[#3a8eef] transition-colors cursor-pointer"
+                className="px-4 py-2 app-btn-primary rounded-lg font-space-grotesk text-[13px] font-medium cursor-pointer"
               >
                 Ajouter
               </button>
@@ -474,7 +474,7 @@ export function SettingsClient({ user }: { user: UserData }) {
           <button
             type="button"
             onClick={() => setShowActivityForm(true)}
-            className="flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-border-subtle text-text-muted hover:text-text-primary hover:border-[#4A9EFF]/50 transition-all font-space-grotesk text-[13px] cursor-pointer"
+            className="flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-border-subtle text-text-muted hover:text-text-primary hover:border-[#C9006B]/50 transition-all font-space-grotesk text-[13px] cursor-pointer"
           >
             <span className="text-[18px] leading-none font-light">+</span>
             Ajouter une activité
@@ -496,7 +496,7 @@ export function SettingsClient({ user }: { user: UserData }) {
         <form action={logout}>
           <button
             type="submit"
-            className="w-full px-4 py-3 rounded-xl border border-border-subtle font-space-grotesk text-[14px] text-text-muted hover:text-text-primary hover:border-text-muted/40 transition-all text-left cursor-pointer"
+            className="w-full px-4 py-3 rounded-xl border border-red-500/30 font-space-grotesk text-[14px] text-[#ff6b6b] hover:bg-red-400/10 hover:border-red-500/50 transition-all text-left cursor-pointer"
           >
             Se déconnecter
           </button>

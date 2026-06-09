@@ -40,14 +40,14 @@ interface AgendaClientProps {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const APP_COLORS = [
-  { name: "Cours",          value: "cours",          bg: "bg-[#9B8FFF]", text: "text-[#9B8FFF]" },
-  { name: "Étude",          value: "study",          bg: "bg-[#4A9EFF]", text: "text-[#4A9EFF]" },
-  { name: "Fitness",        value: "fitness",        bg: "bg-[#FFD166]", text: "text-[#FFD166]" },
-  { name: "Gym",            value: "gym-suggestion", bg: "bg-[#4ade80]", text: "text-[#4ade80]" },
-  { name: "Récupération",   value: "recovery",       bg: "bg-[#A8FF78]", text: "text-[#A8FF78]" },
-  { name: "Tâche",          value: "task",           bg: "bg-[#8888AA]", text: "text-[#8888AA]" },
-  { name: "Repas",          value: "meal",           bg: "bg-[#FF9966]", text: "text-[#FF9966]" },
-  { name: "Activité extra", value: "extra",          bg: "bg-[#FF6B9D]", text: "text-[#FF6B9D]" },
+  { name: "Cours",          value: "cours",          bg: "bg-violet-600",  text: "text-violet-400" },
+  { name: "Étude",          value: "study",          bg: "bg-purple-800",  text: "text-purple-400" },
+  { name: "Fitness",        value: "fitness",        bg: "bg-[#FFD166]",   text: "text-[#FFD166]"  },
+  { name: "Gym",            value: "gym-suggestion", bg: "bg-emerald-700", text: "text-emerald-400" },
+  { name: "Récupération",   value: "recovery",       bg: "bg-[#A8FF78]",   text: "text-[#A8FF78]"  },
+  { name: "Tâche",          value: "task",           bg: "bg-slate-700",   text: "text-slate-400"  },
+  { name: "Repas",          value: "meal",           bg: "bg-rose-700",    text: "text-rose-400"   },
+  { name: "Activité extra", value: "extra",          bg: "bg-[#FF6B9D]",   text: "text-[#FF6B9D]"  },
 ]
 
 const APP_CATEGORIES = [

@@ -10,16 +10,12 @@ type AllVariants = ButtonVariant | 'default' | 'outline' | 'destructive' | 'link
 
 const VARIANT: Record<string, string> = {
   primary:
-    'bg-accent-study text-bg-base ' +
-    '[box-shadow:var(--glow-study)] ' +
-    'hover:[box-shadow:0_0_24px_rgba(74,158,255,0.6)] hover:-translate-y-px',
+    'app-btn-primary',
   default:
-    'bg-accent-study text-bg-base ' +
-    '[box-shadow:var(--glow-study)] ' +
-    'hover:[box-shadow:0_0_24px_rgba(74,158,255,0.6)] hover:-translate-y-px',
+    'app-btn-primary',
   secondary:
-    'bg-transparent text-accent-study border border-accent-study/50 ' +
-    'hover:bg-accent-study/8 hover:border-accent-study',
+    'bg-transparent text-[#C9006B] border border-[#C9006B]/50 ' +
+    'hover:bg-[#C9006B]/10 hover:border-[#C9006B]',
   ghost:
     'bg-transparent text-text-muted hover:text-text-primary hover:bg-bg-elevated',
   outline:
@@ -27,7 +23,7 @@ const VARIANT: Record<string, string> = {
   destructive:
     'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30',
   link:
-    'bg-transparent text-accent-study underline-offset-4 hover:underline',
+    'bg-transparent text-[#C9006B] underline-offset-4 hover:underline',
 }
 
 const SIZE: Record<string, string> = {
