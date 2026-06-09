@@ -3,63 +3,93 @@
 import Link from 'next/link'
 import { useActionState } from 'react'
 import { login } from '@/app/actions/auth'
-import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/Button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
+
+const LABEL_STYLE: React.CSSProperties = {
+  fontSize: '11px',
+  textTransform: 'uppercase',
+  letterSpacing: '0.12em',
+  color: 'rgba(255,255,255,0.6)',
+  marginBottom: '8px',
+  display: 'block',
+}
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(login, undefined)
 
   return (
     <AuthLayout>
-      <div
-        className="w-full bg-bg-surface border border-border-subtle rounded-2xl p-8 flex flex-col gap-6"
-        style={{ boxShadow: '0 0 40px rgba(74, 158, 255, 0.08)' }}
+      {/* Subtitle */}
+      <p
+        className="font-space-grotesk"
+        style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginBottom: '44px' }}
       >
-        {/* Header */}
-        <div className="flex flex-col items-center gap-1">
-          <h1 className="font-syne font-bold text-xl text-text-primary">College Routine</h1>
-          <p className="font-space-grotesk text-sm text-text-muted">Connexion à ton espace</p>
-        </div>
+        Connexion à ton espace
+      </p>
 
-        {/* Form */}
-        <form action={action} className="flex flex-col gap-4">
-          <Input
-            label="Courriel"
+      <form action={action} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        {/* Email */}
+        <div>
+          <label htmlFor="login-email" className="font-space-grotesk" style={LABEL_STYLE}>
+            Courriel
+          </label>
+          <input
+            id="login-email"
             name="email"
             type="email"
             autoComplete="email"
             autoFocus
             required
             placeholder="prenom@universite.ca"
+            className="auth-input font-space-grotesk"
           />
-          <Input
-            label="Mot de passe"
+        </div>
+
+        {/* Password */}
+        <div>
+          <label htmlFor="login-password" className="font-space-grotesk" style={LABEL_STYLE}>
+            Mot de passe
+          </label>
+          <input
+            id="login-password"
             name="password"
             type="password"
             autoComplete="current-password"
             required
             placeholder="••••••••"
+            className="auth-input font-space-grotesk"
           />
+        </div>
 
-          {state?.error && (
-            <p role="alert" className="font-space-grotesk text-[13px] text-accent-reco">
-              {state.error}
-            </p>
-          )}
+        {state?.error && (
+          <p
+            role="alert"
+            className="font-space-grotesk"
+            style={{ fontSize: '13px', color: '#FF6B9D', marginTop: '-16px' }}
+          >
+            {state.error}
+          </p>
+        )}
 
-          <Button type="submit" disabled={pending} className="w-full justify-center mt-1">
-            {pending ? 'Connexion…' : 'Se connecter'}
-          </Button>
-        </form>
+        <button
+          type="submit"
+          disabled={pending}
+          className="auth-submit-btn font-space-grotesk"
+          style={{ marginTop: '8px' }}
+        >
+          {pending ? 'Connexion…' : 'Se connecter'}
+        </button>
+      </form>
 
-        <p className="font-space-grotesk text-sm text-center text-text-muted">
-          Pas encore de compte ?{' '}
-          <Link href="/register" className="text-accent-study hover:underline focus-ring rounded">
-            Créer un compte
-          </Link>
-        </p>
-      </div>
+      <p
+        className="font-space-grotesk text-center"
+        style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', marginTop: '28px' }}
+      >
+        Pas encore de compte ?{' '}
+        <Link href="/register" style={{ color: '#C9006B' }}>
+          Créer un compte
+        </Link>
+      </p>
     </AuthLayout>
   )
 }

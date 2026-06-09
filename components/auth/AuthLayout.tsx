@@ -2,51 +2,53 @@ import Image from 'next/image'
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex">
-      {/* Left panel — form */}
-      <div className="flex-1 bg-black flex items-center justify-center p-8">
-        <div className="w-full" style={{ maxWidth: '420px' }}>
+    <div className="h-screen overflow-hidden flex">
+      {/* ── Left zone (form) ────────────────────────────────────────────── */}
+      <div
+        className="auth-left-panel relative z-10 flex flex-col justify-center
+                   px-10 md:px-16 w-full md:w-[45%] shrink-0"
+        style={{
+          background:
+            'linear-gradient(to right, #000000 0%, #000000 55%, #1a0a2e 80%, transparent 100%)',
+        }}
+      >
+        {/* CR logo */}
+        <span
+          className="absolute top-8 left-8 font-syne"
+          style={{ fontSize: '18px', color: '#C9006B', fontWeight: 700, letterSpacing: '0.05em' }}
+        >
+          CR
+        </span>
+
+        {/* Form content */}
+        <div className="w-full" style={{ maxWidth: '380px' }}>
           {children}
         </div>
       </div>
 
-      {/* Right panel — visual, hidden below md */}
+      {/* ── Right zone (visual) — hidden below md ───────────────────────── */}
       <div
-        className="hidden md:block flex-1 relative overflow-hidden"
+        className="hidden md:block relative flex-1 overflow-hidden"
         style={{
-          background:
-            'linear-gradient(135deg, #4E2A84 0%, #C9006B 52%, #FF7043 100%)',
-          minWidth: '50%',
-          maxWidth: '50%',
+          background: 'linear-gradient(135deg, #4E2A84 0%, #C9006B 55%, #FF7043 100%)',
         }}
       >
-        {/* COLLEGE ROUTINE */}
-        <div className="absolute inset-x-0 top-[8%] z-10 flex justify-center px-6 text-center">
-          <h1
-            style={{
-              fontFamily: "'Syne', Georgia, Impact, serif",
-              fontWeight: 900,
-              fontSize: 'clamp(2.5rem, 4.5vw, 4rem)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              color: '#ffffff',
-              textShadow: '2px 2px 0px rgba(0,0,0,0.4)',
-              lineHeight: 1.1,
-            }}
-          >
-            COLLEGE
-            <br />
-            ROUTINE
-          </h1>
-        </div>
+        {/* Left-side black fade — blends the two zones together */}
+        <div
+          className="absolute inset-y-0 left-0 z-10 pointer-events-none"
+          style={{
+            width: '180px',
+            background: 'linear-gradient(to right, #000000, transparent)',
+          }}
+        />
 
-        {/* Bear — lower 70% of panel */}
-        <div className="absolute inset-x-0 bottom-0" style={{ height: '72%' }}>
+        {/* Bear — top at 5%, fills remaining height */}
+        <div className="absolute inset-x-0 z-0" style={{ top: '5%', height: '95%' }}>
           <Image
             src="/assets/bear_no_background.PNG"
-            alt="College Routine Bear"
+            alt="College Routine"
             fill
-            className="object-contain object-bottom"
+            className="object-contain object-top"
             priority
           />
         </div>
