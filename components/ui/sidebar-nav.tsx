@@ -35,53 +35,43 @@ function NavPill({
   return (
     // Fixed 60×60 anchor — pill overflows rightward, never leftward
     <div className="group relative overflow-visible" style={{ width: 60, height: 60 }}>
-      {/* Blur glow — anchored at left:0, expands rightward */}
+      {/* Blur glow — only on hover, never for active alone */}
       <div
         aria-hidden="true"
-        className={`absolute top-0 left-0 h-[60px] rounded-[30px] blur-[15px] pointer-events-none transition-all duration-300 ease-in-out ${
-          isActive
-            ? 'w-[180px] opacity-50'
-            : 'w-[60px] opacity-0 group-hover:w-[180px] group-hover:opacity-50'
-        }`}
+        className="absolute top-0 left-0 h-[60px] rounded-[30px] blur-[15px] pointer-events-none transition-all duration-300 ease-in-out w-[60px] opacity-0 group-hover:w-[180px] group-hover:opacity-50"
         style={{ background: gradient, zIndex: 0 }}
       />
 
-      {/* Pill — absolute at left:0, expands purely rightward */}
+      {/* Pill — collapses to 60px always; expands only on hover */}
       <Link
         href={href}
         aria-label={label}
         aria-current={isActive ? 'page' : undefined}
-        className={`absolute top-0 left-0 h-[60px] rounded-[30px] overflow-hidden bg-white transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
-          isActive ? 'w-[180px]' : 'w-[60px] group-hover:w-[180px]'
-        }`}
-        style={{ zIndex: 1 }}
+        className="absolute top-0 left-0 h-[60px] rounded-[30px] overflow-hidden bg-white transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 w-[60px] group-hover:w-[180px]"
+        style={{
+          zIndex: 1,
+          boxShadow: isActive ? `0 0 0 2px ${from}66` : undefined,
+        }}
       >
-        {/* Gradient overlay */}
+        {/* Gradient overlay — only on hover */}
         <div
           aria-hidden="true"
-          className={`absolute inset-0 transition-opacity duration-300 ${
-            isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          }`}
+          className="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
           style={{ background: gradient }}
         />
 
-        {/* Icon — centered, fades out on hover/active */}
+        {/* Icon — always visible; active gets accent color, inactive gets gray */}
         <span
           aria-hidden="true"
-          className={`absolute inset-0 z-10 flex items-center justify-center text-gray-400 transition-all duration-300 ${
-            isActive
-              ? 'scale-0 opacity-0'
-              : 'scale-100 opacity-100 group-hover:scale-0 group-hover:opacity-0'
-          }`}
+          className="absolute inset-0 z-10 flex items-center justify-center transition-all duration-300 scale-100 opacity-100 group-hover:scale-0 group-hover:opacity-0"
+          style={{ color: isActive ? from : '#9CA3AF' }}
         >
           <Icon size={22} />
         </span>
 
-        {/* Label — centered, fades in on hover/active */}
+        {/* Label — only on hover */}
         <span
-          className={`absolute inset-0 z-10 flex items-center justify-center text-white uppercase tracking-wider text-[11px] font-semibold whitespace-nowrap select-none transition-opacity duration-300 ${
-            isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          }`}
+          className="absolute inset-0 z-10 flex items-center justify-center text-white uppercase tracking-wider text-[11px] font-semibold whitespace-nowrap select-none transition-opacity duration-300 opacity-0 group-hover:opacity-100"
         >
           {label}
         </span>
@@ -124,11 +114,11 @@ function UserAvatarButton({ userName }: { userName?: string }) {
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 bg-bg-surface border border-border-subtle rounded-xl shadow-2xl p-2 min-w-[148px]">
+          <div className="absolute bottom-12 left-0 z-50 bg-bg-surface border border-border-subtle rounded-xl shadow-2xl p-2 min-w-[180px]">
             <form action={logout}>
               <button
                 type="submit"
-                className="w-full px-3 py-2 text-left font-space-grotesk text-[13px] text-text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
+                className="w-full px-3 py-2 text-left font-space-grotesk text-[13px] text-text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
               >
                 Se déconnecter
               </button>
