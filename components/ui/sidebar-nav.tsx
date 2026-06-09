@@ -141,14 +141,25 @@ export function SidebarNav({ userName }: { userName?: string }) {
       style={{ background: '#12121F' }}
     >
       {/* Logo */}
-      <Image
-        src="/assets/bear_no_background.png"
-            width={100}
-            height={100}
-            alt=""
-            aria-hidden="true"
-            className="object-contain opacity-85"
-      />
+      <div
+        style={{
+          width: 52,
+          height: 52,
+          marginBottom: 24,
+          flexShrink: 0,
+          overflow: 'hidden',
+          alignSelf: 'center',
+        }}
+      >
+        <Image
+          src="/assets/bear_no_background.png"
+          width={52}
+          height={52}
+          alt=""
+          aria-hidden="true"
+          className="object-contain opacity-85"
+        />
+      </div>
 
       {/* Nav — pills anchored 10px from sidebar left, expand rightward */}
       <nav className="flex flex-col gap-4 overflow-visible pl-[10px]">

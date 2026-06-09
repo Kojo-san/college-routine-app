@@ -39,7 +39,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         {/* Bear — top at 5%, fills remaining height */}
         <div className="absolute inset-x-0 z-0" style={{ top: '5%', height: '95%' }}>
           <Image
-            src="/assets/bear_no_background.PNG"
+            src="/assets/bear_no_background.png"
             alt="College Routine"
             fill
             className="object-contain object-top"

@@ -686,7 +686,7 @@ export function OnboardingForm({ name }: { name: string }) {
           }}
         >
           <Image
-            src="/assets/bear_no_background.PNG"
+            src="/assets/bear_no_background.png"
             alt=""
             aria-hidden
             width={100}
