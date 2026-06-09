@@ -822,7 +822,7 @@ Affiché quand aucun contenu n'existe dans une section. Le bear accompagne toujo
 
 ```
         🐻
-   bear_no_background.png (140px)
+   icon_no_background.png (140px)
 
    Aucun Planning pour aujourd'hui
 

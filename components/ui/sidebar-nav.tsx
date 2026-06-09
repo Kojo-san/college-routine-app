@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   IoHomeOutline,
@@ -114,11 +115,11 @@ function UserAvatarButton({ userName }: { userName?: string }) {
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute bottom-12 left-0 z-50 bg-bg-surface border border-border-subtle rounded-xl shadow-2xl p-2 min-w-[180px]">
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 bg-bg-surface border border-border-subtle rounded-xl shadow-2xl p-2 min-w-[148px]">
             <form action={logout}>
               <button
                 type="submit"
-                className="w-full px-3 py-2 text-left font-space-grotesk text-[13px] text-text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+                className="w-full px-3 py-2 text-left font-space-grotesk text-[13px] text-text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
               >
                 Se déconnecter
               </button>
@@ -140,14 +141,14 @@ export function SidebarNav({ userName }: { userName?: string }) {
       style={{ background: '#12121F' }}
     >
       {/* Logo */}
-      <div className="mb-8 flex items-center justify-center w-[80px] h-[60px] flex-shrink-0">
-        <span
-          className="font-serif text-[20px] font-bold select-none"
-          style={{ color: '#C8A84B' }}
-        >
-          CR
-        </span>
-      </div>
+      <Image
+        src="/assets/bear_no_background.png"
+            width={100}
+            height={100}
+            alt=""
+            aria-hidden="true"
+            className="object-contain opacity-85"
+      />
 
       {/* Nav — pills anchored 10px from sidebar left, expand rightward */}
       <nav className="flex flex-col gap-4 overflow-visible pl-[10px]">

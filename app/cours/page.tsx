@@ -24,7 +24,7 @@ export default async function CoursPage() {
         {courses.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
             <Image
-              src="/assets/bear_no_background.png"
+              src="/assets/icon_no_background.png"
               width={120}
               height={120}
               alt=""
