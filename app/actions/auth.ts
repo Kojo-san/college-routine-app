@@ -44,7 +44,7 @@ export async function login(state: LoginState, formData: FormData): Promise<Logi
   if (!valid) return { error: 'Identifiants incorrects.' }
 
   await createSession(user.id)
-  redirect('/planning')
+  redirect('/transition?source=login')
 }
 
 export async function logout() {
@@ -112,5 +112,5 @@ export async function completeOnboarding(input: OnboardingInput): Promise<{ erro
     update: { preferredWakeTime: wakeTime, preferredSleepTime: sleepTime },
   })
 
-  redirect('/planning')
+  redirect('/transition?source=onboarding')
 }
