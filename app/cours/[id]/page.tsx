@@ -26,25 +26,6 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-function DifficultyDots({ level }: { level: number }) {
-  return (
-    <div className="flex gap-1.5 items-center" aria-label={`Difficulté : ${level}/5`}>
-      {Array.from({ length: 5 }, (_, i) => (
-        <span
-          key={i}
-          className="w-2.5 h-2.5 rounded-full"
-          style={{
-            background: i < level
-              ? 'var(--color-accent-study)'
-              : 'var(--color-border-subtle)',
-          }}
-        />
-      ))}
-      <span className="font-space-grotesk text-[12px] text-text-muted ml-1">{level}/5</span>
-    </div>
-  )
-}
-
 export default async function CourseDetailPage({ params }: PageProps) {
   const { userId } = await verifySession()
   const { id } = await params
@@ -72,14 +53,15 @@ export default async function CourseDetailPage({ params }: PageProps) {
         </Link>
 
         {/* ── Métadonnées ── */}
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-4">
           <span className="font-space-grotesk text-[13px] font-semibold tracking-[0.1em] uppercase text-text-muted">
             {course.code}
           </span>
-          <DifficultyDots level={course.difficultyLevel} />
-          <span className="font-space-grotesk text-[12px] text-text-muted">
-            {course.estimatedWeeklyWorkload}h / semaine estimées
-          </span>
+          {(course.courseHours > 0 || course.labHours > 0 || course.personalHours > 0) && (
+            <span className="font-space-grotesk text-[12px] text-text-muted">
+              {course.courseHours}h cours · {course.labHours}h lab · {course.personalHours}h perso
+            </span>
+          )}
         </div>
 
         {/* ── Échéances ── */}
@@ -161,14 +143,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </section>
         )}
 
-        {/* ── Zone danger ── */}
+        {/* ── Suppression ── */}
         <section className="border-t border-border-subtle pt-6">
-          <h2 className="font-syne text-[15px] font-bold text-text-muted mb-1">
-            Zone de danger
-          </h2>
-          <p className="font-space-grotesk text-[12px] text-text-muted mb-3">
-            La suppression du Cours efface également toutes ses Tâches et Échéances.
-          </p>
           <DeleteCourseButton courseId={id} />
         </section>
 

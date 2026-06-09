@@ -12,6 +12,9 @@ export interface CreateCourseInput {
   name: string
   difficultyLevel?: number
   estimatedWeeklyWorkload?: number
+  courseHours?: number
+  labHours?: number
+  personalHours?: number
 }
 
 export interface CreateTaskInput {
@@ -55,6 +58,13 @@ export function validateCourseInput(input: unknown): ValidationResult {
   if (i.estimatedWeeklyWorkload !== undefined && i.estimatedWeeklyWorkload !== null) {
     const w = Number(i.estimatedWeeklyWorkload)
     if (isNaN(w) || w < 0) errors.push('La charge hebdomadaire doit être ≥ 0')
+  }
+
+  for (const field of ['courseHours', 'labHours', 'personalHours'] as const) {
+    if (i[field] !== undefined && i[field] !== null) {
+      const v = Number(i[field])
+      if (!Number.isInteger(v) || v < 0) errors.push(`${field} doit être un entier ≥ 0`)
+    }
   }
 
   return { valid: errors.length === 0, errors }
@@ -131,7 +141,6 @@ export interface CourseWithStats {
   id: string
   code: string
   name: string
-  difficultyLevel: number
   taskCount: number
   deadlines: DeadlinePreview[]
 }
@@ -152,6 +161,9 @@ export interface CourseDetail {
   name: string
   difficultyLevel: number
   estimatedWeeklyWorkload: number
+  courseHours: number
+  labHours: number
+  personalHours: number
   tasks: TaskItem[]
   deadlines: DeadlinePreview[]
 }
@@ -173,12 +185,11 @@ export async function getCourses(userId: string): Promise<CourseWithStats[]> {
   })
 
   return courses.map((c) => ({
-    id:              c.id,
-    code:            c.code,
-    name:            c.name,
-    difficultyLevel: c.difficultyLevel,
-    taskCount:       c.tasks.length,
-    deadlines:       c.deadlines,
+    id:        c.id,
+    code:      c.code,
+    name:      c.name,
+    taskCount: c.tasks.length,
+    deadlines: c.deadlines,
   }))
 }
 
@@ -190,6 +201,9 @@ export async function createCourse(userId: string, input: CreateCourseInput): Pr
       name:                    input.name.trim(),
       difficultyLevel:         input.difficultyLevel ?? 3,
       estimatedWeeklyWorkload: input.estimatedWeeklyWorkload ?? 3.0,
+      courseHours:             input.courseHours ?? 0,
+      labHours:                input.labHours ?? 0,
+      personalHours:           input.personalHours ?? 0,
     },
     include: {
       deadlines: {
@@ -204,12 +218,11 @@ export async function createCourse(userId: string, input: CreateCourseInput): Pr
   })
 
   return {
-    id:              course.id,
-    code:            course.code,
-    name:            course.name,
-    difficultyLevel: course.difficultyLevel,
-    taskCount:       course.tasks.length,
-    deadlines:       course.deadlines,
+    id:        course.id,
+    code:      course.code,
+    name:      course.name,
+    taskCount: course.tasks.length,
+    deadlines: course.deadlines,
   }
 }
 
@@ -282,6 +295,9 @@ export async function getCourse(courseId: string): Promise<CourseDetail | null> 
     name:                    course.name,
     difficultyLevel:         course.difficultyLevel,
     estimatedWeeklyWorkload: course.estimatedWeeklyWorkload,
+    courseHours:             course.courseHours,
+    labHours:                course.labHours,
+    personalHours:           course.personalHours,
     tasks:                   course.tasks.map((t) => ({
       id:                       t.id,
       title:                    t.title,

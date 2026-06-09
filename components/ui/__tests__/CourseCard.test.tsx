@@ -26,7 +26,6 @@ describe('CourseCard', () => {
     id: 'c1',
     code: 'MTH1102',
     name: 'Algèbre Linéaire',
-    difficultyLevel: 3,
     taskCount: 3,
     deadlines: [],
   }
@@ -35,14 +34,6 @@ describe('CourseCard', () => {
     render(<CourseCard {...BASE} />)
     expect(screen.getByText('MTH1102')).toBeInTheDocument()
     expect(screen.getByText('Algèbre Linéaire')).toBeInTheDocument()
-  })
-
-  it('renders 5 difficulty dots with correct filled count', () => {
-    render(<CourseCard {...BASE} />)
-    const filled = document.querySelectorAll('[data-filled="true"]')
-    const empty  = document.querySelectorAll('[data-filled="false"]')
-    expect(filled).toHaveLength(3)
-    expect(empty).toHaveLength(2)
   })
 
   it('renders task count when tasks exist', () => {
@@ -60,5 +51,10 @@ describe('CourseCard', () => {
     }]
     render(<CourseCard {...BASE} deadlines={deadlines} />)
     expect(screen.getByText(/Intra/)).toBeInTheDocument()
+  })
+
+  it('renders fallback text when card is empty', () => {
+    render(<CourseCard {...BASE} taskCount={0} deadlines={[]} />)
+    expect(screen.getByText(/Aucune échéance/i)).toBeInTheDocument()
   })
 })

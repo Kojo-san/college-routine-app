@@ -710,7 +710,7 @@ export async function generateDailyPlan(
       include: {
         deadlines: { where: { completed: false } },
         tasks: { where: { completed: false } },
-        personalHours: true,
+        semesterHours: true,
       },
     }),
     getHealthData(userId, date),
@@ -740,7 +740,7 @@ export async function generateDailyPlan(
   const gymPrefs: GymPrefsInput | null = null
 
   const courseHours: CourseHoursInput[] = rawCourses.flatMap(c =>
-    c.personalHours.map(h => ({
+    c.semesterHours.map(h => ({
       courseId: c.id,
       courseCode: c.code,
       personalHoursPerWeek: h.personalHoursPerWeek,

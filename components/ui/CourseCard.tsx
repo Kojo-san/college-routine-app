@@ -14,7 +14,6 @@ interface CourseCardProps {
   id: string
   code: string
   name: string
-  difficultyLevel: number
   taskCount: number
   deadlines: DeadlinePreview[]
 }
@@ -30,7 +29,7 @@ function formatDaysLeft(dueDate: Date): string {
   return days <= 0 ? "Aujourd'hui" : `Dans ${days} jour${days > 1 ? 's' : ''}`
 }
 
-export function CourseCard({ id, code, name, difficultyLevel, taskCount, deadlines }: CourseCardProps) {
+export function CourseCard({ id, code, name, taskCount, deadlines }: CourseCardProps) {
   const upcomingDeadlines = deadlines
     .filter((d) => !d.completed)
     .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
@@ -46,22 +45,6 @@ export function CourseCard({ id, code, name, difficultyLevel, taskCount, deadlin
         <span className="font-space-grotesk text-[11px] font-semibold tracking-[0.1em] uppercase text-text-muted">
           {code}
         </span>
-
-        {/* Difficulty dots */}
-        <div className="flex gap-1 items-center" aria-label={`Difficulté : ${difficultyLevel}/5`}>
-          {Array.from({ length: 5 }, (_, i) => (
-            <span
-              key={i}
-              data-filled={i < difficultyLevel ? 'true' : 'false'}
-              className="w-2 h-2 rounded-full"
-              style={{
-                background: i < difficultyLevel
-                  ? 'var(--color-accent-study)'
-                  : 'var(--color-border-subtle)',
-              }}
-            />
-          ))}
-        </div>
       </div>
 
       {/* Name */}

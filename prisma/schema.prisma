@@ -164,6 +164,9 @@ model Course {
   name                    String
   difficultyLevel         Int      @default(3) // échelle 1-5
   estimatedWeeklyWorkload Float    @default(3.0)
+  courseHours             Int      @default(0)
+  labHours                Int      @default(0)
+  personalHours           Int      @default(0)
   createdAt               DateTime @default(now())
 
   userId String
@@ -174,7 +177,7 @@ model Course {
   tasks           Task[]
   sessions        Session[]
   courseSchedules CourseSchedule[]
-  personalHours   CoursePersonalHours[]
+  semesterHours   CoursePersonalHours[]
 }
 
 model CourseSchedule {

@@ -13,13 +13,15 @@ export function CourseForm() {
   const [status, setStatus]     = useState<FormStatus>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
-  const [code, setCode]         = useState('')
-  const [name, setName]         = useState('')
-  const [difficulty, setDiff]   = useState('3')
-  const [workload, setWorkload] = useState('3')
+  const [code, setCode]                 = useState('')
+  const [name, setName]                 = useState('')
+  const [courseHours, setCourseHours]   = useState('3')
+  const [labHours, setLabHours]         = useState('2')
+  const [personalHours, setPersonalHours] = useState(5)
 
   function reset() {
-    setCode(''); setName(''); setDiff('3'); setWorkload('3')
+    setCode(''); setName('')
+    setCourseHours('3'); setLabHours('2'); setPersonalHours(5)
     setStatus('idle'); setErrorMsg('')
   }
 
@@ -33,10 +35,11 @@ export function CourseForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          code:                    code.trim().toUpperCase(),
-          name:                    name.trim(),
-          difficultyLevel:         parseInt(difficulty, 10),
-          estimatedWeeklyWorkload: parseFloat(workload) || 3,
+          code:         code.trim().toUpperCase(),
+          name:         name.trim(),
+          courseHours:  parseInt(courseHours, 10) || 0,
+          labHours:     parseInt(labHours, 10) || 0,
+          personalHours,
         }),
       })
 
@@ -57,7 +60,7 @@ export function CourseForm() {
   if (!open) {
     return (
       <Button variant="secondary" onClick={() => setOpen(true)}>
-        Créer un Cours
+        Ajouter un cours
       </Button>
     )
   }
@@ -78,35 +81,14 @@ export function CourseForm() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
 
-        <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
-          <Input
-            label="Code"
-            placeholder="Ex. MTH1102"
-            value={code}
-            onChange={e => setCode(e.target.value.toUpperCase())}
-            required
-            autoFocus
-          />
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="course-difficulty"
-              className="font-space-grotesk text-[12px] font-medium text-text-muted uppercase tracking-[0.06em]"
-            >
-              Difficulté
-            </label>
-            <select
-              id="course-difficulty"
-              value={difficulty}
-              onChange={e => setDiff(e.target.value)}
-              className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2.5 font-space-grotesk text-[14px] text-text-primary focus-ring outline-none min-w-[80px]"
-              style={{ colorScheme: 'dark' }}
-            >
-              {[1, 2, 3, 4, 5].map(d => (
-                <option key={d} value={d}>{d} / 5</option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <Input
+          label="Code"
+          placeholder="Ex. MTH1102"
+          value={code}
+          onChange={e => setCode(e.target.value.toUpperCase())}
+          required
+          autoFocus
+        />
 
         <Input
           label="Nom du cours"
@@ -116,19 +98,59 @@ export function CourseForm() {
           required
         />
 
-        <Input
-          label="Charge / semaine (h)"
-          type="number"
-          min="0"
-          step="0.5"
-          placeholder="3.0"
-          value={workload}
-          onChange={e => setWorkload(e.target.value)}
-        />
+        {/* ── Triplet horaire ── */}
+        <div className="flex flex-col gap-2">
+          <span className="font-space-grotesk text-[12px] font-medium text-text-muted uppercase tracking-[0.06em]">
+            Triplet horaire (Cours – Lab – Travail personnel)
+          </span>
+
+          <div className="grid grid-cols-3 gap-3">
+            <Input
+              label="Cours / sem."
+              type="number"
+              min="0"
+              step="1"
+              placeholder="3"
+              value={courseHours}
+              onChange={e => setCourseHours(e.target.value)}
+            />
+            <Input
+              label="Lab / sem."
+              type="number"
+              min="0"
+              step="1"
+              placeholder="2"
+              value={labHours}
+              onChange={e => setLabHours(e.target.value)}
+            />
+
+            {/* Travail perso: slider + number display */}
+            <div className="flex flex-col gap-1.5">
+              <label className="font-space-grotesk text-[12px] font-medium text-text-muted uppercase tracking-[0.06em]">
+                Perso / sem.
+              </label>
+              <div className="flex items-center gap-2 h-[42px]">
+                <input
+                  type="range"
+                  min="0"
+                  max="20"
+                  step="1"
+                  value={personalHours}
+                  onChange={e => setPersonalHours(Number(e.target.value))}
+                  className="flex-1 accent-[var(--color-accent-study)] cursor-pointer"
+                  aria-label="Heures de travail perso par semaine"
+                />
+                <span className="font-space-grotesk text-[14px] font-bold text-text-primary w-5 text-right tabular-nums">
+                  {personalHours}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="flex items-center gap-4 pt-1">
           <Button type="submit" variant="primary" disabled={status === 'loading'}>
-            {status === 'loading' ? 'Enregistrement…' : 'Créer le Cours'}
+            {status === 'loading' ? 'Enregistrement…' : 'Ajouter le cours'}
           </Button>
           {status === 'error' && (
             <p role="alert" className="font-space-grotesk text-[13px] text-accent-reco">
