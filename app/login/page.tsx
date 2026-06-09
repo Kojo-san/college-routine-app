@@ -1,31 +1,23 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useActionState } from 'react'
 import { login } from '@/app/actions/auth'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { AuthLayout } from '@/components/auth/AuthLayout'
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(login, undefined)
 
   return (
-    <div className="min-h-screen bg-bg-base flex items-center justify-center p-4">
+    <AuthLayout>
       <div
-        className="w-full max-w-sm bg-bg-surface border border-border-subtle rounded-2xl p-8 flex flex-col gap-6"
+        className="w-full bg-bg-surface border border-border-subtle rounded-2xl p-8 flex flex-col gap-6"
         style={{ boxShadow: '0 0 40px rgba(74, 158, 255, 0.08)' }}
       >
-        {/* Logo */}
-        <div className="flex flex-col items-center gap-3">
-          <Image
-            src="/assets/bear-logo.png"
-            alt="College Routine"
-            width={52}
-            height={52}
-            priority
-            className="object-contain"
-          />
+        {/* Header */}
+        <div className="flex flex-col items-center gap-1">
           <h1 className="font-syne font-bold text-xl text-text-primary">College Routine</h1>
           <p className="font-space-grotesk text-sm text-text-muted">Connexion à ton espace</p>
         </div>
@@ -68,6 +60,6 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   )
 }
