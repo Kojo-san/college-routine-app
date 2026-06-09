@@ -2,10 +2,18 @@
 
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
+// Legacy variants (used by existing app code)
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost'
 
-const VARIANT: Record<ButtonVariant, string> = {
+// All variants (includes shadcn-compatible)
+type AllVariants = ButtonVariant | 'default' | 'outline' | 'destructive' | 'link'
+
+const VARIANT: Record<string, string> = {
   primary:
+    'bg-accent-study text-bg-base ' +
+    '[box-shadow:var(--glow-study)] ' +
+    'hover:[box-shadow:0_0_24px_rgba(74,158,255,0.6)] hover:-translate-y-px',
+  default:
     'bg-accent-study text-bg-base ' +
     '[box-shadow:var(--glow-study)] ' +
     'hover:[box-shadow:0_0_24px_rgba(74,158,255,0.6)] hover:-translate-y-px',
@@ -13,31 +21,49 @@ const VARIANT: Record<ButtonVariant, string> = {
     'bg-transparent text-accent-study border border-accent-study/50 ' +
     'hover:bg-accent-study/8 hover:border-accent-study',
   ghost:
-    'bg-transparent text-text-muted hover:text-text-primary',
+    'bg-transparent text-text-muted hover:text-text-primary hover:bg-bg-elevated',
+  outline:
+    'border border-border-subtle bg-transparent text-text-primary hover:bg-bg-elevated',
+  destructive:
+    'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30',
+  link:
+    'bg-transparent text-accent-study underline-offset-4 hover:underline',
+}
+
+const SIZE: Record<string, string> = {
+  default: 'px-5 py-2.5 min-h-[44px]',
+  sm:      'px-3 py-1.5 min-h-[32px] text-xs',
+  lg:      'px-8 py-3 min-h-[48px]',
+  icon:    'p-2 min-h-[36px] min-w-[36px]',
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant
-  children: ReactNode
+  variant?: AllVariants
+  size?: 'default' | 'sm' | 'lg' | 'icon'
+  children?: ReactNode
+  asChild?: boolean
 }
 
 export function Button({
   variant = 'primary',
+  size = 'default',
   children,
   className = '',
   type = 'button',
+  asChild: _asChild,
   ...props
 }: ButtonProps) {
   return (
     <button
       type={type}
       className={[
-        'inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] rounded-lg',
+        'inline-flex items-center justify-center gap-2 rounded-lg',
         'font-space-grotesk text-sm font-semibold cursor-pointer border-0',
-        'transition-all duration-150 ease-in-out',
+        'transition-all duration-150 ease-in-out whitespace-nowrap',
         'disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none',
         'focus-ring',
-        VARIANT[variant],
+        VARIANT[variant] ?? VARIANT.primary,
+        SIZE[size] ?? SIZE.default,
         className,
       ].join(' ')}
       {...props}
