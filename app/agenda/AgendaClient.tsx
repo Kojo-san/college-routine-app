@@ -211,7 +211,7 @@ function SetupBanner({ variant, step1Done, step2Done, step3Done, hasExtraActivit
       : [
           { label: "Ajoute tes cours",     done: step1Done, skip: false },
           { label: "Ajoute tes activités", done: step2Done, skip: !hasExtraActivities },
-          { label: "Génère tes séances",   done: step3Done, skip: false },
+          { label: "Planifie tes entraînements",   done: step3Done, skip: false },
         ]
 
   const activeIndex = steps.findIndex((s) => !s.done && !s.skip)
@@ -570,7 +570,7 @@ export function AgendaClient({
                   : "bg-bg-elevated text-text-muted cursor-not-allowed opacity-60",
               )}
             >
-              💪 Générer les séances
+              Planifier mes entraînements
             </button>
             {!step1Done && (
               <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded-lg bg-bg-elevated border border-border-subtle px-3 py-2 text-[11px] font-space-grotesk text-text-muted opacity-0 group-hover:opacity-100 transition-opacity text-center shadow-lg z-50">
