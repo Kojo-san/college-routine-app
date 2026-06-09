@@ -54,6 +54,7 @@ export interface Event {
   category?: string
   attendees?: string[]
   tags?: string[]
+  suggested?: boolean
 }
 
 export interface EventManagerProps {
@@ -936,8 +937,16 @@ function EventCard({
           "text-white",
           isHovered && "scale-105 shadow-lg z-10",
         )}
+        style={event.suggested ? { border: "2px dashed rgba(255,255,255,0.7)" } : undefined}
       >
-        <div className="truncate">{event.title}</div>
+        <div className="flex items-center gap-1">
+          <span className="truncate">{event.title}</span>
+          {event.suggested && (
+            <span className="flex-shrink-0 text-[8px] font-bold uppercase bg-white/25 px-1 py-0.5 rounded">
+              Suggérée
+            </span>
+          )}
+        </div>
       </div>
       {isHovered && (
         <div className="absolute left-0 top-full z-50 mt-1 w-72">

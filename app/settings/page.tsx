@@ -1,13 +1,27 @@
 import { PageLayout } from '@/components/layout/PageLayout'
+import { verifySession } from '@/lib/session'
+import prisma from '@/lib/prisma'
+import { SettingsClient } from './SettingsClient'
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const { userId } = await verifySession()
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: {
+      name: true,
+      program: true,
+      wakeTime: true,
+      sleepTime: true,
+      includeGym: true,
+      gymPreferences: true,
+      extraActivities: true,
+    },
+  })
+
   return (
-    <PageLayout title="Réglages">
-      <div className="flex flex-col gap-6 max-w-2xl">
-        <p className="font-space-grotesk text-[14px] text-text-muted">
-          Les réglages arrivent prochainement.
-        </p>
-      </div>
+    <PageLayout title="Réglages" etudiantNom={user.name}>
+      <SettingsClient user={user} />
     </PageLayout>
   )
 }

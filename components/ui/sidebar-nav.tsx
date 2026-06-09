@@ -1,15 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   IoHomeOutline,
   IoCalendarOutline,
   IoSchoolOutline,
-  IoStatsChartOutline,
   IoSettingsOutline,
 } from 'react-icons/io5'
 import type { IconType } from 'react-icons'
+import { logout } from '@/app/actions/auth'
 
 interface NavItem {
   href: string
@@ -20,11 +21,10 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { href: '/',              label: 'Accueil',       Icon: IoHomeOutline,       from: '#a955ff', to: '#ea51ff' },
-  { href: '/agenda',        label: 'Agenda',        Icon: IoCalendarOutline,   from: '#56CCF2', to: '#2F80ED' },
-  { href: '/cours',         label: 'Cours',         Icon: IoSchoolOutline,     from: '#FF9966', to: '#FF5E62' },
-  { href: '/planification', label: 'Planification', Icon: IoStatsChartOutline, from: '#80FF72', to: '#7EE8FA' },
-  { href: '/settings',      label: 'Réglages',      Icon: IoSettingsOutline,   from: '#ffa9c6', to: '#f434e2' },
+  { href: '/',         label: 'Accueil',  Icon: IoHomeOutline,     from: '#a955ff', to: '#ea51ff' },
+  { href: '/agenda',   label: 'Agenda',   Icon: IoCalendarOutline, from: '#56CCF2', to: '#2F80ED' },
+  { href: '/cours',    label: 'Cours',    Icon: IoSchoolOutline,   from: '#FF9966', to: '#FF5E62' },
+  { href: '/settings', label: 'Réglages', Icon: IoSettingsOutline, from: '#ffa9c6', to: '#f434e2' },
 ]
 
 function NavPill({
@@ -33,8 +33,9 @@ function NavPill({
   const gradient = `linear-gradient(90deg, ${from}, ${to})`
 
   return (
-    <div className="group relative" style={{ height: 60 }}>
-      {/* Blur glow — sits behind the pill */}
+    // Fixed 60×60 anchor — pill overflows rightward, never leftward
+    <div className="group relative overflow-visible" style={{ width: 60, height: 60 }}>
+      {/* Blur glow — anchored at left:0, expands rightward */}
       <div
         aria-hidden="true"
         className={`absolute top-0 left-0 h-[60px] rounded-[30px] blur-[15px] pointer-events-none transition-all duration-300 ease-in-out ${
@@ -45,17 +46,17 @@ function NavPill({
         style={{ background: gradient, zIndex: 0 }}
       />
 
-      {/* Pill link */}
+      {/* Pill — absolute at left:0, expands purely rightward */}
       <Link
         href={href}
         aria-label={label}
         aria-current={isActive ? 'page' : undefined}
-        className={`relative flex items-center justify-center h-[60px] rounded-[30px] overflow-hidden bg-white transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
+        className={`absolute top-0 left-0 h-[60px] rounded-[30px] overflow-hidden bg-white transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
           isActive ? 'w-[180px]' : 'w-[60px] group-hover:w-[180px]'
         }`}
         style={{ zIndex: 1 }}
       >
-        {/* Gradient overlay — appears on hover/active */}
+        {/* Gradient overlay */}
         <div
           aria-hidden="true"
           className={`absolute inset-0 transition-opacity duration-300 ${
@@ -64,10 +65,10 @@ function NavPill({
           style={{ background: gradient }}
         />
 
-        {/* Icon — scales and fades out on hover/active */}
+        {/* Icon — centered, fades out on hover/active */}
         <span
           aria-hidden="true"
-          className={`relative z-10 text-gray-400 transition-all duration-300 ${
+          className={`absolute inset-0 z-10 flex items-center justify-center text-gray-400 transition-all duration-300 ${
             isActive
               ? 'scale-0 opacity-0'
               : 'scale-100 opacity-100 group-hover:scale-0 group-hover:opacity-0'
@@ -76,7 +77,7 @@ function NavPill({
           <Icon size={22} />
         </span>
 
-        {/* Label — fades in on hover/active */}
+        {/* Label — centered, fades in on hover/active */}
         <span
           className={`absolute inset-0 z-10 flex items-center justify-center text-white uppercase tracking-wider text-[11px] font-semibold whitespace-nowrap select-none transition-opacity duration-300 ${
             isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
@@ -89,17 +90,67 @@ function NavPill({
   )
 }
 
-export function SidebarNav() {
+function getInitials(name?: string): string {
+  if (!name) return '?'
+  return name
+    .trim()
+    .split(/\s+/)
+    .map(w => w[0]?.toUpperCase() ?? '')
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+}
+
+function UserAvatarButton({ userName }: { userName?: string }) {
+  const [open, setOpen] = useState(false)
+  const initials = getInitials(userName)
+
+  return (
+    <div className="mt-auto flex flex-col items-center pb-2 relative">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-10 h-10 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center font-space-grotesk text-[13px] font-semibold text-text-muted hover:text-text-primary hover:border-text-muted/40 transition-all select-none cursor-pointer"
+        aria-label="Menu utilisateur"
+        aria-expanded={open}
+      >
+        {initials}
+      </button>
+
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 bg-bg-surface border border-border-subtle rounded-xl shadow-2xl p-2 min-w-[148px]">
+            <form action={logout}>
+              <button
+                type="submit"
+                className="w-full px-3 py-2 text-left font-space-grotesk text-[13px] text-text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
+              >
+                Se déconnecter
+              </button>
+            </form>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+export function SidebarNav({ userName }: { userName?: string }) {
   const pathname = usePathname()
 
   return (
     <aside
       aria-label="Navigation principale"
-      className="fixed inset-y-0 left-0 z-40 w-[80px] flex flex-col items-center pt-6 pb-6 overflow-visible"
+      className="fixed inset-y-0 left-0 z-40 w-[80px] flex flex-col pt-6 pb-6 overflow-visible"
       style={{ background: '#12121F' }}
     >
       {/* Logo */}
-      <div className="mb-8 flex items-center justify-center w-[60px] h-[60px] flex-shrink-0">
+      <div className="mb-8 flex items-center justify-center w-[80px] h-[60px] flex-shrink-0">
         <span
           className="font-serif text-[20px] font-bold select-none"
           style={{ color: '#C8A84B' }}
@@ -108,8 +159,8 @@ export function SidebarNav() {
         </span>
       </div>
 
-      {/* Nav items */}
-      <nav className="flex flex-col gap-4 overflow-visible">
+      {/* Nav — pills anchored 10px from sidebar left, expand rightward */}
+      <nav className="flex flex-col gap-4 overflow-visible pl-[10px]">
         {NAV.map((item) => {
           const isActive =
             item.href === '/'
@@ -118,6 +169,9 @@ export function SidebarNav() {
           return <NavPill key={item.href} {...item} isActive={isActive} />
         })}
       </nav>
+
+      {/* User avatar + logout */}
+      <UserAvatarButton userName={userName} />
     </aside>
   )
 }

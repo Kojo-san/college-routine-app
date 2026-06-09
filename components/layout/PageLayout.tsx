@@ -7,10 +7,10 @@ interface PageLayoutProps {
   etudiantNom?: string
 }
 
-export function PageLayout({ children, title }: PageLayoutProps) {
+export function PageLayout({ children, title, etudiantNom }: PageLayoutProps) {
   return (
     <div className="min-h-screen bg-bg-base">
-      <SidebarNav />
+      <SidebarNav userName={etudiantNom} />
 
       {/* Zone principale — offset by fixed sidebar width */}
       <div className="ml-[80px] flex flex-col min-h-screen">

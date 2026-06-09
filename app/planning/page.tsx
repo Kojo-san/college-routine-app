@@ -144,11 +144,6 @@ export default async function PlanningPage() {
             <p className="font-syne font-bold text-[18px] text-text-primary capitalize">
               <time dateTime={dateISO}>{dateLabel}</time>
             </p>
-            {plan.scoreJournee !== null && (
-              <p className="font-space-grotesk text-[12px] text-text-muted mt-0.5">
-                Score journée — {plan.scoreJournee}/100
-              </p>
-            )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <GeneratePlanButton label="Régénérer" />

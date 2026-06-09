@@ -303,22 +303,28 @@ export function OnboardingForm({ name }: { name: string }) {
               <div className="flex flex-col gap-4 pt-2 border-t border-border-subtle">
 
                 <Field label="Combien de séances par semaine ?">
-                  <input
-                    type="number"
-                    min={1}
-                    max={7}
-                    value={form.gymPreferences.sessionsPerWeek}
-                    onChange={e =>
-                      setForm(f => ({
-                        ...f,
-                        gymPreferences: {
-                          ...f.gymPreferences,
-                          sessionsPerWeek: Math.min(7, Math.max(1, parseInt(e.target.value) || 1)),
-                        },
-                      }))
-                    }
-                    className={inputCls}
-                  />
+                  <div className="flex gap-2 mt-1 flex-wrap">
+                    {[1, 2, 3, 4, 5, 6, 7].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() =>
+                          setForm(f => ({
+                            ...f,
+                            gymPreferences: { ...f.gymPreferences, sessionsPerWeek: n },
+                          }))
+                        }
+                        className={
+                          'w-11 h-11 rounded-lg font-space-grotesk font-bold text-[14px] transition-all border flex-shrink-0 ' +
+                          (form.gymPreferences.sessionsPerWeek === n
+                            ? 'bg-[#4A9EFF] text-white border-[#4A9EFF]'
+                            : 'bg-bg-elevated text-text-muted border-border-subtle hover:border-[#4A9EFF]/50')
+                        }
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
                 </Field>
 
                 <Field label="Durée typique d'une séance ?">

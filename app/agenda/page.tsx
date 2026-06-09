@@ -42,7 +42,7 @@ export default async function AgendaPage() {
   const [user, courses, dailyPlans] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true },
+      select: { name: true, includeGym: true, gymPreferences: true },
     }),
     prisma.course.findMany({
       where: { userId },
@@ -81,13 +81,13 @@ export default async function AgendaPage() {
 
       events.push({
         id:          `schedule-${schedule.id}`,
-        title:       `${course.code} — ${schedule.type === 'LAB' ? 'TP' : 'CM'}`,
+        title:       `${course.code} — ${schedule.type === 'LAB' ? 'Travaux pratiques' : 'Cours magistral'}`,
         description: [course.name, meta].filter(Boolean).join(' · ') || undefined,
         startTime:   startTime.toISOString(),
         endTime:     endTime.toISOString(),
         color:       'cours',
         category:    'Cours',
-        tags:        [schedule.type === 'LAB' ? 'TP' : 'CM'],
+        tags:        [schedule.type === 'LAB' ? 'Travaux pratiques' : 'Cours magistral'],
       })
     }
   }
@@ -108,7 +108,11 @@ export default async function AgendaPage() {
 
   return (
     <PageLayout title="Agenda" etudiantNom={user?.name ?? undefined}>
-      <AgendaClient initialEvents={events} />
+      <AgendaClient
+        initialEvents={events}
+        includeGym={user?.includeGym ?? false}
+        gymPreferences={user?.gymPreferences ?? null}
+      />
     </PageLayout>
   )
 }

@@ -52,6 +52,13 @@ export async function logout() {
   redirect('/login')
 }
 
+export async function deleteAccount(): Promise<void> {
+  const { userId } = await verifySession()
+  await prisma.user.delete({ where: { id: userId } })
+  await deleteSession()
+  redirect('/register')
+}
+
 export interface GymPreferencesInput {
   sessionsPerWeek: number
   sessionDuration: number
