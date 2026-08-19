@@ -7,9 +7,13 @@ import { Button } from './Button'
 
 type FormStatus = 'idle' | 'loading' | 'error'
 
-export function CourseForm() {
+interface CourseFormProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export function CourseForm({ open, onOpenChange }: CourseFormProps) {
   const router = useRouter()
-  const [open, setOpen]         = useState(false)
   const [status, setStatus]     = useState<FormStatus>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -49,7 +53,7 @@ export function CourseForm() {
       }
 
       reset()
-      setOpen(false)
+      onOpenChange(false)
       router.refresh()
     } catch (err) {
       setStatus('error')
@@ -57,13 +61,7 @@ export function CourseForm() {
     }
   }
 
-  if (!open) {
-    return (
-      <Button variant="secondary" onClick={() => setOpen(true)}>
-        Ajouter un cours
-      </Button>
-    )
-  }
+  if (!open) return null
 
   return (
     <div className="bg-bg-surface border border-border-subtle rounded-xl p-5 flex flex-col gap-5">
@@ -71,7 +69,7 @@ export function CourseForm() {
         <p className="font-syne font-bold text-[15px] text-text-primary">Nouveau Cours</p>
         <button
           type="button"
-          onClick={() => { setOpen(false); reset() }}
+          onClick={() => { onOpenChange(false); reset() }}
           aria-label="Fermer le formulaire"
           className="font-space-grotesk text-[13px] text-text-muted hover:text-text-primary transition-colors duration-150 focus-ring rounded px-1"
         >

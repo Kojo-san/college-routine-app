@@ -55,6 +55,6 @@ describe('CourseCard', () => {
 
   it('renders fallback text when card is empty', () => {
     render(<CourseCard {...BASE} taskCount={0} deadlines={[]} />)
-    expect(screen.getByText(/Aucune échéance/i)).toBeInTheDocument()
+    expect(screen.getByText(/Pas d.*échéance/i)).toBeInTheDocument()
   })
 })

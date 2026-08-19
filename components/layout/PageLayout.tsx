@@ -9,7 +9,7 @@ interface PageLayoutProps {
 
 export function PageLayout({ children, title, etudiantNom }: PageLayoutProps) {
   return (
-    <div className="min-h-screen bg-transparent">
+    <div className="relative z-[1] min-h-screen bg-transparent">
       <SidebarNav userName={etudiantNom} />
 
       {/* Zone principale — offset by fixed sidebar width */}
@@ -20,15 +20,7 @@ export function PageLayout({ children, title, etudiantNom }: PageLayoutProps) {
           className="px-6 pt-6 pb-5 md:px-10 md:pt-8 md:pb-6 border-b border-white/10 flex-shrink-0"
           style={{ background: 'var(--gradient-header)', backdropFilter: 'blur(8px)' }}
         >
-          <h1
-            className="font-syne font-extrabold text-[28px] md:text-[36px] leading-none forced-colors-h1"
-            style={{
-              backgroundImage: 'var(--gradient-text-h1)',
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              color: 'transparent',
-            }}
-          >
+          <h1 className="page-title font-syne forced-colors-h1">
             {title}
           </h1>
         </header>

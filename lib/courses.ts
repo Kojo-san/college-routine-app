@@ -143,6 +143,9 @@ export interface CourseWithStats {
   name: string
   taskCount: number
   deadlines: DeadlinePreview[]
+  courseHours: number
+  labHours: number
+  personalHours: number
 }
 
 export interface TaskItem {
@@ -185,11 +188,14 @@ export async function getCourses(userId: string): Promise<CourseWithStats[]> {
   })
 
   return courses.map((c) => ({
-    id:        c.id,
-    code:      c.code,
-    name:      c.name,
-    taskCount: c.tasks.length,
-    deadlines: c.deadlines,
+    id:            c.id,
+    code:          c.code,
+    name:          c.name,
+    taskCount:     c.tasks.length,
+    deadlines:     c.deadlines,
+    courseHours:   c.courseHours,
+    labHours:      c.labHours,
+    personalHours: c.personalHours,
   }))
 }
 
@@ -218,11 +224,14 @@ export async function createCourse(userId: string, input: CreateCourseInput): Pr
   })
 
   return {
-    id:        course.id,
-    code:      course.code,
-    name:      course.name,
-    taskCount: course.tasks.length,
-    deadlines: course.deadlines,
+    id:            course.id,
+    code:          course.code,
+    name:          course.name,
+    taskCount:     course.tasks.length,
+    deadlines:     course.deadlines,
+    courseHours:   course.courseHours,
+    labHours:      course.labHours,
+    personalHours: course.personalHours,
   }
 }
 

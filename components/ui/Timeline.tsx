@@ -30,11 +30,11 @@ export function Timeline({ blocks, startHour, endHour, nowMinutes, planId }: Tim
 
   return (
     <div className="relative flex flex-col gap-1" aria-label="Planning du jour">
-      <span className="font-space-grotesk text-[11px] text-text-muted w-12 flex-shrink-0">
+      <span className="font-space-grotesk text-[11px] text-[#ffffff25] w-12 flex-shrink-0">
         {formatHour(startHour)}
       </span>
 
-      <div className="relative flex flex-col gap-3 pl-14">
+      <div className="relative flex flex-col gap-1.5 pl-14">
         {blocks.map((block) =>
           planId ? (
             <EditableBlocCard
@@ -64,7 +64,7 @@ export function Timeline({ blocks, startHour, endHour, nowMinutes, planId }: Tim
         <TimelineNowLine startHour={startHour} endHour={endHour} nowMinutes={nowMinutes} />
       </div>
 
-      <span className="font-space-grotesk text-[11px] text-text-muted w-12 flex-shrink-0 mt-1">
+      <span className="font-space-grotesk text-[11px] text-[#ffffff25] w-12 flex-shrink-0 mt-1">
         {formatHour(endHour)}
       </span>
     </div>

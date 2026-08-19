@@ -34,21 +34,21 @@ function NavPill({
   const gradient = `linear-gradient(90deg, ${from}, ${to})`
 
   return (
-    // Fixed 60×60 anchor — pill overflows rightward, never leftward
-    <div className="group relative overflow-visible" style={{ width: 60, height: 60 }}>
+    // Fixed 48×48 anchor — pill overflows rightward, never leftward
+    <div className="group relative overflow-visible" style={{ width: 48, height: 48 }}>
       {/* Blur glow — only on hover, never for active alone */}
       <div
         aria-hidden="true"
-        className="absolute top-0 left-0 h-[60px] rounded-[30px] blur-[15px] pointer-events-none transition-all duration-300 ease-in-out w-[60px] opacity-0 group-hover:w-[180px] group-hover:opacity-50"
+        className="absolute top-0 left-0 h-[48px] rounded-[24px] blur-[15px] pointer-events-none transition-all duration-300 ease-in-out w-[48px] opacity-0 group-hover:w-[150px] group-hover:opacity-50"
         style={{ background: gradient, zIndex: 0 }}
       />
 
-      {/* Pill — collapses to 60px always; expands only on hover */}
+      {/* Pill — collapses to 48px always; expands only on hover */}
       <Link
         href={href}
         aria-label={label}
         aria-current={isActive ? 'page' : undefined}
-        className="absolute top-0 left-0 h-[60px] rounded-[30px] overflow-hidden bg-white transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 w-[60px] group-hover:w-[180px]"
+        className="absolute top-0 left-0 h-[48px] rounded-[24px] overflow-hidden bg-white transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 w-[48px] group-hover:w-[150px]"
         style={{
           zIndex: 1,
           boxShadow: isActive ? `0 0 0 2px ${from}66` : undefined,
@@ -67,7 +67,7 @@ function NavPill({
           className="absolute inset-0 z-10 flex items-center justify-center transition-all duration-300 scale-100 opacity-100 group-hover:scale-0 group-hover:opacity-0"
           style={{ color: isActive ? '#C9006B' : '#9CA3AF' }}
         >
-          <Icon size={22} />
+          <Icon size={18} />
         </span>
 
         {/* Label — only on hover */}
@@ -163,9 +163,9 @@ export function SidebarNav({ userName }: { userName?: string }) {
       {/* Logo */}
       <div
         style={{
-          width: 52,
-          height: 52,
-          marginBottom: 24,
+          width: 44,
+          height: 44,
+          marginBottom: 16,
           flexShrink: 0,
           overflow: 'hidden',
           alignSelf: 'center',
@@ -173,8 +173,8 @@ export function SidebarNav({ userName }: { userName?: string }) {
       >
         <Image
           src="/assets/bear_no_background.png"
-          width={52}
-          height={52}
+          width={44}
+          height={44}
           alt=""
           aria-hidden="true"
           className="object-contain opacity-85"
@@ -182,7 +182,7 @@ export function SidebarNav({ userName }: { userName?: string }) {
       </div>
 
       {/* Nav — pills anchored 10px from sidebar left, expand rightward */}
-      <nav className="flex flex-col gap-4 overflow-visible pl-[10px]">
+      <nav className="flex flex-col gap-2 overflow-visible pl-[10px]">
         {NAV.map((item) => {
           const isActive =
             item.href === '/'

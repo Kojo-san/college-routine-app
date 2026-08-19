@@ -39,7 +39,7 @@ export function TimelineNowLine({ startHour, endHour, nowMinutes: nowMinutesProp
       aria-hidden="true"
     >
       <div
-        className="relative h-0.5"
+        className="relative h-px opacity-60"
         style={{ background: 'var(--color-accent-reco)', boxShadow: 'var(--glow-reco-sm)' }}
       >
         <div

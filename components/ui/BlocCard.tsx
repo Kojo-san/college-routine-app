@@ -58,7 +58,7 @@ export function BlocCard({ type, startTime, endTime, title, subtitle, progress }
 
   return (
     <div
-      className="bg-bg-surface border border-border-subtle rounded-xl p-3.5 flex flex-col gap-1.5"
+      className="bg-bg-surface border border-border-subtle rounded-xl px-[14px] py-[10px] min-h-[52px] flex flex-col justify-center gap-1"
       style={GLOW[type]}
     >
       <div className="flex items-center justify-between">

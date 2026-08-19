@@ -48,6 +48,39 @@
     color: white;
   }
 
+  /* ── Orbes de lumière (profondeur du fond) ── */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(
+      circle,
+      rgba(78, 42, 132, 0.15) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -20%;
+    left: 10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(
+      circle,
+      rgba(201, 0, 107, 0.1) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
   :root {
     /* ── Glow (cartes) ── */
     --glow-study:    0 0 16px rgba(78, 42, 132, 0.35);
@@ -198,6 +231,28 @@
   opacity: 0.4;
   cursor: not-allowed;
   transform: none;
+}
+
+/* ── Titre de page (h1) ──────────────────────────────────────────────────── */
+.page-title {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  background: var(--gradient-text-h1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Course card (page /cours) ──────────────────────────────────────────── */
+.course-card {
+  border-left: 4px solid var(--course-accent-dim, var(--color-accent-cours));
+  transition: border-left-color 150ms ease, background-color 150ms ease;
+}
+.course-card:hover {
+  border-left-color: var(--course-accent, var(--color-accent-cours));
+  background: var(--color-bg-elevated);
 }
 
 /* ── Sidebar logout popover button ──────────────────────────────────────── */

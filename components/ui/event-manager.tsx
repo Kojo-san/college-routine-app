@@ -384,139 +384,112 @@ export const EventManager = forwardRef<EventManagerHandle, EventManagerProps>(fu
               setIsCreating(true)
               setIsDialogOpen(true)
             }}
-            className="w-full sm:w-auto"
+            aria-label="Nouvel événement"
+            className="self-end sm:self-auto"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Nouvel événement
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Nouvel événement</span>
           </Button>
         </div>
       </div>
 
-      {/* Search + Filters */}
-      <div className="flex flex-col gap-2">
+      {/* Search + Filter (barre minimaliste, hauteur max 48px) */}
+      <div className="flex items-center gap-2 h-9">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
           <input
-            placeholder="Rechercher des événements..."
+            placeholder="Rechercher un événement..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex h-10 w-full rounded-lg border border-border-subtle bg-bg-elevated pl-9 pr-9 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent-study"
+            className="flex h-9 w-full rounded-lg border border-border-subtle bg-bg-elevated pl-8 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent-study"
           />
           {searchQuery && (
             <button
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary"
               onClick={() => setSearchQuery("")}
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Color Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                <Filter className="h-4 w-4" />
-                Couleurs
-                {selectedColors.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1">
-                    {selectedColors.length}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Filtrer par couleur</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {colors.map((color) => (
-                <DropdownMenuCheckboxItem
-                  key={color.value}
-                  checked={selectedColors.includes(color.value)}
-                  onCheckedChange={(checked) => {
-                    setSelectedColors((prev) =>
-                      checked ? [...prev, color.value] : prev.filter((c) => c !== color.value),
-                    )
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className={cn("h-3 w-3 rounded", color.bg)} />
-                    {color.name}
-                  </div>
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Tag Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                <Filter className="h-4 w-4" />
-                Tags
-                {selectedTags.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1">
-                    {selectedTags.length}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Filtrer par tag</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {availableTags.map((tag) => (
-                <DropdownMenuCheckboxItem
-                  key={tag}
-                  checked={selectedTags.includes(tag)}
-                  onCheckedChange={(checked) => {
-                    setSelectedTags((prev) => (checked ? [...prev, tag] : prev.filter((t) => t !== tag)))
-                  }}
-                >
-                  {tag}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Category Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                <Filter className="h-4 w-4" />
-                Catégories
-                {selectedCategories.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1">
-                    {selectedCategories.length}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Filtrer par catégorie</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {categories.map((category) => (
-                <DropdownMenuCheckboxItem
-                  key={category}
-                  checked={selectedCategories.includes(category)}
-                  onCheckedChange={(checked) => {
-                    setSelectedCategories((prev) =>
-                      checked ? [...prev, category] : prev.filter((c) => c !== category),
-                    )
-                  }}
-                >
-                  {category}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2">
-              <X className="h-4 w-4" />
-              Effacer
+        {/* Filtre regroupé : couleurs + tags + catégories */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-9 gap-2 bg-transparent flex-shrink-0">
+              <Filter className="h-4 w-4" />
+              <span className="hidden sm:inline">Filtrer</span>
+              {hasActiveFilters && (
+                <Badge variant="secondary" className="ml-1 h-5 px-1">
+                  {selectedColors.length + selectedTags.length + selectedCategories.length}
+                </Badge>
+              )}
             </Button>
-          )}
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 max-h-80 overflow-y-auto">
+            <DropdownMenuLabel>Couleurs</DropdownMenuLabel>
+            {colors.map((color) => (
+              <DropdownMenuCheckboxItem
+                key={color.value}
+                checked={selectedColors.includes(color.value)}
+                onCheckedChange={(checked) => {
+                  setSelectedColors((prev) =>
+                    checked ? [...prev, color.value] : prev.filter((c) => c !== color.value),
+                  )
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className={cn("h-3 w-3 rounded", color.bg)} />
+                  {color.name}
+                </div>
+              </DropdownMenuCheckboxItem>
+            ))}
+
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Tags</DropdownMenuLabel>
+            {availableTags.map((tag) => (
+              <DropdownMenuCheckboxItem
+                key={tag}
+                checked={selectedTags.includes(tag)}
+                onCheckedChange={(checked) => {
+                  setSelectedTags((prev) => (checked ? [...prev, tag] : prev.filter((t) => t !== tag)))
+                }}
+              >
+                {tag}
+              </DropdownMenuCheckboxItem>
+            ))}
+
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Catégories</DropdownMenuLabel>
+            {categories.map((category) => (
+              <DropdownMenuCheckboxItem
+                key={category}
+                checked={selectedCategories.includes(category)}
+                onCheckedChange={(checked) => {
+                  setSelectedCategories((prev) =>
+                    checked ? [...prev, category] : prev.filter((c) => c !== category),
+                  )
+                }}
+              >
+                {category}
+              </DropdownMenuCheckboxItem>
+            ))}
+
+            {hasActiveFilters && (
+              <>
+                <DropdownMenuSeparator />
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="flex w-full items-center gap-2 px-2 py-1.5 text-sm text-text-muted hover:text-text-primary transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Effacer les filtres
+                </button>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Active filter badges */}

@@ -225,7 +225,7 @@ function SetupBanner({ variant, step1Done, step2Done, step3Done, hasExtraActivit
     hint = "Tout est en place. Lance la génération de tes séances de gym ↓"
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-bg-surface px-5 py-4 flex flex-col gap-3">
+    <div className="rounded-lg border border-border-subtle bg-bg-surface px-3 py-2 flex flex-col gap-1 max-h-16 justify-center">
       <div className="flex items-center gap-0">
         {steps.map((step, i) => {
           const isDone = step.done || step.skip
@@ -236,18 +236,18 @@ function SetupBanner({ variant, step1Done, step2Done, step3Done, hasExtraActivit
             <div key={i} className="flex items-center gap-0 flex-1 min-w-0">
               <div
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-space-grotesk font-semibold whitespace-nowrap transition-all",
+                  "flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-space-grotesk font-semibold whitespace-nowrap transition-all",
                   isDone  && "bg-[#9B8FFF]/20 text-[#9B8FFF]",
                   isActive && "bg-transparent border border-[#9B8FFF] text-[#9B8FFF]",
                   isLocked && "bg-transparent text-text-muted",
                 )}
               >
                 {isDone ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
                 ) : isLocked ? (
-                  <Lock className="h-3 w-3 flex-shrink-0" />
+                  <Lock className="h-2.5 w-2.5 flex-shrink-0" />
                 ) : (
-                  <Circle className="h-3.5 w-3.5 flex-shrink-0" />
+                  <Circle className="h-3 w-3 flex-shrink-0" />
                 )}
                 <span>
                   {i + 1}.{" "}
@@ -271,7 +271,7 @@ function SetupBanner({ variant, step1Done, step2Done, step3Done, hasExtraActivit
       </div>
 
       {hint && (
-        <p className="font-space-grotesk text-[12px] text-text-muted">{hint}</p>
+        <p className="font-space-grotesk text-[11px] text-text-muted truncate">{hint}</p>
       )}
     </div>
   )

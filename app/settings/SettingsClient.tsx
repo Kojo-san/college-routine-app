@@ -63,17 +63,17 @@ function parseActivities(raw: unknown): (ExtraActivity & { id: string })[] {
 
 // ── Styling helpers ────────────────────────────────────────────────────────
 
-const inputCls =
-  'w-full px-3 py-2.5 rounded-lg bg-bg-elevated border border-border-subtle ' +
-  'font-space-grotesk text-sm text-text-primary placeholder:text-text-muted ' +
-  'focus:outline-none focus:border-[#C9006B]/70 focus:ring-1 focus:ring-[#C9006B]/20 transition-colors'
+const inputCls = 'auth-input font-space-grotesk text-sm'
 
 const labelCls = 'block font-space-grotesk text-[13px] font-medium text-text-muted mb-1'
 
 const sectionCls =
   'bg-bg-surface border border-border-subtle rounded-xl p-6 flex flex-col gap-4'
 
-const sectionTitleCls = 'font-syne font-bold text-[16px] text-white'
+const sectionTitleCls =
+  'font-space-grotesk text-[13px] font-medium tracking-[0.08em] uppercase mb-5'
+
+const sectionTitleStyle = { color: 'rgba(255, 255, 255, 0.4)' }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -226,7 +226,7 @@ export function SettingsClient({ user }: { user: UserData }) {
 
       {/* ── Section 1: Profil ── */}
       <form onSubmit={handleProfileSave} className={sectionCls}>
-        <h2 className={sectionTitleCls}>Profil</h2>
+        <h2 className={sectionTitleCls} style={sectionTitleStyle}>Profil</h2>
 
         <Field label="Nom affiché">
           <input
@@ -260,7 +260,7 @@ export function SettingsClient({ user }: { user: UserData }) {
 
       {/* ── Section 2: Sommeil ── */}
       <form onSubmit={handleSleepSave} className={sectionCls}>
-        <h2 className={sectionTitleCls}>Horaires de sommeil</h2>
+        <h2 className={sectionTitleCls} style={sectionTitleStyle}>Horaires de sommeil</h2>
 
         <div className="grid grid-cols-2 gap-4">
           <Field label="Heure de coucher">
@@ -291,7 +291,7 @@ export function SettingsClient({ user }: { user: UserData }) {
 
       {/* ── Section 3: Gym ── */}
       <form onSubmit={handleGymSave} className={sectionCls}>
-        <h2 className={sectionTitleCls}>Entraînement physique</h2>
+        <h2 className={sectionTitleCls} style={sectionTitleStyle}>Entraînement physique</h2>
 
         <div className="flex items-center justify-between gap-4">
           <label className="font-space-grotesk text-[14px] text-text-primary">
@@ -386,7 +386,7 @@ export function SettingsClient({ user }: { user: UserData }) {
 
       {/* ── Section 4: Activités extra-universitaires ── */}
       <form onSubmit={handleActSave} className={sectionCls}>
-        <h2 className={sectionTitleCls}>Activités extra-universitaires</h2>
+        <h2 className={sectionTitleCls} style={sectionTitleStyle}>Activités extra-universitaires</h2>
 
         {activities.length > 0 && (
           <div className="flex flex-col gap-2">
@@ -491,7 +491,7 @@ export function SettingsClient({ user }: { user: UserData }) {
 
       {/* ── Section 5: Compte ── */}
       <div className={sectionCls}>
-        <h2 className={sectionTitleCls}>Compte</h2>
+        <h2 className={sectionTitleCls} style={sectionTitleStyle}>Compte</h2>
 
         <form action={logout}>
           <button
