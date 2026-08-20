@@ -44,24 +44,27 @@ export function DeleteTaskButton({ taskId, courseId }: DeleteTaskButtonProps) {
       disabled={step === 'loading'}
       aria-label={step === 'confirm' ? 'Confirmer la suppression' : 'Supprimer la tâche'}
       className={[
+        // 44px hit target for touch/WCAG, but no visible box at that size —
+        // only the inner chip below shows the hover background, so the
+        // affordance doesn't visually balloon inside a dense task row.
         'flex-shrink-0 flex items-center justify-center',
-        'w-7 h-7 rounded transition-all duration-150 focus-ring',
+        'w-11 h-11 rounded transition-opacity duration-150 focus-ring',
         'disabled:opacity-40 disabled:cursor-not-allowed',
-        step === 'idle'
-          ? 'opacity-0 group-hover:opacity-100 hover:bg-bg-elevated'
-          : '',
+        step === 'idle' ? 'hover-reveal' : '',
       ].join(' ')}
       style={{
         color: step === 'confirm' ? 'var(--color-accent-reco)' : 'var(--color-text-muted)',
       }}
     >
-      {step === 'loading' ? (
-        <span className="font-space-grotesk text-[11px]">…</span>
-      ) : step === 'confirm' ? (
-        <span className="font-space-grotesk text-[10px] font-semibold">ok?</span>
-      ) : (
-        <TrashIcon />
-      )}
+      <span className="w-7 h-7 rounded flex items-center justify-center hover:bg-bg-elevated transition-colors duration-150">
+        {step === 'loading' ? (
+          <span className="font-space-grotesk text-[11px]">…</span>
+        ) : step === 'confirm' ? (
+          <span className="font-space-grotesk text-[10px] font-semibold">ok?</span>
+        ) : (
+          <TrashIcon />
+        )}
+      </span>
     </button>
   )
 }

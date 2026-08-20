@@ -85,14 +85,17 @@ export function EditableBlocCard({
           onClick={() => setEditing(true)}
           aria-label="Modifier ce Bloc"
           className={[
-            'absolute top-2.5 right-2.5',
-            'opacity-0 group-hover:opacity-100 transition-opacity duration-150',
-            'w-6 h-6 rounded flex items-center justify-center',
-            'bg-bg-elevated border border-border-subtle',
-            'text-text-muted hover:text-text-primary focus-ring',
+            // 44px hit target flush with the card corner, but the visible
+            // chip inside stays small (28px) so it doesn't swallow the type
+            // badge that renders in the same corner.
+            'absolute top-0 right-0',
+            'hover-reveal',
+            'w-11 h-11 flex items-center justify-center focus-ring rounded',
           ].join(' ')}
         >
-          <PencilIcon />
+          <span className="w-7 h-7 rounded flex items-center justify-center bg-bg-elevated border border-border-subtle text-text-muted hover:text-text-primary">
+            <PencilIcon />
+          </span>
         </button>
       </div>
     )

@@ -1,917 +1,239 @@
-# Design — College Routine
-
-Identité visuelle inspirée de *Graduation* (Kanye West, 2007) et de l'art de Takashi Murakami. L'interface est une salle de travail nocturne éclairée au néon — intense, concentrée, premium. Le bear est le protagoniste du système.
-
+---
+name: College Routine
+description: Planificateur académique nocturne — bear Murakami, néon violet/magenta sur nébuleuse dégradée
+colors:
+  violet-electrique: "#7C5CFC"
+  lavande-neon: "#9B8FFF"
+  magenta-neon: "#FF6B9D"
+  magenta-profond: "#C9006B"
+  violet-profond: "#4E2A84"
+  ambre-fitness: "#FFD166"
+  vert-recuperation: "#A8FF78"
+  orange-alerte: "#FFB347"
+  orange-ceremonie: "#FF7043"
+  rouge-destructif: "#ff6b6b"
+  rouge-destructif-hover: "rgba(255, 60, 60, 0.1)"
+  blanc-lavande: "#F0F0FF"
+  gris-brume: "#8888AA"
+  gris-nav-inactif: "#9CA3AF"
+  surface-verre: "rgba(255, 255, 255, 0.05)"
+  elevated-verre: "rgba(255, 255, 255, 0.08)"
+  surface-nav: "rgba(10, 1, 24, 0.92)"
+  bordure-subtile: "rgba(255, 255, 255, 0.1)"
+  fond-nebuleuse-noir: "#000000"
+  fond-nebuleuse-violet: "#1a0535"
+  fond-nebuleuse-fade-auth: "#1a0a2e"
+typography:
+  display:
+    fontFamily: "Syne, sans-serif"
+    fontSize: "clamp(24px, 4vw, 36px)"
+    fontWeight: 700
+    lineHeight: 1.1
+    letterSpacing: "-0.02em"
+  headline:
+    fontFamily: "Syne, sans-serif"
+    fontSize: "16px"
+    fontWeight: 700
+    lineHeight: 1.3
+  title:
+    fontFamily: "Syne, sans-serif"
+    fontSize: "15px"
+    fontWeight: 700
+    lineHeight: 1.3
+  body:
+    fontFamily: "Space Grotesk, sans-serif"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.5
+  label:
+    fontFamily: "Space Grotesk, sans-serif"
+    fontSize: "12px"
+    fontWeight: 500
+    lineHeight: 1.4
+    letterSpacing: "0.06em"
+rounded:
+  xs: "6px"
+  sm: "8px"
+  md: "12px"
+  full: "9999px"
+components:
+  button-primary:
+    backgroundColor: "{colors.magenta-profond}"
+    textColor: "#ffffff"
+    rounded: "{rounded.sm}"
+    padding: "10px 20px"
+  button-primary-hover:
+    backgroundColor: "{colors.magenta-neon}"
+  badge-cours:
+    backgroundColor: "rgba(155, 143, 255, 0.15)"
+    textColor: "{colors.lavande-neon}"
+    rounded: "{rounded.sm}"
+    padding: "2px 8px"
+  card:
+    backgroundColor: "{colors.surface-verre}"
+    textColor: "{colors.blanc-lavande}"
+    rounded: "{rounded.md}"
+    padding: "16px"
+  input:
+    backgroundColor: "{colors.elevated-verre}"
+    textColor: "{colors.blanc-lavande}"
+    rounded: "{rounded.sm}"
+    padding: "10px 14px"
 ---
 
-## Fondations
+# Design System: College Routine
 
-### Mode
+## Overview
 
-**Dark mode uniquement.** Le fond quasi-noir laisse les glow colors exploser. Pas de light mode — le dark mode n'est pas une option, c'est l'identité.
+**Creative North Star: "La Salle d'Étude Nébuleuse"**
 
----
+L'étudiant travaille de nuit, seul, dans une pièce baignée par une nébuleuse violette qui pulse doucement derrière des panneaux de verre dépoli. Le bear de Murakami veille depuis le rail de navigation, jamais bavard. Chaque type de séance — étude, fitness, récupération — a sa propre couleur de lueur, si bien que la semaine entière se lit d'un coup d'œil rien qu'aux couleurs qui s'allument sur l'écran.
 
-### Couleurs
+L'esthétique combine deux références tenues ensemble : l'énergie de cérémonie de *Graduation* (Kanye West, 2007) — violet et magenta, dégradés de scène — et l'attitude ludique-mais-précise de Murakami. Le résultat n'est ni un dashboard SaaS neutre, ni une app fitness flashy : c'est un poste de travail nocturne premium, dense en information mais jamais encombré.
 
-#### Base
+Rejets confirmés : pas de beige IA générique, pas de cards imbriquées, pas de gradients décoratifs génériques (les dégradés sont réservés au titre H1, aux boutons CTA, au fond global, et au dégradé cérémonie à 3 couleurs des écrans d'entrée), pas de coins excessivement arrondis, pas de ghost cards vides de contenu.
 
-| Token           | Valeur    | Usage                                 |
-| --------------- | --------- | ------------------------------------- |
-| `bg-base`       | `#0A0A14` | Fond global de l'application          |
-| `bg-surface`    | `#12121F` | Fond des cartes et panneaux           |
-| `bg-elevated`   | `#1A1A2E` | Modals, popovers, dropdowns           |
-| `border-subtle` | `#1E1E35` | Bordures par défaut (sans glow)       |
-| `text-primary`  | `#F0F0FF` | Texte principal                       |
-| `text-muted`    | `#8888AA` | Labels, métadonnées, texte secondaire |
+**Key Characteristics:**
+- Fond nébuleuse : dégradé noir → violet profond, avec deux halos radiaux flous (violet en haut à droite, magenta en bas à gauche) qui ne bougent pas au scroll.
+- Surfaces en verre dépoli : cartes et rail de navigation utilisent un blanc à faible opacité (5–8%) plutôt qu'un fond opaque plein.
+- Glow sémantique : chaque type de Bloc (Étude/Cours en violet, Fitness en ambre, Récupération en vert, Reco/erreur en magenta) porte sa couleur en `box-shadow`, jamais en simple remplissage.
+- Nav en rail d'icônes : 80px de large, pilules qui se déploient au survol plutôt que labels toujours visibles.
 
-#### Accents sémantiques
+## Colors
 
-Chaque type de Séance a sa couleur. Ces couleurs portent toute l'information visuelle du Planning d'un coup d'œil.
+Palette resserrée autour de deux familles de violet et un accent magenta, avec trois couleurs sémantiques dédiées aux types de séance.
 
-| Token          | Valeur    | Usage                              |
-| -------------- | --------- | ---------------------------------- |
-| `accent-study` | `#4A9EFF` | Séance d'Étude, accents primaires  |
-| `accent-fit`   | `#FFD166` | Séance Fitness                     |
-| `accent-rec`   | `#A8FF78` | Séance de Récupération, succès     |
-| `accent-reco`  | `#FF6B9D` | Recommandations, accent émotionnel |
+### Primary
+- **Violet Électrique** (`#7C5CFC`): couleur d'accent principale — Étude, nav active, checkbox coché, focus ring par défaut.
+- **Lavande Néon** (`#9B8FFF`): variante dédiée aux Cours (grille horaire fixe) — distincte de l'Étude pour que l'agenda distingue "cours planifié" de "séance de travail".
 
-#### États système
+### Secondary
+- **Magenta Profond** (`#C9006B`) / **Magenta Néon** (`#FF6B9D`): paire utilisée en dégradé pour les CTA primaires et le titre H1 ; `#FF6B9D` seul sert aussi de couleur d'erreur et de "Reco" (composant hérité, voir Do's and Don'ts).
 
-| Token     | Valeur    | Usage                                   |
-| --------- | --------- | --------------------------------------- |
-| `warning` | `#FFB347` | Alertes (dette de sommeil, surcharge)   |
-| `error`   | `#FF6B9D` | Erreurs — même rose que `accent-reco`   |
-| `success` | `#A8FF78` | Confirmations — même vert que `accent-rec` |
+### Tertiary
+- **Ambre Fitness** (`#FFD166`): Séance Fitness.
+- **Vert Récupération** (`#A8FF78`): Séance Récupération et état "Complété"/succès.
+- **Orange Alerte** (`#FFB347`): avertissements (échéance urgente, priorité haute) — à ne pas confondre avec l'Orange Cérémonie ci-dessous, plus saturé et réservé à un tout autre usage.
+- **Orange Cérémonie** (`#FF7043`): troisième couleur d'un dégradé réservé aux moments d'entrée/rite de passage — écran d'auth (`AuthLayout`, panneau visuel droit : violet → magenta → orange) et animation de transition (`spiral-animation.tsx`, un des trois bras de la galaxie). N'apparaît jamais dans le chrome applicatif courant (sidebar, cartes, Planning) — voir Named Rule ci-dessous.
 
----
+### Neutral
+- **Blanc Lavande** (`#F0F0FF`): texte principal — jamais de blanc pur.
+- **Gris Brume** (`#8888AA`): labels, métadonnées, texte secondaire.
+- **Gris Nav Inactif** (`#9CA3AF`): icône + label d'un item de navigation non actif (rail desktop et barre d'onglets mobile) — plus clair que Gris Brume, réservé à la navigation.
+- **Rouge Destructif** (`#ff6b6b`, hover `rgba(255,60,60,0.1)` / Rouge Destructif Hover): action de déconnexion dans le popover utilisateur — seul rouge du système, distinct du Magenta Néon utilisé pour erreurs/reco.
+- **Verre Surface** (`rgba(255,255,255,0.05)`): fond des cartes.
+- **Verre Élevé** (`rgba(255,255,255,0.08)`): inputs, popovers, modals.
+- **Surface Nav** (`rgba(10,1,24,0.92)`): fond du rail de navigation desktop et de la barre d'onglets mobile, avec `backdrop-filter: blur(12px)`.
+- **Bordure Subtile** (`rgba(255,255,255,0.1)`): bordures par défaut.
+- **Nébuleuse Noire → Violette** (`#000000` → `#0a0118` → `#120420` → `#1a0535`): fond global en dégradé 160deg, fixe.
+- **Nébuleuse Fade Auth** (`#1a0a2e`): point d'arrivée du dégradé du panneau gauche de l'écran d'auth — variante plus resserrée (2 stops) de la nébuleuse principale ; voir Don't sur la dérive de stops non unifiée.
 
-### Typographie
+### Named Rules
+**The Glow-Is-Meaning Rule.** Une carte neutre (Tâche, texte simple) n'a pas de glow. Le glow apparaît uniquement sur les Blocs typés (Étude, Cours, Fitness, Récupération, Reco) — sa présence est elle-même une information, pas une décoration.
 
-| Rôle                  | Famille           | Weight           | Taille indicative |
-| --------------------- | ----------------- | ---------------- | ----------------- |
-| H1 — Titre de page    | **Syne**          | ExtraBold (800)  | 32–40px           |
-| H2 — Titre de section | **Syne**          | Bold (700)       | 20–24px           |
-| H3 — Titre de carte   | **Syne**          | Bold (700)       | 15–17px           |
-| Corps                 | **Space Grotesk** | Regular (400)    | 14px              |
-| Label / Metadata      | **Space Grotesk** | Medium (500)     | 12px              |
-| Monospace (horaires)  | **Space Grotesk** | Medium (500)     | 12–13px           |
+**The Ceremony Gradient Rule.** Le dégradé à 3 couleurs (violet → magenta → orange) est réservé aux moments de passage — authentification, onboarding, transition d'entrée. Le chrome applicatif courant (une fois l'étudiant "dans" l'app) ne dépasse jamais 2 couleurs (violet → magenta). Si un futur écran hésite entre les deux, la question à trancher est : "est-ce un rite de passage, ou un usage quotidien ?"
 
-Syne uniquement sur H1–H3. Jamais en corps de texte, jamais en label UI.
+## Typography
 
----
+**Display / Headline / Title Font:** Syne (700/800)
+**Body / Label Font:** Space Grotesk (400/500)
 
-### Le Bear
+**Character:** Syne apporte l'angularité affirmée des titres de scène (Graduation-esque) ; Space Grotesk garde le corps du texte lisible et neutre à haute densité. Les deux ne se mélangent jamais dans le même élément.
 
-| Asset           | Rôle                                                              |
-| --------------- | ----------------------------------------------------------------- |
-| `bear-logo.png` | Logo sidebar + favicon. Présent en permanence, 32×32px.          |
-| `bear_no_background.png`      | États vides, onboarding, félicitations. 120–200px.               |
-| `bear-neon.png` | Carte de Recommandation. 48×48px, toujours en haut à droite.     |
+### Hierarchy
+- **Display** (700, `clamp(24px, 4vw, 36px)`, 1.1): titre de page (`h1.page-title`), toujours en dégradé texte blanc → magenta.
+- **Headline** (700, 16px, 1.3): titres de carte (Card, Dialog, Cours).
+- **Title** (700, 15px, 1.3): titre de Bloc dans la Timeline.
+- **Body** (400, 14px, 1.5): texte courant, messages, contenu de carte.
+- **Label** (500, 12px, uppercase, tracking 0.06em): labels de champ, métadonnées, horaires, badges.
 
-Le bear ne parle jamais directement. Sa présence suffit à signaler le type de contexte.
-
----
+### Named Rules
+**The Syne-Never-In-Body Rule.** Syne apparaît uniquement sur H1–H3 et titres de carte ; jamais en paragraphe, jamais en label de champ.
 
-### Surfaces & Cartes
-
-Base commune à toutes les cartes. Le glow est l'unique décoration — il porte la couleur sémantique.
+## Layout
 
-```css
-.card {
-  background: #12121F;
-  border: 1px solid #1E1E35;
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.card-study    { box-shadow: 0 0 16px rgba(74, 158, 255, 0.35);  }
-.card-fitness  { box-shadow: 0 0 16px rgba(255, 209, 102, 0.35); }
-.card-recovery { box-shadow: 0 0 16px rgba(168, 255, 120, 0.35); }
-.card-reco     { box-shadow: 0 0 16px rgba(255, 107, 157, 0.35); }
-```
+Grille à deux zones : rail de navigation fixe (80px) + zone de contenu décalée (`margin-left: 80px`). Le contenu principal a un plafond de largeur implicite par page mais pas de colonne centrale rigide — chaque page (Planning, Cours, Agenda, Réglages) compose sa propre grille interne.
 
-Pas de glassmorphism. Pas de blur. Les cartes sont opaques.
+En-tête de page fixe en haut de la zone de contenu : dégradé vertical sombre (`--gradient-header`) avec `backdrop-filter: blur(8px)`, titre H1 en dégradé texte. Padding responsive : `24px` mobile → `32-40px` desktop.
 
----
-
-### Gradients
-
-Réservés à deux contextes uniquement.
-
-```css
-/* H1 principal — titre de page */
-.gradient-text {
-  background: linear-gradient(135deg, #4A9EFF 0%, #FF6B9D 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* Header de section — bandeau haut de Dashboard / Planning */
-.section-header {
-  background: linear-gradient(180deg, #1A1A2E 0%, #0A0A14 100%);
-}
-```
-
----
-
-### Règles strictes
-
-- Pas de blanc pur — `text-primary` (`#F0F0FF`) est le maximum.
-- Pas de rouge — `#FF6B9D` est la couleur d'erreur et d'accent émotionnel.
-- Les gradients sont rares — leur rareté est ce qui les rend impactants.
-- Le glow est sémantique — une carte neutre (Tâche, Cours) n'a pas de glow.
-- Syne uniquement sur H1–H3 — jamais ailleurs.
-
----
-
-## Composants
-
----
-
-### Sidebar
-
-La colonne de navigation fixe à gauche. Contient le bear, les liens principaux et le profil de l'Étudiant.
-
-```
-┌─────────────┐
-│  🐻  College │  ← bear-logo.png (32px) + nom app en Syne Bold
-│  Routine    │
-├─────────────┤
-│  Dashboard  │  ← nav item actif : accent-study + glow subtil à gauche
-│  Planning   │  ← nav item
-│  Académique │
-│  Santé      │
-│  Objectifs  │
-├─────────────┤
-│  [Avatar]   │  ← en bas, nom de l'Étudiant en Space Grotesk Medium
-│  Gamaliel   │
-└─────────────┘
-```
-
-```css
-.sidebar {
-  width: 220px;
-  background: #0A0A14;
-  border-right: 1px solid #1E1E35;
-  padding: 24px 16px;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  color: #8888AA;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  transition: all 0.15s ease;
-}
-
-.nav-item:hover {
-  background: #12121F;
-  color: #F0F0FF;
-}
-
-.nav-item.active {
-  background: rgba(74, 158, 255, 0.12);
-  color: #4A9EFF;
-  border-left: 2px solid #4A9EFF;
-}
-```
-
----
-
-### Layout de page
-
-Chaque page suit la même structure.
-
-```
-┌──────────┬───────────────────────────────────────────────┐
-│          │  Section Header (gradient bg, Syne H1 gradient │
-│ Sidebar  │  text)                                         │
-│          ├───────────────────────────────────────────────┤
-│          │  Contenu principal                             │
-│          │                                               │
-└──────────┴───────────────────────────────────────────────┘
-```
-
-```css
-.page-layout {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  min-height: 100vh;
-  background: #0A0A14;
-}
-
-.page-header {
-  padding: 32px 40px 24px;
-  background: linear-gradient(180deg, #1A1A2E 0%, #0A0A14 100%);
-  border-bottom: 1px solid #1E1E35;
-}
-
-.page-header h1 {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 36px;
-  background: linear-gradient(135deg, #4A9EFF 0%, #FF6B9D 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.page-content {
-  padding: 32px 40px;
-}
-```
-
----
-
-### Bloc Card
-
-L'unité atomique du Planning. Quatre variantes selon le type de Séance. S'affiche dans la Timeline.
-
-```
-┌──────────────────────────────────────┐  ← glow couleur selon type
-│  09:00 → 11:00          [ÉTUDE] ●   │  ← badge type + durée
-│                                      │
-│  Algèbre Linéaire                    │  ← titre en Syne Bold
-│  Active Recall · Deep Work           │  ← sous-titre Space Grotesk Muted
-│                                      │
-│  ████████████░░░░  60%               │  ← progress bar (si IN_PROGRESS)
-└──────────────────────────────────────┘
-```
-
-```css
-.bloc-card {
-  background: #12121F;
-  border: 1px solid #1E1E35;
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* Variantes */
-.bloc-study    { box-shadow: 0 0 16px rgba(74, 158, 255, 0.35);  border-left: 3px solid #4A9EFF; }
-.bloc-fitness  { box-shadow: 0 0 16px rgba(255, 209, 102, 0.35); border-left: 3px solid #FFD166; }
-.bloc-recovery { box-shadow: 0 0 16px rgba(168, 255, 120, 0.35); border-left: 3px solid #A8FF78; }
-.bloc-task     { border-left: 3px solid #1E1E35; /* pas de glow — neutre */ }
-
-.bloc-time {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  color: #8888AA;
-  letter-spacing: 0.04em;
-}
-
-.bloc-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  color: #F0F0FF;
-}
-
-.bloc-subtitle {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  color: #8888AA;
-}
-```
-
----
-
-### Timeline (Planning du jour)
-
-La colonne centrale du Dashboard. Affiche les Blocs dans l'ordre chronologique avec un indicateur de l'heure courante.
-
-```
-  08:00  ──────────────────────────────
-         [Bloc réveil / révision légère]
-  09:00  ──────────────────────────────
-         [Bloc Étude — Algèbre]
-  11:00  ──────────────────────────────
-         [Bloc Fitness — Push Day]
-  12:30  ── ● ←── maintenant ──────────  ← trait rose animé
-  13:00  ──────────────────────────────
-         [Bloc Récupération — Sieste]
-```
-
-```css
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  position: relative;
-}
-
-.timeline-hour-label {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
-  color: #8888AA;
-  width: 48px;
-  flex-shrink: 0;
-}
-
-.timeline-now {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #FF6B9D;
-  box-shadow: 0 0 8px rgba(255, 107, 157, 0.6);
-}
-
-.timeline-now::before {
-  content: '';
-  position: absolute;
-  left: 48px;
-  top: -4px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #FF6B9D;
-  box-shadow: 0 0 8px rgba(255, 107, 157, 0.8);
-}
-```
-
----
-
-### Recommandation Card
-
-La carte la plus distinctive du système. Toujours rose, toujours avec `bear-neon.png`.
-
-```
-┌──────────────────────────────────────────┐  ← glow rose
-│  🐻‍💫  [bear-neon.png — 48px]    [SOMMEIL] │
-│                                          │
-│  "Ta dette de sommeil est de 1h30.       │  ← message en Space Grotesk
-│   Déplace ta séance deep work à demain." │    Regular 14px
-│                                          │
-│  Basé sur : Walker, 2017 · 87% confiance │  ← source + score en text-muted
-│                                  [Faire] │  ← CTA ghost
-└──────────────────────────────────────────┘
-```
-
-```css
-.reco-card {
-  background: #12121F;
-  border: 1px solid rgba(255, 107, 157, 0.3);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 0 20px rgba(255, 107, 157, 0.25);
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 12px;
-}
-
-.reco-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.reco-bear {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-}
-
-.reco-message {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  color: #F0F0FF;
-  line-height: 1.6;
-}
-
-.reco-source {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  color: #8888AA;
-}
-```
-
----
-
-### État Card
-
-Résumé journalier de l'État physique et cognitif de l'Étudiant. Deux colonnes, deux dimensions.
-
-```
-┌─────────────────────────────────────────┐
-│  État du jour — Lundi 3 juin            │
-│                                         │
-│  ⚡ PHYSIQUE          🧠 COGNITIF        │
-│  Récupération  82%   Focus        74%   │
-│  Fatigue phys  18%   Fatigue cog  26%   │
-│  Dette sommeil 0h    Stress       30%   │
-│                      Motivation   88%   │
-│                                         │
-│  Sommeil : 7h20 · 84% efficacité        │
-└─────────────────────────────────────────┘
-```
-
-```css
-.etat-card {
-  background: #12121F;
-  border: 1px solid #1E1E35;
-  border-radius: 12px;
-  padding: 20px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.etat-section-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #8888AA;
-  margin-bottom: 12px;
-}
-
-.etat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.etat-label {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  color: #8888AA;
-}
-
-.etat-value {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: #F0F0FF;
-}
-```
-
----
-
-### Score Gauge
-
-Visualisation d'un score 0–100 (récupération, focus, motivation). Utilisé à l'intérieur des cartes État et Dashboard.
-
-```
-  [●━━━━━━━━━━━━━━━━━━░░░] 82
-   └── couleur = accent selon contexte
-```
-
-```css
-.gauge {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.gauge-track {
-  flex: 1;
-  height: 4px;
-  background: #1E1E35;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.gauge-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.4s ease;
-}
-
-/* Couleurs selon contexte */
-.gauge-fill.study    { background: #4A9EFF; box-shadow: 0 0 6px rgba(74,158,255,0.5); }
-.gauge-fill.fitness  { background: #FFD166; box-shadow: 0 0 6px rgba(255,209,102,0.5); }
-.gauge-fill.recovery { background: #A8FF78; box-shadow: 0 0 6px rgba(168,255,120,0.5); }
-.gauge-fill.reco     { background: #FF6B9D; box-shadow: 0 0 6px rgba(255,107,157,0.5); }
-
-.gauge-value {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: #F0F0FF;
-  width: 28px;
-  text-align: right;
-}
-```
-
----
-
-### Course Card
-
-Carte d'un Cours dans la vue Académique. Affiche le code, la difficulté, et les Échéances imminentes.
-
-```
-┌──────────────────────────────────────┐
-│  MTH1102          ● ● ● ○ ○  3/5     │  ← code + difficulté (dots)
-│  Algèbre Linéaire                    │  ← nom en Syne Bold
-│                                      │
-│  ⚠ Intra dans 5 jours — 30%          │  ← Échéance urgente en warning
-│  3 tâches en cours                   │  ← résumé tâches
-└──────────────────────────────────────┘
-```
-
-```css
-.course-card {
-  background: #12121F;
-  border: 1px solid #1E1E35;
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.course-code {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: #8888AA;
-  text-transform: uppercase;
-}
-
-.course-name {
-  font-family: 'Syne', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: #F0F0FF;
-  margin-top: 4px;
-}
-
-.difficulty-dots {
-  display: flex;
-  gap: 4px;
-  margin-top: 6px;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.dot.filled  { background: #4A9EFF; }
-.dot.empty   { background: #1E1E35; }
-```
-
----
-
-### Deadline Chip
-
-Badge d'urgence affiché sur les Course Cards et dans le Planning. La couleur signal l'urgence.
-
-```
-  [⚠ Dans 2 jours · 30%]   ← rouge/warning, très urgent
-  [Dans 7 jours · 20%]     ← text-muted, peu urgent
-  [✓ Complété]              ← vert success
-```
-
-```css
-.deadline-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.deadline-chip.urgent {
-  background: rgba(255, 179, 71, 0.15);
-  color: #FFB347;
-  border: 1px solid rgba(255, 179, 71, 0.3);
-}
-
-.deadline-chip.normal {
-  background: #1A1A2E;
-  color: #8888AA;
-  border: 1px solid #1E1E35;
-}
-
-.deadline-chip.done {
-  background: rgba(168, 255, 120, 0.1);
-  color: #A8FF78;
-  border: 1px solid rgba(168, 255, 120, 0.2);
-}
-```
-
----
-
-### Task Item
-
-Élément de liste dans la vue d'un Cours. Checkbox custom avec accent-study.
-
-```
-  ☐  Faire exercices 1–10, chapitre 3    ~30 min   [HIGH]
-  ☑  Relire notes du cours 2             ~15 min
-```
-
-```css
-.task-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid #1E1E35;
-}
-
-.task-checkbox {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  border: 2px solid #1E1E35;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
-}
-
-.task-checkbox:checked {
-  background: #4A9EFF;
-  border-color: #4A9EFF;
-  box-shadow: 0 0 8px rgba(74, 158, 255, 0.4);
-}
-
-.task-title {
-  flex: 1;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  color: #F0F0FF;
-}
-
-.task-title.completed {
-  text-decoration: line-through;
-  color: #8888AA;
-}
-
-.task-duration {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  color: #8888AA;
-}
-```
-
----
-
-### Objectif Card
-
-Progression vers un Objectif académique ou physique.
-
-```
-┌──────────────────────────────────────┐
-│  [ACADÉMIQUE]                        │  ← badge type
-│  Atteindre un GPA de 3.5             │  ← titre Syne Bold
-│                                      │
-│  GPA actuel        GPA cible         │
-│  3.21              3.50              │
-│                                      │
-│  ████████████░░░░░░░░  64%           │  ← gauge bleu
-└──────────────────────────────────────┘
-```
-
-```css
-.objectif-card {
-  background: #12121F;
-  border: 1px solid #1E1E35;
-  border-radius: 12px;
-  padding: 18px;
-}
-
-.objectif-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: #F0F0FF;
-  margin: 8px 0 16px;
-}
-
-.objectif-stats {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.objectif-stat-label {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
-  color: #8888AA;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.objectif-stat-value {
-  font-family: 'Syne', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: #F0F0FF;
-  margin-top: 2px;
-}
-```
-
----
-
-### Badge / Tag
-
-Chips compacts pour typer le contenu. Utilisés sur les Blocs, les Recommandations, les Objectifs.
-
-```
-  [ÉTUDE]      ← bleu
-  [FITNESS]    ← jaune
-  [RÉCUP]      ← vert
-  [RECO]       ← rose
-  [HIGH]       ← warning orange
-  [COMPLÉTÉ]   ← success vert
-```
-
-```css
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.badge-study    { background: rgba(74,158,255,0.15);  color: #4A9EFF;  }
-.badge-fitness  { background: rgba(255,209,102,0.15); color: #FFD166;  }
-.badge-recovery { background: rgba(168,255,120,0.15); color: #A8FF78;  }
-.badge-reco     { background: rgba(255,107,157,0.15); color: #FF6B9D;  }
-.badge-warning  { background: rgba(255,179,71,0.15);  color: #FFB347;  }
-.badge-success  { background: rgba(168,255,120,0.1);  color: #A8FF78;  }
-```
-
----
-
-### Button
-
-Trois variantes. Le bouton primary utilise `accent-study` — cohérent avec l'identité principale.
-
-```
-  [  Générer mon Planning  ]   ← primary : fond bleu, glow
-  [  Ajouter une Séance    ]   ← secondary : bordure bleu, fond transparent
-  [  Ignorer               ]   ← ghost : texte muted, pas de bordure
-```
-
-```css
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  border: none;
-}
-
-.btn-primary {
-  background: #4A9EFF;
-  color: #0A0A14;
-  box-shadow: 0 0 16px rgba(74, 158, 255, 0.4);
-}
-
-.btn-primary:hover {
-  box-shadow: 0 0 24px rgba(74, 158, 255, 0.6);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: #4A9EFF;
-  border: 1px solid rgba(74, 158, 255, 0.5);
-}
-
-.btn-secondary:hover {
-  background: rgba(74, 158, 255, 0.08);
-  border-color: #4A9EFF;
-}
-
-.btn-ghost {
-  background: transparent;
-  color: #8888AA;
-}
-
-.btn-ghost:hover {
-  color: #F0F0FF;
-}
-```
-
----
-
-### Empty State
-
-Affiché quand aucun contenu n'existe dans une section. Le bear accompagne toujours le message.
-
-```
-        🐻
-   icon_no_background.png (140px)
-
-   Aucun Planning pour aujourd'hui
-
-   Lance la génération pour commencer.
-
-   [ Générer mon Planning ]
-```
-
-```css
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 64px 32px;
-  text-align: center;
-}
-
-.empty-state img {
-  width: 140px;
-  height: 140px;
-  object-fit: contain;
-  opacity: 0.85;
-}
-
-.empty-state-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: #F0F0FF;
-}
-
-.empty-state-subtitle {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  color: #8888AA;
-  max-width: 320px;
-  line-height: 1.6;
-}
-```
-
----
-
-### Input
-
-Champs de formulaire. Fond légèrement élevé, bordure subtile qui glows au focus.
-
-```
-  ┌──────────────────────────────────┐
-  │  Heure de réveil                 │  ← label Space Grotesk Medium 12px
-  │  07:00                           │  ← input Space Grotesk 14px
-  └──────────────────────────────────┘  ← glow bleu au focus
-```
-
-```css
-.input-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.input-label {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  color: #8888AA;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.input {
-  background: #1A1A2E;
-  border: 1px solid #1E1E35;
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  color: #F0F0FF;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.input:focus {
-  border-color: rgba(74, 158, 255, 0.6);
-  box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.12);
-}
-
-.input::placeholder {
-  color: #8888AA;
-}
-```
+Sous 1024px (`lg`), le rail de navigation disparaît entièrement et une barre d'onglets fixe en bas d'écran prend le relais (voir Navigation ci-dessous) — ce n'est pas un simple repli du rail desktop, c'est un composant distinct adapté à l'absence de survol tactile.
+
+## Elevation & Depth
+
+Système hybride : **verre dépoli + glow sémantique**, pas de shadows Material classiques. Deux mécanismes distincts portent la profondeur :
+
+1. **Blur ambiant** — le rail de nav et l'en-tête de page utilisent `backdrop-filter: blur(8-12px)` sur un fond semi-transparent (`rgba(10,1,24,0.92)` pour le rail), laissant le dégradé de fond transparaître.
+2. **Glow coloré** — les cartes typées portent un `box-shadow` coloré (jamais gris) qui signale leur catégorie ; une carte neutre reste plate, sans ombre.
+
+### Shadow Vocabulary
+- **glow-study** (`0 0 16px rgba(78, 42, 132, 0.35)`): Bloc/Card Étude.
+- **glow-cours** (`0 0 16px rgba(155, 143, 255, 0.40)`): Bloc/Card Cours.
+- **glow-fitness** (`0 0 16px rgba(255, 209, 102, 0.35)`): Bloc Fitness.
+- **glow-recovery** (`0 0 16px rgba(168, 255, 120, 0.35)`): Bloc Récupération.
+- **glow-reco** (`0 0 20px rgba(255, 107, 157, 0.25)`): RecommendationCard.
+- **glow-*-sm** (`0 0 6px …`): variante compacte pour barres de progression et checkbox coché.
+
+### Named Rules
+**The No-Grey-Shadow Rule.** Aucune ombre neutre grise n'existe dans le système ; toute élévation perceptible est soit un blur translucide, soit un glow coloré sémantique.
+
+## Shapes
+
+Coins généreux mais pas ronds à l'excès : `rounded-xl` (12px) pour cartes et conteneurs, `rounded-lg` (8px) pour boutons et inputs, `rounded-full` pour badges/chips/pilules de nav/avatar. Bordures fines de 1px en `bordure-subtile`, sauf accent de catégorie qui utilise une bordure gauche de 3-4px en couleur pleine (`border-left`) sur les Bloc/Course Cards — c'est la seule bordure épaisse du système, et elle porte toujours une couleur sémantique.
+
+**Exception délibérée — écrans d'auth.** `.auth-submit-btn` (4px) et `.auth-input` (0px, simple `border-bottom`) utilisent des coins nettement plus carrés que le reste de l'app. C'est cohérent avec le ton "cérémonie/scène" de ces écrans (voir Ceremony Gradient Rule) — ne pas arrondir ces éléments pour "matcher" le reste de l'app sans décision explicite.
+
+## Components
+
+### Buttons
+- **Shape:** `rounded-lg` (8px).
+- **Primary:** dégradé `135deg, #4E2A84 → #C9006B`, texte blanc ; au survol, `brightness(1.12)` + `translateY(-1px)` (pas de changement de couleur discret, un effet de lumière).
+- **Secondary:** transparent, bordure et texte magenta (`#C9006B` à 50% d'opacité au repos).
+- **Ghost:** transparent, texte `gris-brume`, devient `blanc-lavande` au survol.
+- **États:** `disabled` tombe à 40% d'opacité et perd le `transform`.
+
+### Badges / Chips
+- **Style:** fond translucide de la couleur sémantique à 10-15% d'opacité, texte en couleur pleine, `rounded` (4px) pour les badges de type, `rounded-full` pour les Deadline Chips.
+- **Variantes:** study (violet), fitness (ambre), recovery (vert), reco (magenta), cours (lavande), warning (orange), success (vert).
+
+### Cards / Containers
+- **Corner Style:** `rounded-xl` (12px).
+- **Background:** `surface-verre` (blanc 5%) au repos, `elevated-verre` (blanc 8%) pour modals/popovers.
+- **Shadow Strategy:** glow sémantique si typée (voir Elevation & Depth) ; aucune ombre si neutre.
+- **Border:** 1px `bordure-subtile`, sauf accent gauche coloré sur Bloc/Course Card.
+- **Internal Padding:** 16px standard, 14/10px sur les Bloc Cards compactes.
+
+### Inputs / Fields
+- **Style:** fond `elevated-verre`, bordure `bordure-subtile`, `rounded-lg`.
+- **Focus:** ring double (`0 0 0 2px noir, 0 0 0 4px accent`) plutôt qu'un simple changement de bordure — variante magenta pour l'état d'erreur.
+- **Label:** au-dessus du champ, `gris-brume`, uppercase, 12px.
+
+### Navigation (SidebarNav — signature)
+Deux composants distincts selon le viewport, pas un seul qui se redimensionne :
+- **Rail desktop (`lg:` et plus)** : fixe 80px, fond `surface-nav` (`rgba(10,1,24,0.92)`) + blur 12px, logo bear centré en haut. Chaque item est une pilule 48×48 qui héberge une icône seule au repos (couleur `gris-nav-inactif`) ; au survol elle s'étire vers 150px, révèle un dégradé magenta (`#C9006B → #8B0055`) et le label en majuscules. Item actif : icône magenta + léger ring coloré, pas de fond plein (contrairement au survol).
+- **Barre d'onglets mobile (sous `lg:`)** : fixe en bas d'écran, même `surface-nav` + blur. Le survol n'existe pas au toucher, donc pas de pilule qui se déploie — icône + label toujours visibles, empilés verticalement, 44px de cible tactile minimum, padding `env(safe-area-inset-bottom)` pour l'indicateur d'accueil iOS.
+- **Avatar utilisateur** : cercle d'initiales, popover de déconnexion (fond `#1a0535`, bouton `rouge-destructif`) positionné dynamiquement — s'ouvre vers la droite sur le rail desktop, vers le haut (aligné à droite) dans la barre mobile.
+
+### Modals
+- **Shape:** `rounded-xl`, fond `elevated-verre`, `shadow-2xl`.
+- **Behavior:** `role="dialog"` + `aria-modal="true"` ; le focus est piégé à l'intérieur (Tab/Shift+Tab cycle sans en sortir), `Escape` ferme, le focus revient au déclencheur à la fermeture. Tout nouveau modal doit passer par `useModalA11y` (`lib/useModalA11y.ts`) plutôt que réimplémenter ce comportement.
+- **Backdrop:** `bg-black/70`, clic pour fermer.
+
+### Timeline / Bloc Card (signature)
+- Colonne verticale d'heures avec Bloc Cards empilées ; ligne "maintenant" séparée (`TimelineNowLine`).
+- Chaque Bloc affiche heure de début/fin, badge de type, titre en Syne, sous-titre optionnel, barre de progression optionnelle colorée selon le type.
+
+## Do's and Don'ts
+
+### Do:
+- **Do** garder le glow réservé aux Blocs/Cartes typés — une carte neutre (Tâche seule, texte) reste plate.
+- **Do** utiliser Syne exclusivement pour H1–H3 et titres de carte ; Space Grotesk partout ailleurs.
+- **Do** traiter la nav comme un rail d'icônes qui se révèle au survol, pas comme une sidebar à labels toujours visibles.
+- **Do** garder les dégradés rares : uniquement titre H1, boutons CTA primaires, fond global et header de page (le dégradé 3 couleurs cérémonie est une exception séparée, voir Colors).
+- **Do** rendre les contrôles hover-only (supprimer, éditer) accessibles sans souris : classe `.hover-reveal` (`app/globals.css`) plutôt qu'un `opacity-0 group-hover:opacity-100` fait main — elle gère aussi `group-focus-within` et `@media (hover: none)`.
+
+### Don't:
+- **Don't** ajouter de nouvelles surfaces en verre dépoli sans compter — le blur/translucide actuel (sidebar, header) est une dérive tolérée aujourd'hui, pas une direction à étendre ; toute nouvelle carte doit rester `surface-verre` opaque-perçue (5% blanc, sans blur) sauf demande explicite.
+- **Don't** traiter les 3 variantes de dégradé nébuleuse (`app/globals.css` 4 stops, `AuthLayout.tsx` 2 stops, `OnboardingForm.tsx` 4 stops à des valeurs légèrement différentes) comme unifiées — elles ne le sont pas encore. Ne pas copier l'une des trois comme référence pour un nouvel écran sans vérifier laquelle est vraiment la source de vérité ; unifier est un futur `/impeccable distill` ou `/impeccable document`, pas une supposition.
+- **Don't** construire de nouvelles fonctionnalités autour de `RecommendationCard`, `RecommendationType`, ou des modèles Prisma `HealthData`/`ScientificRule`/`Goal` sans confirmation produit — le composant existe et s'affiche encore (`/`, `/planning`), mais le moteur de génération sous-jacent est un vestige non branché (voir PRODUCT.md § Capabilities and Constraints). Il utilise `bear_no_background.png` (le seul bear asset disponible en 48px propre) faute d'un asset `bear-neon.png` dédié — fournir un vrai visuel néon si ce composant est un jour réactivé.
+- **Don't** réintroduire du blanc pur (`#ffffff` plein) en texte de contenu — `blanc-lavande` (`#F0F0FF`) est le plafond.
+- **Don't** utiliser les couleurs génériques Tailwind (`bg-blue-500`, `bg-green-500`, etc.) pour du contenu produit — elles n'apparaissent aujourd'hui que dans le sélecteur de couleur générique d'`EventManager` (composant shadcn importé, pas encore réaligné sur la palette sémantique) ; ne pas copier ce pattern ailleurs.

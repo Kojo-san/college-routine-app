@@ -92,7 +92,9 @@ function getInitials(name?: string): string {
     .join('')
 }
 
-function UserAvatarButton({ userName }: { userName?: string }) {
+/** `placement="side"` opens rightward (desktop rail); `"top"` opens upward and
+ *  right-aligned (mobile tab bar, where there's no room to the right). */
+function UserAvatarButton({ userName, placement = 'side' }: { userName?: string; placement?: 'side' | 'top' }) {
   const [open, setOpen] = useState(false)
   const [popoverStyle, setPopoverStyle] = useState<CSSProperties>({})
   const avatarRef = useRef<HTMLButtonElement>(null)
@@ -101,10 +103,8 @@ function UserAvatarButton({ userName }: { userName?: string }) {
   function handleToggle() {
     if (!open && avatarRef.current) {
       const rect = avatarRef.current.getBoundingClientRect()
-      setPopoverStyle({
+      const base: CSSProperties = {
         position: 'fixed',
-        bottom: window.innerHeight - rect.top + 8,
-        left: rect.right + 8,
         zIndex: 9999,
         minWidth: '180px',
         background: '#1a0535',
@@ -113,18 +113,23 @@ function UserAvatarButton({ userName }: { userName?: string }) {
         padding: '8px',
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
         whiteSpace: 'nowrap',
-      })
+      }
+      setPopoverStyle(
+        placement === 'top'
+          ? { ...base, bottom: window.innerHeight - rect.top + 8, right: window.innerWidth - rect.right }
+          : { ...base, bottom: window.innerHeight - rect.top + 8, left: rect.right + 8 }
+      )
     }
     setOpen(o => !o)
   }
 
   return (
-    <div className="mt-auto flex flex-col items-center pb-2">
+    <div className={placement === 'top' ? 'flex flex-col items-center' : 'mt-auto flex flex-col items-center pb-2'}>
       <button
         ref={avatarRef}
         type="button"
         onClick={handleToggle}
-        className="w-10 h-10 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center font-space-grotesk text-[13px] font-semibold text-text-muted hover:text-white hover:border-[#C9006B]/60 transition-all select-none cursor-pointer"
+        className="w-11 h-11 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center font-space-grotesk text-[13px] font-semibold text-text-muted hover:text-white hover:border-[#C9006B]/60 transition-all select-none cursor-pointer focus-ring"
         aria-label="Menu utilisateur"
         aria-expanded={open}
       >
@@ -151,49 +156,92 @@ function UserAvatarButton({ userName }: { userName?: string }) {
   )
 }
 
+/** Bottom tab bar for narrow viewports — hover-reveal pills don't work
+ *  without a pointing device, so labels stay always-visible here instead. */
+function MobileTabBar({ userName }: { userName?: string }) {
+  const pathname = usePathname()
+
+  return (
+    <nav
+      aria-label="Navigation principale"
+      className="lg:hidden fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around pb-safe-bottom"
+      style={{ background: 'rgba(10, 1, 24, 0.92)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(255,255,255,0.06)' }}
+    >
+      {NAV.map(({ href, label, Icon }) => {
+        const isActive = href === '/' ? pathname === href : pathname.startsWith(href)
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={isActive ? 'page' : undefined}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 min-h-11 min-w-11 py-2 focus-ring"
+          >
+            <Icon size={20} color={isActive ? '#C9006B' : '#9CA3AF'} aria-hidden="true" />
+            <span
+              className="font-space-grotesk text-[10px] font-semibold uppercase tracking-wide"
+              style={{ color: isActive ? '#C9006B' : '#9CA3AF' }}
+            >
+              {label}
+            </span>
+          </Link>
+        )
+      })}
+      <div className="flex-1 flex flex-col items-center justify-center min-h-11 min-w-11 py-1.5">
+        <UserAvatarButton userName={userName} placement="top" />
+      </div>
+    </nav>
+  )
+}
+
 export function SidebarNav({ userName }: { userName?: string }) {
   const pathname = usePathname()
 
   return (
-    <aside
-      aria-label="Navigation principale"
-      className="fixed inset-y-0 left-0 z-40 w-[80px] flex flex-col pt-6 pb-6 overflow-visible"
-      style={{ background: 'rgba(10, 1, 24, 0.92)', backdropFilter: 'blur(12px)', borderRight: '1px solid rgba(255,255,255,0.06)' }}
-    >
-      {/* Logo */}
-      <div
-        style={{
-          width: 44,
-          height: 44,
-          marginBottom: 16,
-          flexShrink: 0,
-          overflow: 'hidden',
-          alignSelf: 'center',
-        }}
+    <>
+      {/* Desktop icon rail — hover-expanding pills */}
+      <aside
+        aria-label="Navigation principale"
+        className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-[80px] flex-col pt-6 pb-6 overflow-visible"
+        style={{ background: 'rgba(10, 1, 24, 0.92)', backdropFilter: 'blur(12px)', borderRight: '1px solid rgba(255,255,255,0.06)' }}
       >
-        <Image
-          src="/assets/bear_no_background.png"
-          width={44}
-          height={44}
-          alt=""
-          aria-hidden="true"
-          className="object-contain opacity-85"
-        />
-      </div>
+        {/* Logo */}
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            marginBottom: 16,
+            flexShrink: 0,
+            overflow: 'hidden',
+            alignSelf: 'center',
+          }}
+        >
+          <Image
+            src="/assets/bear_no_background.png"
+            width={44}
+            height={44}
+            alt=""
+            aria-hidden="true"
+            className="object-contain opacity-85"
+          />
+        </div>
 
-      {/* Nav — pills anchored 10px from sidebar left, expand rightward */}
-      <nav className="flex flex-col gap-2 overflow-visible pl-[10px]">
-        {NAV.map((item) => {
-          const isActive =
-            item.href === '/'
-              ? pathname === item.href
-              : pathname.startsWith(item.href)
-          return <NavPill key={item.href} {...item} isActive={isActive} />
-        })}
-      </nav>
+        {/* Nav — pills anchored 10px from sidebar left, expand rightward */}
+        <nav className="flex flex-col gap-2 overflow-visible pl-[10px]">
+          {NAV.map((item) => {
+            const isActive =
+              item.href === '/'
+                ? pathname === item.href
+                : pathname.startsWith(item.href)
+            return <NavPill key={item.href} {...item} isActive={isActive} />
+          })}
+        </nav>
 
-      {/* User avatar + logout */}
-      <UserAvatarButton userName={userName} />
-    </aside>
+        {/* User avatar + logout */}
+        <UserAvatarButton userName={userName} />
+      </aside>
+
+      {/* Mobile bottom tab bar — icons + always-visible labels */}
+      <MobileTabBar userName={userName} />
+    </>
   )
 }

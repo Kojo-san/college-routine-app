@@ -14,6 +14,11 @@ export function CinematicTransition({
 }: CinematicTransitionProps) {
   const [fading, setFading] = useState(false)
   const [showSkip, setShowSkip] = useState(false)
+  // Read once at mount so the spiral never renders even a single frame
+  // for a user who has asked for reduced motion.
+  const [prefersReducedMotion] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
   const calledRef = useRef(false)
   const onCompleteRef = useRef(onComplete)
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -32,6 +37,13 @@ export function CinematicTransition({
       onCompleteRef.current()
     }, 600)
   }, [])
+
+  // ── Respect prefers-reduced-motion — skip straight through ────────────────
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      triggerComplete()
+    }
+  }, [prefersReducedMotion, triggerComplete])
 
   // ── Step 6: Performance safeguard — skip animation on <30 fps ─────────────
   useEffect(() => {
@@ -86,7 +98,7 @@ export function CinematicTransition({
         transition: fading ? 'opacity 600ms ease-out' : 'none',
       }}
     >
-      <SpiralAnimation className="absolute inset-0 w-full h-full" />
+      {!prefersReducedMotion && <SpiralAnimation className="absolute inset-0 w-full h-full" />}
 
       {showSkip && (
         <button

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useModalA11y } from '@/lib/useModalA11y'
 
 interface DeleteCourseButtonProps {
   courseId: string
@@ -11,6 +12,7 @@ export function DeleteCourseButton({ courseId }: DeleteCourseButtonProps) {
   const router = useRouter()
   const [open, setOpen]       = useState(false)
   const [loading, setLoading] = useState(false)
+  const containerRef = useModalA11y<HTMLDivElement>(open, () => { if (!loading) setOpen(false) })
 
   async function handleDelete() {
     setLoading(true)
@@ -35,14 +37,19 @@ export function DeleteCourseButton({ courseId }: DeleteCourseButtonProps) {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          ref={containerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-course-title"
+          tabIndex={-1}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm outline-none"
           onClick={() => { if (!loading) setOpen(false) }}
         >
           <div
             className="bg-bg-surface border border-border-subtle rounded-xl p-6 max-w-md w-full mx-4 flex flex-col gap-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="font-syne text-[18px] font-bold text-text-primary">
+            <h2 id="delete-course-title" className="font-syne text-[18px] font-bold text-text-primary">
               Supprimer ce cours ?
             </h2>
             <p className="font-space-grotesk text-[14px] text-text-muted leading-relaxed">

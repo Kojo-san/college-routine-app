@@ -41,7 +41,7 @@ export function RecommendationCard({ type, message, source, confidence, onAct }:
       {/* Header */}
       <div className="flex items-center justify-between">
         <Image
-          src="/assets/bear-neon.png"
+          src="/assets/bear_no_background.png"
           alt=""
           aria-hidden="true"
           width={48}

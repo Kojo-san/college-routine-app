@@ -1,41 +1,64 @@
 # Product
 
-## Register
+<!-- impeccable:product-schema 1 -->
 
-product
+## Platform
+
+web
 
 ## Users
 
-Étudiants universitaires (18–25 ans) qui gèrent simultanément des exigences académiques lourdes, un programme physique, et un équilibre cognitif fragile. Ils utilisent l'app quotidiennement, souvent le soir pour préparer le lendemain ou le matin pour consulter leur Planning du jour. Le contexte d'usage est nocturne, concentré, souvent stressé avant les Échéances.
+Étudiants universitaires, 18–25 ans, qui gèrent un semestre chargé de cours, tâches et échéances tout en essayant de garder une routine de gym régulière. Premier terrain de test : Polytechnique Montréal, mais le produit est destiné à d'autres étudiants universitaires, pas seulement à un usage personnel.
 
-Job to be done : avoir un Planning quotidien adaptatif qui intègre leurs Cours, leurs Signaux physiologiques (sommeil, fatigue) et leurs Objectifs, sans avoir à tout arbitrer manuellement.
+Job to be done : voir en un coup d'œil la semaine qui vient (cours, tâches, échéances, séances de gym) et organiser son agenda hebdomadaire sans jongler entre plusieurs outils.
 
 ## Product Purpose
 
-Plateforme intelligente de performance académique. Le système génère un Planning quotidien à partir de données académiques (Cours, Échéances, Tâches), physiologiques (Signaux, État) et d'Objectifs personnels, en appliquant des Règles ancrées dans la recherche scientifique. Chaque Recommandation cite sa Règle et sa source — la transparence algorithmique n'est pas optionnelle.
+Planificateur pour étudiants universitaires : gestion des Cours (horaire, plan de cours, Échéances, Tâches) et d'un Agenda hebdomadaire qui inclut les séances de gym. Succès : l'étudiant garde son semestre organisé — cours, travaux et gym visibles au même endroit — sans charge mentale de suivi manuel.
 
-Succès : l'Étudiant fait confiance au Planning, l'applique, et améliore ses performances académiques et physiques sur un semestre.
+## Positioning
 
-## Brand Personality
+Un planificateur académique dont l'agenda hebdomadaire traite les séances de gym comme un citoyen de première classe au même titre que les cours et les tâches, plutôt que comme une app fitness séparée ou une simple todo-list scolaire.
 
-Intense, Scientifique, Premium.
+## Operating Context
 
-Inspiré de *Graduation* (Kanye West, 2007) et de l'art de Takashi Murakami. L'interface est une salle de travail nocturne éclairée au néon — ni playful, ni corporate. Le Bear de Murakami est le protagoniste : sa présence suffit à signaler le type de contexte, sans jamais parler directement. Le ton est confiant et factuel, jamais condescendant.
+- Import/saisie de la grille horaire de cours en début de semestre (`/onboarding`, `/cours`).
+- Consultation et ajustement hebdomadaire de l'Agenda (`/agenda`) — cours, tâches, échéances, gym.
+- Suivi ponctuel des Tâches et Échéances par Cours (`/cours/[id]`).
+- Authentification par compte (login/register) — produit multi-utilisateur, pas un usage local à un seul poste.
 
-## Anti-references
+## Capabilities and Constraints
 
-- **Notion / Linear** : SaaS minimaliste gris-beige, hiérarchie plate, identité absente. College Routine doit avoir une identité visuelle forte, pas un whitespace sophistiqué.
-- **Google Classroom / Canvas** : éducatif institutionnel, flat, utilitaire. Aucune émotion, aucun soin pour la densité visuelle. College Routine est l'inverse exact — premium, noctune, construit pour la performance.
-- **Todoist / Things** : todo apps ultra-épurées sans identité. College Routine n'est pas une liste de tâches habillée en app.
+Construit et confirmé dans le code actuel :
+- CRUD Cours (avec horaire, heures de cours/labo/personnelles), Tâches, Échéances.
+- Agenda hebdomadaire (`AgendaClient`) avec gestion d'événements.
+- Préférence gym (activer/désactiver, heure préférée) rattachée au profil utilisateur.
+- Onboarding et Settings pour configurer le profil et les préférences.
 
-## Design Principles
+Abandonné / non construit (à ne pas présumer actif) :
+- Le moteur de Recommandations basé sur Signaux physiologiques (sommeil, fréquence cardiaque), État cognitif/physique, Règles scientifiques sourcées, et Objectifs personnels (GPA, poids). Ces modèles existent encore dans `prisma/schema.prisma` (`HealthData`, `RecoveryScore`, `CognitiveState`, `Recommendation`, `ScientificRule`, `Goal`, etc.) et `lib/ai.ts` contient encore la logique associée, mais rien ne les appelle depuis les routes `/api` ou les pages actuelles. Ne pas construire de nouvelles surfaces autour de ces modèles sans confirmation explicite — ce sont des vestiges d'une direction produit précédente.
+- Import de grille horaire par PDF (mentionné dans d'anciennes itérations) — non présent dans le code actuel.
 
-1. **La science est visible** — chaque Recommandation cite sa Règle et sa source. L'intelligence du système se prouve, elle ne se revendique pas.
-2. **La couleur est sémantique, pas décorative** — le glow d'un Bloc indique son type (Étude, Fitness, Récupération) d'un coup d'œil. Une carte neutre n'a pas de glow. La couleur porte l'information.
-3. **Le Bear signale, il ne parle pas** — sa présence dans un contexte (Recommandation, état vide, onboarding) suffit à le définir. Pas de mascotte bavarde, pas de bulles de dialogue.
-4. **Densité maîtrisée** — l'Étudiant a beaucoup d'information à gérer. L'interface présente la densité au service de la clarté : pas d'espaces vides superflus, pas de cartes trop grandes pour peu de contenu.
-5. **Le Planning est l'output principal** — toute navigation, tout état vide, toute Recommandation pointe vers le Planning. C'est le centre de gravité du produit.
+## Brand Commitments
+
+Voix de marque : sérieuse mais expressive, thème *Graduation* (Kanye West) / art Murakami. Le bear est un motif de marque récurrent (logo, états vides).
+
+Anti-références : esthétique IA beige générique, glassmorphism, cards imbriquées, gradients génériques, ghost cards, boutons excessivement arrondis.
+
+Palette déclarée : noir profond, Violet `#4E2A84`, Magenta `#C9006B`, Orange `#FF7043`.
+Note : DESIGN.md actuellement committé utilise une palette différente (bleu `#4A9EFF` / rose `#FF6B9D` sur fond quasi-noir `#0A0A14`). Cette divergence n'est pas résolue ici — à traiter explicitement lors d'un prochain `document` ou travail de redesign, pas assumée silencieusement dans un sens ou l'autre.
+
+## Evidence on Hand
+
+Déployé en production : https://college-routine-app.vercel.app (Vercel + Neon Postgres). Aucun contenu de démonstration, témoignage ou étude de cas à disposition — ne pas en inventer.
+
+## Product Principles
+
+1. **La semaine tient sur un seul agenda** — cours, tâches, échéances et gym vivent dans la même vue hebdomadaire ; pas d'app fitness séparée.
+2. **Le semestre structure tout** — Cours, horaire et heures personnelles sont configurés une fois (onboarding) puis alimentent Planning et Agenda automatiquement.
+3. **Pas de fonctionnalité fantôme** — les modèles de données hérités (santé, recommandations, objectifs) ne doivent pas réapparaître dans l'UI sans décision produit explicite.
+4. **Densité maîtrisée** — l'étudiant gère beaucoup d'information (plusieurs cours, tâches, échéances) ; l'interface priorise la clarté à la densité, pas le vide décoratif.
 
 ## Accessibility & Inclusion
 
-WCAG AA. Contraste minimum 4.5:1 sur le texte body, 3:1 sur les grands titres. Navigation clavier complète. Labels aria sur tous les éléments interactifs. `prefers-reduced-motion` respecté pour toutes les transitions et animations de glow. Les couleurs sémantiques (étude, fitness, récupération) ne sont jamais le seul vecteur d'information — le label texte accompagne toujours.
+WCAG AA visé. Contraste minimum 4.5:1 sur le texte courant, 3:1 sur les grands titres. Navigation clavier complète, labels aria sur les éléments interactifs. `prefers-reduced-motion` respecté pour toute transition/animation.

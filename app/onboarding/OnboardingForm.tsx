@@ -729,9 +729,11 @@ export function OnboardingForm({ name }: { name: string }) {
             <div
               style={{
                 height: '100%',
-                width: `${(step / TOTAL_STEPS) * 100}%`,
+                width: '100%',
                 background: 'linear-gradient(to right, #4E2A84, #C9006B)',
-                transition: 'width 400ms ease',
+                transform: `scaleX(${step / TOTAL_STEPS})`,
+                transformOrigin: 'left',
+                transition: 'transform 400ms ease',
               }}
             />
           </div>

@@ -280,6 +280,37 @@
     filter: drop-shadow(0 0 4px var(--color-accent-rec));
   }
 
+  /* Reveal-on-hover affordance (delete/edit triggers) — also reachable by
+     keyboard focus and always visible where there's no hover to reveal it */
+  .hover-reveal {
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+  .group:hover .hover-reveal,
+  .group:focus-within .hover-reveal {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .hover-reveal {
+      opacity: 1;
+    }
+  }
+
+  /* Clearance for the fixed mobile tab bar + iOS home-indicator safe area */
+  .pb-safe-tabbar {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 1024px) {
+    .pb-safe-tabbar {
+      padding-bottom: 2rem;
+    }
+  }
+
+  /* Bottom padding matching the home-indicator safe area, for fixed bars */
+  .pb-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   /* Focus ring brandé — box-shadow double pour simuler ring-offset */
   .focus-ring:focus-visible {
     outline: none;

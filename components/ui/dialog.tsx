@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { useModalA11y } from '@/lib/useModalA11y'
 
 export function Dialog({
   open,
@@ -11,21 +12,18 @@ export function Dialog({
   onOpenChange: (open: boolean) => void
   children: ReactNode
 }) {
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [open])
+  const containerRef = useModalA11y<HTMLDivElement>(open, () => onOpenChange(false))
 
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      ref={containerRef}
+      role="dialog"
+      aria-modal="true"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 outline-none"
+    >
       <div
         className="absolute inset-0 bg-black/70"
         onClick={() => onOpenChange(false)}
