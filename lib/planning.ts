@@ -1,9 +1,18 @@
 import type { RecoveryResult, CognitiveResult } from './health'
-import type { ScheduleSlot } from './schedule'
 import { getHealthData } from './health'
 import { enrichRecommendationMessage } from './ai'
 import type { SeedRule, AIRecommendationContext } from './ai'
 import prisma from './prisma'
+
+export interface ScheduleSlot {
+  dayOfWeek: number      // 0=Dim, 1=Lun … 6=Sam
+  startTime: string      // "HH:MM"
+  endTime: string        // "HH:MM"
+  type: 'COURS' | 'LAB'
+  code?: string          // course code, e.g. "INF2610"
+  room?: string          // room, e.g. "A416"
+  group?: string         // group, e.g. "02"
+}
 
 // ─── TimeBlock patch ──────────────────────────────────────────────────────────
 

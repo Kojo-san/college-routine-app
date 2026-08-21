@@ -48,7 +48,7 @@ export function CoursPageClient({ courses }: { courses: CourseWithStats[] }) {
       {isEmpty && !formOpen && (
         <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
           <BookIcon />
-          <h2 className="font-syne text-[20px] font-bold text-text-primary">
+          <h2 className="font-syne text-[18px] font-bold text-text-primary">
             Aucun cours pour ce semestre
           </h2>
           <p className="font-space-grotesk text-[14px] text-text-muted max-w-xs leading-relaxed">

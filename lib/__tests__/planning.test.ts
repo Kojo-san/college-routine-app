@@ -15,9 +15,9 @@ import type {
   PlanningPrefsInput,
   DeadlineInput,
   PlanningContext,
+  ScheduleSlot,
 } from '../planning'
 import type { RecoveryResult, CognitiveResult } from '../health'
-import type { ScheduleSlot } from '../schedule'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 

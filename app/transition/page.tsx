@@ -18,7 +18,7 @@ function TransitionContent() {
 
   useEffect(() => {
     if (!source) {
-      router.replace('/planning')
+      router.replace('/agenda')
       return
     }
     setReady(true)
@@ -28,11 +28,7 @@ function TransitionContent() {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('show_intro')
     }
-    if (source === 'onboarding') {
-      router.push('/agenda')
-    } else {
-      router.push('/planning')
-    }
+    router.push('/agenda')
   }
 
   if (!ready) return null

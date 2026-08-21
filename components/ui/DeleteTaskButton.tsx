@@ -60,7 +60,7 @@ export function DeleteTaskButton({ taskId, courseId }: DeleteTaskButtonProps) {
         {step === 'loading' ? (
           <span className="font-space-grotesk text-[11px]">…</span>
         ) : step === 'confirm' ? (
-          <span className="font-space-grotesk text-[10px] font-semibold">ok?</span>
+          <span className="font-space-grotesk text-[11px] font-semibold">ok?</span>
         ) : (
           <TrashIcon />
         )}

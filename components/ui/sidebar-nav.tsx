@@ -178,7 +178,7 @@ function MobileTabBar({ userName }: { userName?: string }) {
           >
             <Icon size={20} color={isActive ? '#C9006B' : '#9CA3AF'} aria-hidden="true" />
             <span
-              className="font-space-grotesk text-[10px] font-semibold uppercase tracking-wide"
+              className="font-space-grotesk text-[11px] font-semibold uppercase tracking-wide"
               style={{ color: isActive ? '#C9006B' : '#9CA3AF' }}
             >
               {label}

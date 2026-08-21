@@ -29,9 +29,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Redirect authenticated users away from auth pages and root
-  if (pathname === '/' || PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
-    return NextResponse.redirect(new URL('/planning', request.url))
+  // Redirect authenticated users away from auth pages
+  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+    return NextResponse.redirect(new URL('/agenda', request.url))
   }
 
   return NextResponse.next()

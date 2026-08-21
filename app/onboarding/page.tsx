@@ -11,7 +11,7 @@ export default async function OnboardingPage() {
     prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
   ])
 
-  if (prefs) redirect('/planning')
+  if (prefs) redirect('/agenda')
 
   return <OnboardingForm name={user?.name ?? 'Étudiant'} />
 }

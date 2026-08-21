@@ -30,6 +30,11 @@ typography:
     fontWeight: 700
     lineHeight: 1.1
     letterSpacing: "-0.02em"
+  section:
+    fontFamily: "Syne, sans-serif"
+    fontSize: "18px"
+    fontWeight: 700
+    lineHeight: 1.3
   headline:
     fontFamily: "Syne, sans-serif"
     fontSize: "16px"
@@ -51,6 +56,12 @@ typography:
     fontWeight: 500
     lineHeight: 1.4
     letterSpacing: "0.06em"
+  micro:
+    fontFamily: "Space Grotesk, sans-serif"
+    fontSize: "11px"
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: "0.05em"
 rounded:
   xs: "6px"
   sm: "8px"
@@ -135,20 +146,28 @@ Palette resserrée autour de deux familles de violet et un accent magenta, avec 
 
 ## Typography
 
-**Display / Headline / Title Font:** Syne (700/800)
-**Body / Label Font:** Space Grotesk (400/500)
+**Display / Section / Headline / Title Font:** Syne (700/800)
+**Body / Label / Micro Font:** Space Grotesk (400/500/600)
 
 **Character:** Syne apporte l'angularité affirmée des titres de scène (Graduation-esque) ; Space Grotesk garde le corps du texte lisible et neutre à haute densité. Les deux ne se mélangent jamais dans le même élément.
 
 ### Hierarchy
 - **Display** (700, `clamp(24px, 4vw, 36px)`, 1.1): titre de page (`h1.page-title`), toujours en dégradé texte blanc → magenta.
+- **Section** (700, 18px, 1.3, Syne) : titres de section h2 au sein d'une page — "Échéances", "Tâches à faire", titre de modal, états vides ("Aucun cours pour ce semestre"). Distinct du Headline : le Headline titre un composant (une carte), le Section titre une zone de la page elle-même.
 - **Headline** (700, 16px, 1.3): titres de carte (Card, Dialog, Cours).
 - **Title** (700, 15px, 1.3): titre de Bloc dans la Timeline.
 - **Body** (400, 14px, 1.5): texte courant, messages, contenu de carte.
 - **Label** (500, 12px, uppercase, tracking 0.06em): labels de champ, métadonnées, horaires, badges.
+- **Micro** (600, 11px, uppercase, tracking 0.05em, Space Grotesk) : le plancher de la hiérarchie — sigle de cours, marques d'heure de la Timeline, label de nav mobile, contenu de Badge. Plus petit que Label et toujours accompagné d'un élément visuel (icône, couleur, position) qui porte le sens principal ; le texte seul seul n'y suffit pas.
 
 ### Named Rules
 **The Syne-Never-In-Body Rule.** Syne apparaît uniquement sur H1–H3 et titres de carte ; jamais en paragraphe, jamais en label de champ.
+
+### Exception délibérée — bandeau calendrier compact
+`WeeklyPlanView.tsx` utilise 8–9px pour ses labels de jour/heure — plus petit que Micro. C'est un composant auto-contenu, volontairement très dense (bandeau `overflow-x-auto` de 7 jours), pas une base pour étendre le plancher de la hiérarchie ailleurs.
+
+### Dérive connue, non résolue
+`13px` apparaît de façon incohérente dans ~16 fichiers (boutons, paragraphes muets, messages d'erreur, labels de formulaire — login, register, settings, agenda, cours, dashboard, planning, onboarding) sans faire un travail distinct de Body (14px) ou Label (12px) : il occupe tantôt l'un, tantôt l'autre selon le fichier où il a été écrit à la main. Ce n'est pas un palier délibéré — ne pas le documenter comme tel, et ne pas le copier dans du nouveau code. Sa résolution (consolider vers Body ou Label selon le contexte réel de chaque site) est un chantier à part entière — trop large et trop risqué pour un correctif ponctuel sans vérification visuelle.
 
 ## Layout
 

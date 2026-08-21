@@ -68,6 +68,12 @@ enum ScheduleType {
   LAB
 }
 
+enum EventType {
+  COURS
+  LAB
+  PERSO
+}
+
 // ==================== UTILISATEUR ====================
 
 model User {
@@ -93,6 +99,24 @@ model User {
   healthData     HealthData[]
   dailyPlans     DailyPlan[]
   oauthTokens    OAuthToken[]
+  events         Event[]
+}
+
+// ==================== ÉVÉNEMENTS (agenda) ====================
+
+model Event {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  startTime DateTime
+  endTime   DateTime
+  type      EventType @default(PERSO)
+  color     String   @default("#4E2A84")
+  rrule     String?
+  location  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model PlanningPreferences {
@@ -106,6 +130,7 @@ model PlanningPreferences {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// DEPRECATED - to be removed after data migration
 model SemesterSetup {
   id         String   @id @default(uuid())
   wakeTime   String   // "HH:MM"
@@ -119,6 +144,7 @@ model SemesterSetup {
   courseHours CoursePersonalHours[]
 }
 
+// DEPRECATED - to be removed after data migration
 model CoursePersonalHours {
   id                   String @id @default(uuid())
   personalHoursPerWeek Float  // heures perso réelles/semaine (slider)
@@ -133,6 +159,7 @@ model CoursePersonalHours {
 }
 
 // Héritage par table unique (STI) pour Goal
+// DEPRECATED - to be removed after data migration
 model Goal {
   id          String    @id @default(uuid())
   type        GoalType
@@ -194,6 +221,7 @@ model CourseSchedule {
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
+// DEPRECATED - to be removed after data migration
 model CoursePlan {
   id              String   @id @default(uuid())
   sourceFileName  String
@@ -236,6 +264,7 @@ model Task {
 // ==================== SESSIONS ====================
 
 // Héritage par table unique (STI) pour Session
+// DEPRECATED - to be removed after data migration
 model Session {
   id        String        @id @default(uuid())
   type      SessionType
@@ -270,6 +299,7 @@ model Session {
 
 // ==================== SANTÉ ====================
 
+// DEPRECATED - to be removed after data migration
 model HealthData {
   id        String   @id @default(uuid())
   date      DateTime @db.Date
@@ -287,6 +317,7 @@ model HealthData {
   @@unique([userId, date])
 }
 
+// DEPRECATED - to be removed after data migration
 model SleepData {
   id                 String @id @default(uuid())
   sleepDurationHours Float
@@ -297,6 +328,7 @@ model SleepData {
   healthData   HealthData @relation(fields: [healthDataId], references: [id], onDelete: Cascade)
 }
 
+// DEPRECATED - to be removed after data migration
 model ActivityData {
   id             String @id @default(uuid())
   steps          Int    @default(0)
@@ -307,6 +339,7 @@ model ActivityData {
   healthData   HealthData @relation(fields: [healthDataId], references: [id], onDelete: Cascade)
 }
 
+// DEPRECATED - to be removed after data migration
 model HeartRateData {
   id               String @id @default(uuid())
   restingHeartRate Int
@@ -316,6 +349,7 @@ model HeartRateData {
   healthData   HealthData @relation(fields: [healthDataId], references: [id], onDelete: Cascade)
 }
 
+// DEPRECATED - to be removed after data migration
 model RecoveryScore {
   id               String @id @default(uuid())
   value            Int    // 0 à 100
@@ -327,6 +361,7 @@ model RecoveryScore {
   healthData   HealthData @relation(fields: [healthDataId], references: [id], onDelete: Cascade)
 }
 
+// DEPRECATED - to be removed after data migration
 model CognitiveState {
   id              String @id @default(uuid())
   focusLevel      Int    // 0 à 100
@@ -340,6 +375,7 @@ model CognitiveState {
 
 // ==================== PLANNING ====================
 
+// DEPRECATED - to be removed after data migration
 model DailyPlan {
   id           String   @id @default(uuid())
   date         DateTime @db.Date
@@ -356,6 +392,7 @@ model DailyPlan {
   @@unique([userId, date])
 }
 
+// DEPRECATED - to be removed after data migration
 model TimeBlock {
   id           String   @id @default(uuid())
   startTime    DateTime
@@ -376,6 +413,7 @@ model TimeBlock {
 
 // ==================== RECOMMANDATIONS ====================
 
+// DEPRECATED - to be removed after data migration
 model Recommendation {
   id              String             @id @default(uuid())
   type            RecommendationType
@@ -390,6 +428,7 @@ model Recommendation {
   rules ScientificRule[] @relation("RecommendationRules")
 }
 
+// DEPRECATED - to be removed after data migration
 model ScientificRule {
   id                     String @id @default(uuid())
   name                   String
@@ -402,6 +441,7 @@ model ScientificRule {
   recommendations Recommendation[] @relation("RecommendationRules")
 }
 
+// DEPRECATED - to be removed after data migration
 model EvidenceSource {
   id      String  @id @default(uuid())
   title   String
@@ -414,6 +454,7 @@ model EvidenceSource {
 
 // ==================== INTÉGRATIONS OAUTH ====================
 
+// DEPRECATED - to be removed after data migration
 model OAuthToken {
   id           String   @id @default(uuid())
   provider     String   // "google"
