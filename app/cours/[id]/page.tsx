@@ -49,7 +49,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           href="/cours"
           className="inline-flex items-center gap-2 font-space-grotesk text-[13px] text-text-muted hover:text-text-primary transition-colors"
         >
-          ← Retour aux Cours
+          Retour aux Cours
         </Link>
 
         {/* ── Métadonnées ── */}

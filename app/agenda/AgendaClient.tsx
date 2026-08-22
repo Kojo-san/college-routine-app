@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { EventOccurrence } from '@/lib/events'
 import { getMondayLocal, addDaysLocal, formatWeekRangeLabel, isSameLocalDay, WEEKDAY_LABELS_FR } from '@/lib/weekDates'
-import { Button } from '@/components/ui/Button'
 import { EventModal } from './EventModal'
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -16,10 +15,6 @@ const TOTAL_SLOTS = ((END_HOUR - START_HOUR) * 60) / SLOT_MINUTES
 const GRID_HEIGHT = TOTAL_SLOTS * SLOT_HEIGHT
 const GRIDLINE_COLOR = 'rgba(255,255,255,0.06)'
 const NOW_LINE_COLOR = '#C9006B'
-const MONTH_GRID_DAYS = 42 // 6 weeks × 7 days
-const MONTH_DOT_LIMIT = 3
-
-type ViewMode = 'week' | 'month'
 
 interface AgendaClientProps {
   initialWeekStart: string
@@ -48,11 +43,6 @@ function formatTimeRange(start: Date, end: Date): string {
   return `${fmt(start)} – ${fmt(end)}`
 }
 
-function formatMonthLabel(anchor: Date): string {
-  const label = anchor.toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' })
-  return label.charAt(0).toUpperCase() + label.slice(1)
-}
-
 // ── EmptyState ─────────────────────────────────────────────────────────────
 
 function EmptyState({ onAdd }: { onAdd: () => void }) {
@@ -68,9 +58,13 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       <p className="font-syne text-[15px] font-semibold text-text-primary">
         Aucun cours pour l&apos;instant
       </p>
-      <Button variant="primary" size="sm" onClick={onAdd}>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="px-4 py-2 rounded-lg bg-[#C9006B] text-white font-space-grotesk text-[13px] font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+      >
         + Ajouter un événement
-      </Button>
+      </button>
     </div>
   )
 }
@@ -183,14 +177,6 @@ function WeekGrid({ weekStart, events, now, onEventClick }: WeekGridProps) {
                       >
                         {formatTimeRange(start, end)}
                       </span>
-                      {event.location && (
-                        <span
-                          className="font-space-grotesk truncate leading-tight"
-                          style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}
-                        >
-                          {event.location}
-                        </span>
-                      )}
                     </button>
                   )
                 })}
@@ -212,91 +198,11 @@ function WeekGrid({ weekStart, events, now, onEventClick }: WeekGridProps) {
   )
 }
 
-// ── MonthGrid (read-only) ────────────────────────────────────────────────
-
-interface MonthGridProps {
-  monthAnchor: Date
-  gridStart: Date
-  events: EventOccurrence[]
-  now: Date
-  onDayClick: (day: Date) => void
-}
-
-function MonthGrid({ monthAnchor, gridStart, events, now, onDayClick }: MonthGridProps) {
-  const days = Array.from({ length: MONTH_GRID_DAYS }, (_, i) => addDaysLocal(gridStart, i))
-
-  return (
-    <div className="bg-bg-surface border border-border-subtle rounded-xl overflow-hidden">
-      <div className="grid grid-cols-7">
-        {WEEKDAY_LABELS_FR.map((label) => (
-          <div
-            key={label}
-            className="border-b px-1 py-2 text-center font-space-grotesk text-[11px] font-semibold uppercase tracking-[0.05em]"
-            style={{ borderColor: GRIDLINE_COLOR, color: 'rgba(255,255,255,0.6)' }}
-          >
-            {label}
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7">
-        {days.map((day) => {
-          const isToday = isSameLocalDay(day, now)
-          const isCurrentMonth = day.getMonth() === monthAnchor.getMonth()
-          const dayEvents = events.filter((e) => isSameLocalDay(new Date(e.startTime), day))
-          const visibleEvents = dayEvents.slice(0, MONTH_DOT_LIMIT)
-          const overflow = dayEvents.length - visibleEvents.length
-
-          return (
-            <button
-              key={day.toISOString()}
-              type="button"
-              onClick={() => onDayClick(day)}
-              className="flex flex-col items-start gap-1.5 border-b border-l p-2 text-left cursor-pointer transition-colors hover:bg-bg-elevated focus-ring"
-              style={{
-                borderColor: GRIDLINE_COLOR,
-                minHeight: 88,
-                backgroundColor: isToday ? 'rgba(201,0,107,0.06)' : 'transparent',
-                opacity: isCurrentMonth ? 1 : 0.4,
-              }}
-            >
-              <span
-                className="font-syne text-[13px] font-bold"
-                style={{ color: isToday ? '#C9006B' : 'var(--color-text-primary)' }}
-              >
-                {day.getDate()}
-              </span>
-              <div className="flex flex-wrap items-center gap-1">
-                {visibleEvents.map((event) => (
-                  <span
-                    key={event.id}
-                    aria-hidden="true"
-                    className="inline-block rounded-full"
-                    style={{ width: 6, height: 6, backgroundColor: event.color }}
-                  />
-                ))}
-                {overflow > 0 && (
-                  <span className="font-space-grotesk text-[10px] font-semibold text-text-muted">
-                    +{overflow}
-                  </span>
-                )}
-              </div>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 // ── AgendaClient ───────────────────────────────────────────────────────────
 
-export function AgendaClient({ initialEvents, initiallyEmpty }: AgendaClientProps) {
-  const [view, setView] = useState<ViewMode>('week')
+export function AgendaClient({ initialWeekStart, initialEvents, initiallyEmpty }: AgendaClientProps) {
   const [weekStart, setWeekStart] = useState(() => getMondayLocal(new Date()))
-  const [monthAnchor, setMonthAnchor] = useState(() => new Date())
   const [events, setEvents] = useState<EventOccurrence[]>(initialEvents)
-  const [monthEvents, setMonthEvents] = useState<EventOccurrence[]>([])
   const [hasAnyEventEver, setHasAnyEventEver] = useState(!initiallyEmpty)
   const [now, setNow] = useState(() => new Date())
   const [selectedEvent, setSelectedEvent] = useState<EventOccurrence | null>(null)
@@ -321,57 +227,16 @@ export function AgendaClient({ initialEvents, initiallyEmpty }: AgendaClientProp
     }
   }, [])
 
-  const monthGridStart = getMondayLocal(new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 1))
-
-  const fetchMonth = useCallback(async (gridStart: Date) => {
-    const gridEnd = addDaysLocal(gridStart, MONTH_GRID_DAYS)
-    try {
-      const res = await fetch(
-        `/api/events?rangeStart=${encodeURIComponent(gridStart.toISOString())}&rangeEnd=${encodeURIComponent(gridEnd.toISOString())}`,
-      )
-      if (!res.ok) return
-      const json = await res.json()
-      const data: EventOccurrence[] = json.data ?? []
-      setMonthEvents(data)
-      if (data.length > 0) setHasAnyEventEver(true)
-    } catch {
-      // silent — grid just keeps showing the last known events
-    }
-  }, [])
-
   // Refetch whenever the displayed week changes (covers the initial mount too,
-  // since the server render was only a best-effort guess).
+  // since `initialWeekStart` was only a server-side best guess).
   useEffect(() => {
     void fetchWeek(weekStart)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekStart])
 
-  // Fetch the month grid's range whenever the month view is shown or its anchor changes.
-  useEffect(() => {
-    if (view !== 'month') return
-    void fetchMonth(monthGridStart)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, monthGridStart.getTime()])
-
-  function goPrev() {
-    if (view === 'month') setMonthAnchor((a) => new Date(a.getFullYear(), a.getMonth() - 1, 1))
-    else setWeekStart((w) => addDaysLocal(w, -7))
-  }
-
-  function goNext() {
-    if (view === 'month') setMonthAnchor((a) => new Date(a.getFullYear(), a.getMonth() + 1, 1))
-    else setWeekStart((w) => addDaysLocal(w, 7))
-  }
-
-  function goToday() {
-    if (view === 'month') setMonthAnchor(new Date())
-    else setWeekStart(getMondayLocal(new Date()))
-  }
-
-  function goToDay(day: Date) {
-    setWeekStart(getMondayLocal(day))
-    setView('week')
-  }
+  function goPrev() { setWeekStart((w) => addDaysLocal(w, -7)) }
+  function goNext() { setWeekStart((w) => addDaysLocal(w, 7)) }
+  function goToday() { setWeekStart(getMondayLocal(new Date())) }
 
   function openCreate() {
     setSelectedEvent(null)
@@ -406,75 +271,45 @@ export function AgendaClient({ initialEvents, initiallyEmpty }: AgendaClientProp
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
-            <Button
-              variant="nav"
-              size="nav"
+            <button
+              type="button"
               onClick={goPrev}
-              aria-label={view === 'month' ? 'Mois précédent' : 'Semaine précédente'}
-              className="text-lg"
+              aria-label="Semaine précédente"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-border-subtle text-text-muted hover:text-text-primary hover:border-text-muted transition-colors cursor-pointer"
             >
-              ←
-            </Button>
-            <Button variant="secondary" size="sm" onClick={goToday}>
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={goToday}
+              className="px-3 h-8 rounded-lg border border-border-subtle text-text-muted hover:text-text-primary hover:border-text-muted font-space-grotesk text-[13px] transition-colors cursor-pointer"
+            >
               Aujourd&apos;hui
-            </Button>
-            <Button
-              variant="nav"
-              size="nav"
+            </button>
+            <button
+              type="button"
               onClick={goNext}
-              aria-label={view === 'month' ? 'Mois suivant' : 'Semaine suivante'}
-              className="text-lg"
+              aria-label="Semaine suivante"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-border-subtle text-text-muted hover:text-text-primary hover:border-text-muted transition-colors cursor-pointer"
             >
-              →
-            </Button>
+              ›
+            </button>
           </div>
           <span className="font-space-grotesk text-[13px] text-text-muted">
-            {view === 'month' ? formatMonthLabel(monthAnchor) : formatWeekRangeLabel(weekStart)}
+            {formatWeekRangeLabel(weekStart)}
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* View toggle */}
-          <div
-            className="flex items-center rounded-lg border p-0.5"
-            style={{ borderColor: GRIDLINE_COLOR }}
-            role="group"
-            aria-label="Affichage de l'agenda"
-          >
-            {(['week', 'month'] as ViewMode[]).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setView(mode)}
-                aria-pressed={view === mode}
-                className="px-3 py-1.5 rounded-[6px] font-space-grotesk text-[13px] font-medium transition-colors cursor-pointer"
-                style={{
-                  background: view === mode ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  color: view === mode ? 'var(--color-text-primary)' : 'rgba(255,255,255,0.5)',
-                }}
-              >
-                {mode === 'week' ? 'Semaine' : 'Mois'}
-              </button>
-            ))}
-          </div>
-
-          {view === 'week' && (
-            <Button variant="primary" size="sm" onClick={openCreate}>
-              + Ajouter
-            </Button>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={openCreate}
+          className="px-4 py-2 rounded-lg bg-[#C9006B] text-white font-space-grotesk text-[13px] font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+        >
+          + Ajouter
+        </button>
       </div>
 
-      {view === 'month' ? (
-        <MonthGrid
-          monthAnchor={monthAnchor}
-          gridStart={monthGridStart}
-          events={monthEvents}
-          now={now}
-          onDayClick={goToDay}
-        />
-      ) : isEmpty ? (
+      {isEmpty ? (
         <EmptyState onAdd={openCreate} />
       ) : (
         <WeekGrid weekStart={weekStart} events={events} now={now} onEventClick={openEdit} />

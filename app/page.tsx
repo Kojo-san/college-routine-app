@@ -115,7 +115,7 @@ export default async function DashboardPage() {
               href="/agenda"
               className="self-start font-space-grotesk text-[13px] font-medium text-[#C9006B] hover:underline"
             >
-              Voir la semaine complète →
+              Voir la semaine complète
             </Link>
           </div>
         </section>
@@ -160,7 +160,7 @@ export default async function DashboardPage() {
               href="/cours"
               className="self-start font-space-grotesk text-[13px] font-medium text-[#C9006B] hover:underline"
             >
-              Voir tous les cours →
+              Voir tous les cours
             </Link>
           </div>
         </section>

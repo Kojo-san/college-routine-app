@@ -105,7 +105,7 @@ export function CinematicTransition({
           onClick={triggerComplete}
           className="absolute bottom-8 right-8 px-5 py-2 rounded-full font-space-grotesk text-sm text-white/70 hover:text-white border border-white/20 hover:border-white/40 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200"
         >
-          Passer →
+          Passer
         </button>
       )}
     </div>
