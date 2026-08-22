@@ -1,5 +1,5 @@
 import { getOptionalSession } from '@/lib/session'
-import { getWeekEvents } from '@/lib/events'
+import { getWeekEvents, getEventsInRange } from '@/lib/events'
 import prisma from '@/lib/prisma'
 import type { EventType } from '@/app/generated/prisma/client'
 
@@ -8,6 +8,19 @@ export async function GET(request: Request) {
   if (!session) return Response.json({ error: 'Non authentifié' }, { status: 401 })
 
   const { searchParams } = new URL(request.url)
+  const rangeStartParam = searchParams.get('rangeStart')
+  const rangeEndParam = searchParams.get('rangeEnd')
+
+  if (rangeStartParam && rangeEndParam) {
+    const rangeStart = new Date(rangeStartParam)
+    const rangeEnd = new Date(rangeEndParam)
+    if (isNaN(rangeStart.getTime()) || isNaN(rangeEnd.getTime())) {
+      return Response.json({ error: 'rangeStart/rangeEnd invalide' }, { status: 400 })
+    }
+    const occurrences = await getEventsInRange(session.userId, rangeStart, rangeEnd)
+    return Response.json({ data: occurrences })
+  }
+
   const weekStartParam = searchParams.get('weekStart')
   if (!weekStartParam) {
     return Response.json({ error: 'weekStart requis' }, { status: 400 })

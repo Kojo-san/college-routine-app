@@ -34,7 +34,7 @@ const events: EventSeed[] = [
   {
     title: 'INF3710 — Fichiers et BD (Lab)',
     type: 'LAB',
-    color: '#4E2A84',
+    color: '#0EA5E9',
     // Monday 08:30–11:30 local → first Monday on/after 2026-09-01 = 2026-09-07
     start: new Date(Date.UTC(2026, 8, 7, 12, 30)),
     end: new Date(Date.UTC(2026, 8, 7, 15, 30)),
@@ -43,7 +43,7 @@ const events: EventSeed[] = [
   {
     title: 'INF3710 — Fichiers et BD (Cours)',
     type: 'COURS',
-    color: '#4E2A84',
+    color: '#0EA5E9',
     // Friday 14:45–17:45 local → first Friday on/after 2026-09-01 = 2026-09-04
     start: new Date(Date.UTC(2026, 8, 4, 18, 45)),
     end: new Date(Date.UTC(2026, 8, 4, 21, 45)),
@@ -52,7 +52,7 @@ const events: EventSeed[] = [
   {
     title: 'LOG3000 — Processus du GL (Lab)',
     type: 'LAB',
-    color: '#C9006B',
+    color: '#10B981',
     // Wednesday 08:30–11:30 local → first Wednesday on/after 2026-09-01 = 2026-09-02
     start: new Date(Date.UTC(2026, 8, 2, 12, 30)),
     end: new Date(Date.UTC(2026, 8, 2, 15, 30)),
@@ -61,7 +61,7 @@ const events: EventSeed[] = [
   {
     title: 'LOG3000 — Processus du GL (Cours)',
     type: 'COURS',
-    color: '#C9006B',
+    color: '#10B981',
     // Wednesday 12:45–14:45 local → 2026-09-02
     start: new Date(Date.UTC(2026, 8, 2, 16, 45)),
     end: new Date(Date.UTC(2026, 8, 2, 18, 45)),
@@ -70,7 +70,7 @@ const events: EventSeed[] = [
   {
     title: 'LOG3005 — Communication écrite et orale',
     type: 'COURS',
-    color: '#7C3AED',
+    color: '#F59E0B',
     // Wednesday 17:45–18:45 local → 2026-09-02
     start: new Date(Date.UTC(2026, 8, 2, 21, 45)),
     end: new Date(Date.UTC(2026, 8, 2, 22, 45)),
@@ -79,7 +79,7 @@ const events: EventSeed[] = [
   {
     title: 'LOG3430 — Méthodes de test (Lab)',
     type: 'LAB',
-    color: '#FF7043',
+    color: '#F43F5E',
     // Thursday 08:30–11:30 local → first Thursday on/after 2026-09-01 = 2026-09-03
     start: new Date(Date.UTC(2026, 8, 3, 12, 30)),
     end: new Date(Date.UTC(2026, 8, 3, 15, 30)),
@@ -88,7 +88,7 @@ const events: EventSeed[] = [
   {
     title: 'LOG3430 — Méthodes de test (Cours, en ligne)',
     type: 'COURS',
-    color: '#FF7043',
+    color: '#F43F5E',
     location: 'À distance',
     // Thursday 19:00–21:00 local → 2026-09-03 (crosses midnight UTC)
     start: new Date(Date.UTC(2026, 8, 3, 23, 0)),
@@ -98,7 +98,7 @@ const events: EventSeed[] = [
   {
     title: 'LOG3900 — Projet évol. logiciel (Cours)',
     type: 'COURS',
-    color: '#0891B2',
+    color: '#8B5CF6',
     // Tuesday 08:30–12:30 local → first Tuesday on/after 2026-09-01 = 2026-09-01
     start: new Date(Date.UTC(2026, 8, 1, 12, 30)),
     end: new Date(Date.UTC(2026, 8, 1, 16, 30)),
@@ -107,7 +107,7 @@ const events: EventSeed[] = [
   {
     title: 'LOG3900 — Projet évol. logiciel (Lab hebdo)',
     type: 'LAB',
-    color: '#0891B2',
+    color: '#8B5CF6',
     // Tuesday 10:30–17:45 local → 2026-09-01
     start: new Date(Date.UTC(2026, 8, 1, 14, 30)),
     end: new Date(Date.UTC(2026, 8, 1, 21, 45)),
@@ -120,6 +120,9 @@ async function main() {
   if (!user) throw new Error(`User ${USER_EMAIL} not found`)
 
   console.log(`Seeding events for ${user.name} (${USER_EMAIL})...`)
+
+  const { count } = await prisma.event.deleteMany({ where: { userId: user.id } })
+  console.log(`  Deleted ${count} existing event(s).`)
 
   for (const e of events) {
     const created = await prisma.event.create({

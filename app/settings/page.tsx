@@ -11,11 +11,6 @@ export default async function SettingsPage() {
     select: {
       name: true,
       program: true,
-      wakeTime: true,
-      sleepTime: true,
-      includeGym: true,
-      gymPreferences: true,
-      extraActivities: true,
     },
   })
 

@@ -74,12 +74,16 @@ export function expandOccurrences(
   })
 }
 
-export async function getWeekEvents(userId: string, weekStart: Date): Promise<EventOccurrence[]> {
-  const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000)
+export async function getEventsInRange(userId: string, rangeStart: Date, rangeEnd: Date): Promise<EventOccurrence[]> {
   const events = await prisma.event.findMany({ where: { userId } })
-  const occurrences = events.flatMap((e) => expandOccurrences(e, weekStart, weekEnd))
+  const occurrences = events.flatMap((e) => expandOccurrences(e, rangeStart, rangeEnd))
   occurrences.sort((a, b) => a.startTime.localeCompare(b.startTime))
   return occurrences
+}
+
+export async function getWeekEvents(userId: string, weekStart: Date): Promise<EventOccurrence[]> {
+  const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000)
+  return getEventsInRange(userId, weekStart, weekEnd)
 }
 
 export async function hasAnyEvents(userId: string): Promise<boolean> {

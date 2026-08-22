@@ -59,6 +59,13 @@ export async function deleteAccount(): Promise<void> {
   redirect('/register')
 }
 
+// Fixed defaults for the still-required PlanningPreferences row — onboarding
+// no longer collects sleep/wake times (the /planning feature that consumed
+// them was removed), but completeOnboarding still needs to create this row
+// since app/onboarding/page.tsx gates "onboarding done" on its existence.
+const DEFAULT_WAKE_TIME = '08:00'
+const DEFAULT_SLEEP_TIME = '23:00'
+
 export interface GymPreferencesInput {
   sessionsPerWeek: number
   sessionDuration: number
@@ -76,18 +83,12 @@ export interface OnboardingInput {
   name: string
   program: string
   semesterStart: string
-  wakeTime: string
-  sleepTime: string
-  includeGym: boolean
-  gymPreferences: GymPreferencesInput | null
-  extraActivities: ExtraActivity[]
 }
 
 export async function completeOnboarding(input: OnboardingInput): Promise<{ error?: string } | void> {
   const { userId } = await verifySession()
-  const { name, program, semesterStart, wakeTime, sleepTime, includeGym, gymPreferences, extraActivities } = input
+  const { name, program, semesterStart } = input
 
-  if (!wakeTime || !sleepTime) return { error: 'Heure de réveil et de coucher requises.' }
   if (!name || name.trim().length < 2) return { error: 'Le nom doit contenir au moins 2 caractères.' }
 
   await prisma.user.update({
@@ -96,20 +97,13 @@ export async function completeOnboarding(input: OnboardingInput): Promise<{ erro
       name: name.trim(),
       program: program || null,
       semesterStart: semesterStart || null,
-      wakeTime,
-      sleepTime,
-      includeGym,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      gymPreferences:  (includeGym && gymPreferences ? gymPreferences : undefined) as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      extraActivities: (extraActivities.length > 0 ? extraActivities : undefined) as any,
     },
   })
 
   await prisma.planningPreferences.upsert({
     where:  { userId },
-    create: { userId, preferredWakeTime: wakeTime, preferredSleepTime: sleepTime, maxDailyStudyHours: 6 },
-    update: { preferredWakeTime: wakeTime, preferredSleepTime: sleepTime },
+    create: { userId, preferredWakeTime: DEFAULT_WAKE_TIME, preferredSleepTime: DEFAULT_SLEEP_TIME, maxDailyStudyHours: 6 },
+    update: {},
   })
 
   redirect('/transition?source=onboarding')

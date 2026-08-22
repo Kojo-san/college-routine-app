@@ -83,8 +83,6 @@ model User {
   password  String?
   program         String?
   semesterStart   String?
-  sleepTime       String?
-  wakeTime        String?
   includeGym      Boolean  @default(false)
   gymPreferences  Json?
   extraActivities Json?

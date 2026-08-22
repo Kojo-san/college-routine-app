@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import type { EventOccurrence } from '@/lib/events'
 import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
 import { useModalA11y } from '@/lib/useModalA11y'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -26,7 +27,7 @@ const TYPE_OPTIONS: { value: EventTypeValue; label: string }[] = [
   { value: 'PERSO', label: 'Personnel' },
 ]
 
-const COLOR_SWATCHES = ['#7C5CFC', '#9B8FFF', '#C9006B', '#FFD166', '#A8FF78', '#4E2A84']
+const COLOR_SWATCHES = ['#0EA5E9', '#10B981', '#F59E0B', '#F43F5E', '#8B5CF6', '#64748B', '#4E2A84', '#C9006B']
 
 const DEFAULT_UNTIL = '2026-12-19'
 
@@ -368,39 +369,28 @@ export function EventModal({ event, defaultDate, onClose, onSaved, onDeleted }: 
           )}
 
           <div className="flex items-center gap-3 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={busy}
-              className="px-4 py-2 rounded-lg border border-border-subtle text-text-muted hover:text-text-primary hover:border-border-muted font-space-grotesk text-[13px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            >
+            <Button type="button" variant="secondary" size="sm" onClick={onClose} disabled={busy}>
               Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={busy}
-              className="px-4 py-2 app-btn-primary rounded-lg font-space-grotesk text-[13px] font-medium disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            >
+            </Button>
+            <Button type="submit" variant="primary" size="sm" disabled={busy}>
               {status === 'saving' ? 'Enregistrement…' : 'Enregistrer'}
-            </button>
+            </Button>
 
             {isEditing && (
-              <button
+              <Button
                 type="button"
+                variant="destructive"
+                size="sm"
                 onClick={handleDelete}
                 disabled={busy}
-                className={`ml-auto px-4 py-2 rounded-lg font-space-grotesk text-[13px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
-                  confirmDelete
-                    ? 'bg-accent-reco text-white'
-                    : 'border border-accent-reco/30 text-accent-reco/70 hover:text-accent-reco hover:border-accent-reco/60'
-                }`}
+                className={`ml-auto ${confirmDelete ? 'bg-accent-reco/20' : ''}`}
               >
                 {status === 'deleting'
                   ? 'Suppression…'
                   : confirmDelete
                     ? 'Confirmer la suppression'
                     : 'Supprimer cet événement'}
-              </button>
+              </Button>
             )}
           </div>
         </form>

@@ -10,8 +10,6 @@ export async function GET() {
     select: {
       name: true,
       program: true,
-      wakeTime: true,
-      sleepTime: true,
       includeGym: true,
       gymPreferences: true,
       extraActivities: true,
@@ -27,7 +25,7 @@ export async function PATCH(request: Request) {
 
   const body = await request.json()
 
-  const allowed = ['name', 'program', 'wakeTime', 'sleepTime', 'includeGym', 'gymPreferences', 'extraActivities']
+  const allowed = ['name', 'program', 'includeGym', 'gymPreferences', 'extraActivities']
   const data: Record<string, unknown> = {}
   for (const key of allowed) {
     if (key in body) data[key] = body[key]
@@ -47,8 +45,6 @@ export async function PATCH(request: Request) {
     select: {
       name: true,
       program: true,
-      wakeTime: true,
-      sleepTime: true,
       includeGym: true,
       gymPreferences: true,
       extraActivities: true,

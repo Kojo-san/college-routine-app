@@ -21,10 +21,9 @@ export function DeadlineForm({ courseId, onClose }: DeadlineFormProps) {
   const [title, setTitle]       = useState('')
   const [dueDate, setDueDate]   = useState('')
   const [weight, setWeight]     = useState('')
-  const [priority, setPriority] = useState('MEDIUM')
 
   function reset() {
-    setTitle(''); setDueDate(''); setWeight(''); setPriority('MEDIUM')
+    setTitle(''); setDueDate(''); setWeight('')
     setStatus('idle'); setErrorMsg('')
   }
 
@@ -47,7 +46,6 @@ export function DeadlineForm({ courseId, onClose }: DeadlineFormProps) {
           title:    title.trim(),
           dueDate,
           weight:   parseFloat(weight),
-          priority,
         }),
       })
 
@@ -117,26 +115,6 @@ export function DeadlineForm({ courseId, onClose }: DeadlineFormProps) {
             onChange={e => setWeight(e.target.value)}
             required
           />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="deadline-priority"
-            className="font-space-grotesk text-[12px] font-medium text-text-muted uppercase tracking-[0.06em]"
-          >
-            Priorité
-          </label>
-          <select
-            id="deadline-priority"
-            value={priority}
-            onChange={e => setPriority(e.target.value)}
-            className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2.5 font-space-grotesk text-[14px] text-text-primary focus-ring outline-none"
-            style={{ colorScheme: 'dark' }}
-          >
-            {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(p => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
         </div>
 
         <div className="flex items-center gap-3 pt-1">
