@@ -84,7 +84,12 @@ function buildRrule(repeat: RepeatOption, startTime: Date, untilDate: string | n
   if (repeat === 'daily') {
     rule = 'FREQ=DAILY'
   } else {
-    const byday = DAY_CODES[startTime.getDay()]
+    // rrule interprets DTSTART's Date via its UTC getters (it treats the
+    // instant's UTC fields as the "floating" wall clock for BYDAY matching),
+    // so BYDAY must be derived the same way — not via local getDay() — or
+    // the first occurrence won't match DTSTART and the rule will search
+    // forward to the wrong day/week.
+    const byday = DAY_CODES[startTime.getUTCDay()]
     rule = repeat === 'biweekly'
       ? `FREQ=WEEKLY;INTERVAL=2;BYDAY=${byday}`
       : `FREQ=WEEKLY;BYDAY=${byday}`
