@@ -89,7 +89,7 @@ export function DeadlineForm({ courseId, onClose }: DeadlineFormProps) {
       <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
         <Input
           label="Titre"
-          placeholder="Ex. Examen intra — 30%"
+          placeholder="Ex. Examen intra - 30%"
           value={title}
           onChange={e => setTitle(e.target.value)}
           required

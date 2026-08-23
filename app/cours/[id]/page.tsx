@@ -60,7 +60,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
         <DeadlineSection courseId={id}>
           {course.deadlines.length === 0 ? (
             <p className="font-space-grotesk text-[13px] text-text-muted">
-              Aucune Échéance — utilise le formulaire pour en ajouter.
+              Aucune Échéance.
             </p>
           ) : (
             <div className="flex flex-col gap-3">
@@ -83,7 +83,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
         <TaskSection courseId={id} taskCount={pendingTasks.length}>
           {pendingTasks.length === 0 ? (
             <p className="font-space-grotesk text-[13px] text-text-muted">
-              Aucune Tâche en cours — crée-en une.
+              Aucune tâche en cours.
             </p>
           ) : (
             <div className="bg-bg-surface border border-border-subtle rounded-xl px-4">

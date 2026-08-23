@@ -235,7 +235,7 @@ export function EventModal({ event, defaultDate, onClose, onSaved, onDeleted }: 
             onChange={(e) => setTitle(e.target.value)}
             required
             autoFocus
-            placeholder="Ex. INF3710 — Cours"
+            placeholder="Ex. INF3710 - Cours"
           />
 
           {/* Type */}
