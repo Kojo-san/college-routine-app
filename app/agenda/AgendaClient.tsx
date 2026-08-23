@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { EventOccurrence } from '@/lib/events'
 import { getMondayLocal, addDaysLocal, formatWeekRangeLabel, isSameLocalDay, WEEKDAY_LABELS_FR } from '@/lib/weekDates'
 import { Button } from '@/components/ui/Button'
@@ -411,9 +412,8 @@ export function AgendaClient({ initialEvents, initiallyEmpty }: AgendaClientProp
               size="nav"
               onClick={goPrev}
               aria-label={view === 'month' ? 'Mois précédent' : 'Semaine précédente'}
-              className="text-lg"
             >
-              ←
+              <ChevronLeft size={16} />
             </Button>
             <Button variant="secondary" size="sm" onClick={goToday}>
               Aujourd&apos;hui
@@ -423,9 +423,8 @@ export function AgendaClient({ initialEvents, initiallyEmpty }: AgendaClientProp
               size="nav"
               onClick={goNext}
               aria-label={view === 'month' ? 'Mois suivant' : 'Semaine suivante'}
-              className="text-lg"
             >
-              →
+              <ChevronRight size={16} />
             </Button>
           </div>
           <span className="font-space-grotesk text-[13px] text-text-muted">

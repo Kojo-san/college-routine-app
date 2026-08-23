@@ -1,29 +1,20 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
-import { DeadlineChip } from '@/components/ui/DeadlineChip'
+import { DeadlineItem } from '@/components/ui/DeadlineItem'
 import { TaskItem } from '@/components/ui/TaskItem'
 import { TaskSection } from '@/components/ui/TaskSection'
 import { DeadlineSection } from '@/components/ui/DeadlineSection'
 import { DeleteCourseButton } from '@/components/ui/DeleteCourseButton'
 import { DeleteTaskButton } from '@/components/ui/DeleteTaskButton'
+import { EditTaskButton } from '@/components/ui/EditTaskButton'
 import { getCourse } from '@/lib/courses'
 import { verifySession } from '@/lib/session'
-import type { DeadlineState } from '@/components/ui/DeadlineChip'
 import prisma from '@/lib/prisma'
 
 interface PageProps {
   params: Promise<{ id: string }>
-}
-
-function getDeadlineState(dueDate: Date, completed: boolean): DeadlineState {
-  if (completed) return 'done'
-  const daysLeft = (dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  return daysLeft <= 5 ? 'urgent' : 'normal'
-}
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 export default async function CourseDetailPage({ params }: PageProps) {
@@ -47,8 +38,9 @@ export default async function CourseDetailPage({ params }: PageProps) {
         {/* ── Navigation ── */}
         <Link
           href="/cours"
-          className="inline-flex items-center gap-2 font-space-grotesk text-[13px] text-text-muted hover:text-text-primary transition-colors"
+          className="inline-flex items-center gap-1 font-space-grotesk text-[13px] text-text-muted hover:text-text-primary transition-colors"
         >
+          <ChevronLeft size={14} />
           Retour aux Cours
         </Link>
 
@@ -73,23 +65,15 @@ export default async function CourseDetailPage({ params }: PageProps) {
           ) : (
             <div className="flex flex-col gap-3">
               {course.deadlines.map((d) => (
-                <div
+                <DeadlineItem
                   key={d.id}
-                  className="flex items-center justify-between bg-bg-surface border border-border-subtle rounded-xl px-4 py-3"
-                >
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-space-grotesk text-[14px] font-medium text-text-primary">
-                      {d.title}
-                    </span>
-                    <span className="font-space-grotesk text-[12px] text-text-muted">
-                      {formatDate(d.dueDate)} · {d.weight}%
-                    </span>
-                  </div>
-                  <DeadlineChip
-                    state={getDeadlineState(d.dueDate, d.completed)}
-                    label={d.completed ? 'Complété' : formatDate(d.dueDate)}
-                  />
-                </div>
+                  id={d.id}
+                  courseId={id}
+                  title={d.title}
+                  dueDate={d.dueDate}
+                  weight={d.weight}
+                  completed={d.completed}
+                />
               ))}
             </div>
           )}
@@ -111,7 +95,18 @@ export default async function CourseDetailPage({ params }: PageProps) {
                   estimatedDurationMinutes={task.estimatedDurationMinutes}
                   priority={task.priority}
                   defaultCompleted={false}
-                  actions={<DeleteTaskButton taskId={task.id} courseId={id} />}
+                  actions={
+                    <>
+                      <EditTaskButton
+                        taskId={task.id}
+                        courseId={id}
+                        title={task.title}
+                        description={task.description}
+                        estimatedDurationMinutes={task.estimatedDurationMinutes}
+                      />
+                      <DeleteTaskButton taskId={task.id} courseId={id} />
+                    </>
+                  }
                 />
               ))}
             </div>
@@ -136,7 +131,18 @@ export default async function CourseDetailPage({ params }: PageProps) {
                   estimatedDurationMinutes={task.estimatedDurationMinutes}
                   priority={task.priority}
                   defaultCompleted={true}
-                  actions={<DeleteTaskButton taskId={task.id} courseId={id} />}
+                  actions={
+                    <>
+                      <EditTaskButton
+                        taskId={task.id}
+                        courseId={id}
+                        title={task.title}
+                        description={task.description}
+                        estimatedDurationMinutes={task.estimatedDurationMinutes}
+                      />
+                      <DeleteTaskButton taskId={task.id} courseId={id} />
+                    </>
+                  }
                 />
               ))}
             </div>

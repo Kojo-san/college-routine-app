@@ -197,10 +197,9 @@ describe('validateDeadlineInput — invalid', () => {
     expect(validateDeadlineInput({ title: 'T', dueDate: 'not-a-date', weight: 30 }).valid).toBe(false)
   })
 
-  it('rejects missing weight', () => {
+  it('accepts missing weight (optional)', () => {
     const r = validateDeadlineInput({ title: 'T', dueDate: '2026-12-01' })
-    expect(r.valid).toBe(false)
-    expect(r.errors.some(e => e.toLowerCase().includes('poids'))).toBe(true)
+    expect(r.valid).toBe(true)
   })
 
   it('rejects weight < 0', () => {

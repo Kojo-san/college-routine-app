@@ -235,7 +235,7 @@ model Deadline {
   id        String   @id @default(uuid())
   title     String
   dueDate   DateTime
-  weight    Float    // pondération en pourcentage
+  weight    Float?   // pondération en pourcentage (optionnel)
   priority  Priority @default(MEDIUM)
   completed Boolean  @default(false)
   createdAt DateTime @default(now())

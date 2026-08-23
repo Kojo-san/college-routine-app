@@ -27,7 +27,7 @@ export interface CreateTaskInput {
 export interface CreateDeadlineInput {
   title: string
   dueDate: string  // "YYYY-MM-DD"
-  weight: number   // 0–100
+  weight?: number | null  // 0–100, optionnel
   priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
 }
 
@@ -113,9 +113,7 @@ export function validateDeadlineInput(input: unknown): ValidationResult {
     if (isNaN(d.getTime())) errors.push("La date d'échéance est invalide")
   }
 
-  if (i.weight === undefined || i.weight === null) {
-    errors.push("Le poids de l'Échéance est requis")
-  } else {
+  if (i.weight !== undefined && i.weight !== null) {
     const w = Number(i.weight)
     if (isNaN(w) || w < 0 || w > 100) errors.push('Le poids doit être entre 0 et 100')
   }
@@ -133,7 +131,7 @@ export interface DeadlinePreview {
   id: string
   title: string
   dueDate: Date
-  weight: number
+  weight: number | null
   completed: boolean
 }
 
@@ -262,6 +260,26 @@ export async function createTask(courseId: string, input: CreateTaskInput): Prom
   }
 }
 
+export async function updateTask(taskId: string, input: CreateTaskInput): Promise<TaskItem> {
+  const task = await prisma.task.update({
+    where: { id: taskId },
+    data: {
+      title:                    input.title.trim(),
+      description:              input.description ?? null,
+      estimatedDurationMinutes: input.estimatedDurationMinutes ?? 30,
+    },
+  })
+
+  return {
+    id:                       task.id,
+    title:                    task.title,
+    description:              task.description,
+    estimatedDurationMinutes: task.estimatedDurationMinutes,
+    priority:                 task.priority as TaskItem['priority'],
+    completed:                task.completed,
+  }
+}
+
 export async function deleteTask(taskId: string): Promise<void> {
   // TimeBlock.taskId → ON DELETE SET NULL — handled by DB constraint
   await prisma.task.delete({ where: { id: taskId } })
@@ -273,13 +291,31 @@ export async function createDeadline(courseId: string, input: CreateDeadlineInpu
       courseId,
       title:    input.title.trim(),
       dueDate:  new Date(input.dueDate + 'T12:00:00'),
-      weight:   input.weight,
+      weight:   input.weight ?? undefined,
       priority: input.priority ?? 'MEDIUM',
     },
     select: { id: true, title: true, dueDate: true, weight: true, completed: true },
   })
 
   return deadline
+}
+
+export async function updateDeadline(deadlineId: string, input: CreateDeadlineInput): Promise<DeadlinePreview> {
+  const deadline = await prisma.deadline.update({
+    where: { id: deadlineId },
+    data: {
+      title:   input.title.trim(),
+      dueDate: new Date(input.dueDate + 'T12:00:00'),
+      weight:  input.weight ?? null,
+    },
+    select: { id: true, title: true, dueDate: true, weight: true, completed: true },
+  })
+
+  return deadline
+}
+
+export async function deleteDeadline(deadlineId: string): Promise<void> {
+  await prisma.deadline.delete({ where: { id: deadlineId } })
 }
 
 export async function getCourse(courseId: string): Promise<CourseDetail | null> {

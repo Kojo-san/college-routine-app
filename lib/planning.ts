@@ -761,7 +761,7 @@ export async function generateDailyPlan(
       id: d.id,
       title: d.title,
       dueDate: d.dueDate,
-      weight: d.weight,
+      weight: d.weight ?? 0,
       completed: d.completed,
       courseId: c.id,
       courseCode: c.code,

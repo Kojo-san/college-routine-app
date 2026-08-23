@@ -45,7 +45,7 @@ export function DeadlineForm({ courseId, onClose }: DeadlineFormProps) {
         body: JSON.stringify({
           title:    title.trim(),
           dueDate,
-          weight:   parseFloat(weight),
+          weight:   weight.trim() ? parseFloat(weight) : null,
         }),
       })
 
@@ -105,7 +105,7 @@ export function DeadlineForm({ courseId, onClose }: DeadlineFormProps) {
             required
           />
           <Input
-            label="Poids (%)"
+            label="Poids (%) (optionnel)"
             type="number"
             min="0"
             max="100"
@@ -113,7 +113,6 @@ export function DeadlineForm({ courseId, onClose }: DeadlineFormProps) {
             placeholder="30"
             value={weight}
             onChange={e => setWeight(e.target.value)}
-            required
           />
         </div>
 

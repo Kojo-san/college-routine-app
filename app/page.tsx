@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { verifySession } from '@/lib/session'
 import { getWeekEvents } from '@/lib/events'
@@ -113,9 +114,10 @@ export default async function DashboardPage() {
             )}
             <Link
               href="/agenda"
-              className="self-start font-space-grotesk text-[13px] font-medium text-[#C9006B] hover:underline"
+              className="app-btn-primary self-start inline-flex items-center gap-2 rounded-lg px-5 py-2.5 font-space-grotesk text-sm font-semibold"
             >
               Voir la semaine complète
+              <ArrowRight size={14} />
             </Link>
           </div>
         </section>
@@ -158,9 +160,10 @@ export default async function DashboardPage() {
             )}
             <Link
               href="/cours"
-              className="self-start font-space-grotesk text-[13px] font-medium text-[#C9006B] hover:underline"
+              className="app-btn-primary self-start inline-flex items-center gap-2 rounded-lg px-5 py-2.5 font-space-grotesk text-sm font-semibold"
             >
               Voir tous les cours
+              <ArrowRight size={14} />
             </Link>
           </div>
         </section>

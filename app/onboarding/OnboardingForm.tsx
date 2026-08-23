@@ -235,7 +235,7 @@ export function OnboardingForm({ name }: { name: string }) {
               className="auth-submit-btn font-space-grotesk"
               style={{ height: '52px' }}
             >
-              Suivant →
+              Suivant
             </button>
           ) : (
             <button
@@ -245,7 +245,7 @@ export function OnboardingForm({ name }: { name: string }) {
               className="auth-submit-btn font-space-grotesk"
               style={{ height: '52px' }}
             >
-              {pending ? 'Enregistrement…' : "Accéder à l'agenda →"}
+              {pending ? 'Enregistrement…' : "Accéder à l'agenda"}
             </button>
           )}
         </div>

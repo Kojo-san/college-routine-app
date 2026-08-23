@@ -21,10 +21,9 @@ export function TaskForm({ courseId, onClose }: TaskFormProps) {
   const [title, setTitle]           = useState('')
   const [description, setDesc]      = useState('')
   const [duration, setDuration]     = useState('30')
-  const [priority, setPriority]     = useState('MEDIUM')
 
   function reset() {
-    setTitle(''); setDesc(''); setDuration('30'); setPriority('MEDIUM')
+    setTitle(''); setDesc(''); setDuration('30')
     setStatus('idle'); setErrorMsg('')
   }
 
@@ -47,7 +46,6 @@ export function TaskForm({ courseId, onClose }: TaskFormProps) {
           title:                    title.trim(),
           description:              description.trim() || null,
           estimatedDurationMinutes: parseInt(duration, 10) || 30,
-          priority,
         }),
       })
 
@@ -105,35 +103,14 @@ export function TaskForm({ courseId, onClose }: TaskFormProps) {
           onChange={e => setDesc(e.target.value)}
         />
 
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="Durée estimée (min)"
-            type="number"
-            min="1"
-            placeholder="30"
-            value={duration}
-            onChange={e => setDuration(e.target.value)}
-          />
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="task-priority"
-              className="font-space-grotesk text-[12px] font-medium text-text-muted uppercase tracking-[0.06em]"
-            >
-              Priorité
-            </label>
-            <select
-              id="task-priority"
-              value={priority}
-              onChange={e => setPriority(e.target.value)}
-              className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2.5 font-space-grotesk text-[14px] text-text-primary focus-ring outline-none"
-              style={{ colorScheme: 'dark' }}
-            >
-              {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(p => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <Input
+          label="Durée estimée (min) (optionnel)"
+          type="number"
+          min="1"
+          placeholder="30"
+          value={duration}
+          onChange={e => setDuration(e.target.value)}
+        />
 
         <div className="flex items-center gap-3 pt-1">
           <Button type="submit" variant="primary" disabled={status === 'loading'}>

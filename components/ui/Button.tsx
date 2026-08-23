@@ -28,7 +28,7 @@ const VARIANT: Record<string, string> = {
     'bg-transparent border border-[rgba(255,60,60,0.5)] text-[#ff6b6b] hover:bg-red-500/10',
   link:
     'bg-transparent text-[#C9006B] underline-offset-4 hover:underline',
-  // Typographic ← / → navigation controls only (Précédent, Retour, week nav).
+  // Icon-only navigation controls only (Lucide ChevronLeft/Right — week/month nav).
   nav:
     'bg-transparent border-0 text-white/70 hover:text-white',
 }

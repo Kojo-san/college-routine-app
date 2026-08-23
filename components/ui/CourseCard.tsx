@@ -7,7 +7,7 @@ interface DeadlinePreview {
   id: string
   title: string
   dueDate: Date
-  weight: number
+  weight: number | null
   completed: boolean
 }
 
@@ -85,7 +85,7 @@ export function CourseCard({
             <DeadlineChip
               key={d.id}
               state={getDeadlineState(d.dueDate, d.completed)}
-              label={`${d.title} · ${formatDaysLeft(d.dueDate)} · ${d.weight}%`}
+              label={`${d.title} · ${formatDaysLeft(d.dueDate)}${d.weight != null ? ` · ${d.weight}%` : ''}`}
             />
           ))}
         </div>

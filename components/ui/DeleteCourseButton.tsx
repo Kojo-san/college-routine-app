@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useModalA11y } from '@/lib/useModalA11y'
+import { Button } from './Button'
 
 interface DeleteCourseButtonProps {
   courseId: string
@@ -27,13 +28,9 @@ export function DeleteCourseButton({ courseId }: DeleteCourseButtonProps) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="font-space-grotesk text-[13px] transition-colors duration-150 focus-ring rounded-lg px-3 py-1.5 border border-accent-reco/30 text-accent-reco/60 hover:text-accent-reco hover:border-accent-reco/60"
-      >
+      <Button type="button" variant="destructive" size="sm" onClick={() => setOpen(true)}>
         Supprimer ce cours
-      </button>
+      </Button>
 
       {open && (
         <div
@@ -57,22 +54,12 @@ export function DeleteCourseButton({ courseId }: DeleteCourseButtonProps) {
               échéances associées. Il sera également retiré de ta grille horaire dans l&apos;agenda.
             </p>
             <div className="flex gap-3 justify-end">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                disabled={loading}
-                className="font-space-grotesk text-[13px] px-4 py-2 rounded-lg border border-border-subtle text-text-muted hover:text-text-primary hover:border-border-muted transition-colors duration-150 focus-ring disabled:opacity-40 disabled:cursor-not-allowed"
-              >
+              <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)} disabled={loading}>
                 Annuler
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={loading}
-                className="font-space-grotesk text-[13px] px-4 py-2 rounded-lg bg-accent-reco text-white hover:opacity-90 transition-opacity duration-150 focus-ring disabled:opacity-40 disabled:cursor-not-allowed"
-              >
+              </Button>
+              <Button type="button" variant="destructive" size="sm" onClick={handleDelete} disabled={loading}>
                 {loading ? 'Suppression…' : 'Supprimer'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
