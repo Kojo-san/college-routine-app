@@ -118,7 +118,7 @@ export function DeadlineForm({ courseId, onClose }: DeadlineFormProps) {
 
         <div className="flex items-center gap-3 pt-1">
           <Button type="submit" variant="primary" disabled={status === 'loading'}>
-            {status === 'loading' ? 'Ajout…' : 'Ajouter l\'Échéance'}
+            {status === 'loading' ? 'Ajout…' : 'Ajouter'}
           </Button>
           {status === 'error' && (
             <p role="alert" className="font-space-grotesk text-[13px] text-accent-reco">

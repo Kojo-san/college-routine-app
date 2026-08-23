@@ -117,7 +117,6 @@ export default async function DashboardPage() {
               className="app-btn-primary self-start inline-flex items-center gap-2 rounded-lg px-5 py-2.5 font-space-grotesk text-sm font-semibold"
             >
               Voir la semaine complète
-              <ArrowRight size={14} />
             </Link>
           </div>
         </section>
@@ -163,7 +162,6 @@ export default async function DashboardPage() {
               className="app-btn-primary self-start inline-flex items-center gap-2 rounded-lg px-5 py-2.5 font-space-grotesk text-sm font-semibold"
             >
               Voir tous les cours
-              <ArrowRight size={14} />
             </Link>
           </div>
         </section>
