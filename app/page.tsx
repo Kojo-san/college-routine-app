@@ -74,7 +74,7 @@ export default async function DashboardPage() {
     .slice(0, 3)
 
   return (
-    <PageLayout title="Dashboard" etudiantNom={user?.name ?? undefined}>
+    <PageLayout title="Accueil" etudiantNom={user?.name ?? undefined}>
       <div className="flex flex-col gap-8 max-w-2xl">
 
         {/* ── Date ── */}
