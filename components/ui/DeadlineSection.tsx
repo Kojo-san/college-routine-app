@@ -17,7 +17,7 @@ export function DeadlineSection({ courseId, children }: DeadlineSectionProps) {
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-syne text-[18px] font-bold text-text-primary">Échéances</h2>
         {!formOpen && (
-          <Button variant="secondary" onClick={() => setFormOpen(true)}>
+          <Button variant="default" onClick={() => setFormOpen(true)}>
             Ajouter une Échéance
           </Button>
         )}

@@ -28,7 +28,7 @@ export function DeleteCourseButton({ courseId }: DeleteCourseButtonProps) {
 
   return (
     <>
-      <Button type="button" variant="destructive" size="sm" onClick={() => setOpen(true)}>
+      <Button type="button" variant="destructive" onClick={() => setOpen(true)}>
         Supprimer ce cours
       </Button>
 

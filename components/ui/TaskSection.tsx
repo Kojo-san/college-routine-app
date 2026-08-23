@@ -25,7 +25,7 @@ export function TaskSection({ courseId, taskCount, children }: TaskSectionProps)
           )}
         </h2>
         {!formOpen && (
-          <Button variant="secondary" onClick={() => setFormOpen(true)}>
+          <Button variant="default" onClick={() => setFormOpen(true)}>
             Ajouter une Tâche
           </Button>
         )}

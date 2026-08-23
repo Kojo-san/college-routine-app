@@ -34,7 +34,7 @@ export function CoursPageClient({ courses }: { courses: CourseWithStats[] }) {
             {courses.length} cours ce semestre
           </p>
           {!formOpen && (
-            <Button variant="secondary" onClick={() => setFormOpen(true)}>
+            <Button variant="default" onClick={() => setFormOpen(true)}>
               + Ajouter un cours
             </Button>
           )}
@@ -54,7 +54,7 @@ export function CoursPageClient({ courses }: { courses: CourseWithStats[] }) {
           <p className="font-space-grotesk text-[14px] text-text-muted max-w-xs leading-relaxed">
             Commence par ajouter tes cours pour organiser ton semestre.
           </p>
-          <Button variant="primary" onClick={() => setFormOpen(true)} className="mt-2">
+          <Button variant="default" onClick={() => setFormOpen(true)} className="mt-2">
             + Ajouter un cours
           </Button>
         </div>

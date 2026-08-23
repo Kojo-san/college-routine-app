@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { verifySession } from '@/lib/session'
 import { getWeekEvents } from '@/lib/events'

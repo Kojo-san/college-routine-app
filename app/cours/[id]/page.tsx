@@ -38,9 +38,9 @@ export default async function CourseDetailPage({ params }: PageProps) {
         {/* ── Navigation ── */}
         <Link
           href="/cours"
-          className="inline-flex items-center gap-1 font-space-grotesk text-[13px] text-text-muted hover:text-text-primary transition-colors"
+          className="inline-flex items-center gap-1.5 self-start rounded-lg border border-[rgba(255,255,255,0.25)] px-3 py-1.5 font-space-grotesk text-[14px] text-white transition-colors hover:bg-white/5"
         >
-          <ChevronLeft size={14} />
+          <ChevronLeft size={16} />
           Retour aux Cours
         </Link>
 
